@@ -1,282 +1,146 @@
-import React, { createContext, useContext, useState } from 'react';
-import { initialCollegeData } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [data, setData] = useState(initialCollegeData);
-  
-  // Default logged-in user (preset as Student 1MS21CS042 for instant preview, can be changed via login)
-  const [currentUser, setCurrentUser] = useState(initialCollegeData.users[0]);
-  
-  // Current Active Working Role: 'STUDENT' | 'FACULTY' | 'COORDINATOR' | 'ADMIN'
-  const [currentRole, setCurrentRole] = useState('STUDENT');
-  
-  // Active Page Tab
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Modal state for role selection gateway if teacher has both roles
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentRole, setCurrentRole] = useState(null);
+  const [activeTab, setActiveTab] = useState('login');
   const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [pendingRole, setPendingRole] = useState(null);
 
-  // Login handler
-  const login = (emailOrUsername, password) => {
-    const found = data.users.find(
-      u => u.username.toLowerCase() === emailOrUsername.toLowerCase() || 
-           u.email.toLowerCase() === emailOrUsername.toLowerCase()
-    );
-
-    if (found) {
-      setCurrentUser(found);
-      if (found.role === 'STUDENT') {
-        setCurrentRole('STUDENT');
-        setActiveTab('dashboard');
-      } else if (found.role === 'ADMIN') {
-        setCurrentRole('ADMIN');
-        setActiveTab('dashboard');
-      } else if (found.role === 'TEACHER') {
-        if (found.teacherRoles.length > 1) {
-          setShowRoleSelectionModal(true);
-        } else {
-          setCurrentRole(found.teacherRoles[0]);
-          setActiveTab('dashboard');
-        }
+  useEffect(() => {
+    const handleProfileResolution = async (session) => {
+      if (!session) {
+        setCurrentUser(null);
+        setCurrentRole(null);
+        setActiveTab('login');
+        setIsAuthLoading(false);
+        return;
       }
+      try {
+        const profile = await authService.getUserProfile(session.user.email);
+        
+        // If there's a pending role from a fresh login, validate it
+        if (pendingRole) {
+          let isValid = false;
+          if (pendingRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
+          if (pendingRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
+          if (pendingRole === 'FACULTY' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('FACULTY')) isValid = true;
+          if (pendingRole === 'COORDINATOR' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('COORDINATOR')) isValid = true;
+
+          if (!isValid) {
+            await authService.logout();
+            setCurrentUser(null);
+            setCurrentRole(null);
+            setActiveTab('login');
+            setIsAuthLoading(false);
+            setPendingRole(null);
+            return;
+          }
+        }
+
+        setCurrentUser(profile);
+        
+        if (profile.role === 'STUDENT') {
+          setCurrentRole('STUDENT');
+          setActiveTab('dashboard');
+        } else if (profile.role === 'ADMIN') {
+          setCurrentRole('ADMIN');
+          setActiveTab('dashboard');
+        } else if (profile.role === 'TEACHER') {
+          if (pendingRole === 'COORDINATOR' || pendingRole === 'FACULTY') {
+            setCurrentRole(pendingRole);
+            setActiveTab('dashboard');
+          } else if (profile.teacherRoles && profile.teacherRoles.length > 1) {
+            setShowRoleSelectionModal(true);
+            setActiveTab('dashboard');
+          } else {
+            setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
+            setActiveTab('dashboard');
+          }
+        }
+        setPendingRole(null);
+      } catch (err) {
+        console.error("Profile resolution error:", err);
+        setCurrentUser(null);
+        setCurrentRole(null);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleProfileResolution(session);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleProfileResolution(session);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email, password, expectedRole) => {
+    try {
+      setPendingRole(expectedRole);
+      const res = await authService.login(email, password);
+      
+      // We manually validate the profile here so we can return an error immediately to Login.jsx
+      const profile = await authService.getUserProfile(email);
+      let isValid = false;
+      if (expectedRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
+      if (expectedRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
+      if (expectedRole === 'FACULTY' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('FACULTY')) isValid = true;
+      if (expectedRole === 'COORDINATOR' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('COORDINATOR')) isValid = true;
+
+      if (!isValid) {
+        await authService.logout();
+        setPendingRole(null);
+        return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
+      }
+
       return { success: true };
-    } else {
-      return { success: false, message: "Invalid College Credentials. Please check USN / Email." };
+    } catch (err) {
+      setPendingRole(null);
+      return { success: false, message: err.message };
     }
   };
 
-  // Switch Teacher Working Role (Faculty <-> Coordinator)
   const switchTeacherRole = (newRole) => {
     setCurrentRole(newRole);
     setActiveTab('dashboard');
     setShowRoleSelectionModal(false);
   };
 
-  // Quick Switch Preset User for Easy Assessment Demo
-  const quickSwitchUser = (userId, targetRole) => {
-    const found = data.users.find(u => u.id === userId);
-    if (found) {
-      setCurrentUser(found);
-      setCurrentRole(targetRole || (found.teacherRoles ? found.teacherRoles[0] : found.role));
-      setActiveTab('dashboard');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error("Logout failed", err);
     }
   };
 
-  // Logout handler
-  const logout = () => {
-    setCurrentUser(null);
-    setCurrentRole(null);
-    setActiveTab('login');
-  };
 
-  // 1. Group Leader: Set Submission Mode (Mode A vs Mode B)
-  const setGroupSubmissionMode = (groupId, newMode) => {
-    setData(prev => ({
-      ...prev,
-      groups: prev.groups.map(g => {
-        if (g.id === groupId) {
-          return { ...g, submissionMode: newMode };
-        }
-        return g;
-      }),
-      auditLogs: [
-        {
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
-          action: "MODE_CHANGE",
-          details: `Group ${groupId} leader switched submission mode to ${newMode}`
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  // 2. Group Leader: Update Distributed Component Assignments
-  const updateComponentAssignments = (groupId, updatedAssignments) => {
-    // updatedAssignments is an object: { componentKey: [array of assigned USNs] }
-    setData(prev => ({
-      ...prev,
-      groups: prev.groups.map(g => {
-        if (g.id === groupId) {
-          const newComponents = { ...g.components };
-          Object.keys(updatedAssignments).forEach(compKey => {
-            const assignedUsns = updatedAssignments[compKey];
-            const assignedNames = g.members
-              .filter(m => assignedUsns.includes(m.usn))
-              .map(m => m.name);
-
-            newComponents[compKey] = {
-              ...newComponents[compKey],
-              assignedUsns,
-              assignedNames
-            };
-          });
-          return { ...g, components: newComponents };
-        }
-        return g;
-      }),
-      auditLogs: [
-        {
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
-          action: "ASSIGNMENTS_UPDATED",
-          details: `Updated distributed component submission responsibilities for Group ${groupId}`
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  // 3. Submit/Upload a Group Project Component
-  const submitGroupComponent = (groupId, componentKey, payload) => {
-    setData(prev => ({
-      ...prev,
-      groups: prev.groups.map(g => {
-        if (g.id === groupId) {
-          const comp = g.components[componentKey];
-          const existingSubmittedUsns = comp.submittedByUsns || [];
-          const existingSubmittedNames = comp.submittedByNames || [];
-
-          const newSubmittedUsns = Array.from(new Set([...existingSubmittedUsns, currentUser.usn]));
-          const newSubmittedNames = Array.from(new Set([...existingSubmittedNames, currentUser.name]));
-
-          const updatedComp = {
-            ...comp,
-            status: "COMPLETED",
-            submittedByUsns: newSubmittedUsns,
-            submittedByNames: newSubmittedNames,
-            fileName: payload.fileName || comp.fileName,
-            fileSize: payload.fileSize || comp.fileSize,
-            url: payload.url || comp.url,
-            submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
-          };
-
-          return {
-            ...g,
-            components: {
-              ...g.components,
-              [componentKey]: updatedComp
-            }
-          };
-        }
-        return g;
-      }),
-      auditLogs: [
-        {
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
-          action: "COMPONENT_SUBMITTED",
-          details: `${currentUser.name} uploaded ${componentKey} for Group ${groupId}`
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  // 4. CRITICAL RULE: Save Individual Student Evaluation Marks
-  const saveIndividualStudentEvaluation = (evalObj) => {
-    // evalObj: { groupId, taskId, studentUsn, studentName, evaluator, scores, totalScore, feedback }
-    setData(prev => {
-      const existingIdx = prev.groupEvaluations.findIndex(
-        e => e.groupId === evalObj.groupId && e.studentUsn === evalObj.studentUsn && e.taskId === evalObj.taskId
-      );
-
-      let newGroupEvaluations = [...prev.groupEvaluations];
-      const record = {
-        id: `eval-${evalObj.groupId}-${evalObj.studentUsn}`,
-        status: "COMPLETED",
-        evaluatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        maxScore: 50,
-        ...evalObj
-      };
-
-      if (existingIdx >= 0) {
-        newGroupEvaluations[existingIdx] = record;
-      } else {
-        newGroupEvaluations.push(record);
-      }
-
-      return {
-        ...prev,
-        groupEvaluations: newGroupEvaluations,
-        auditLogs: [
-          {
-            id: `log-${Date.now()}`,
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            user: currentUser.name,
-            action: "INDIVIDUAL_EVALUATION",
-            details: `Saved individual marks (${evalObj.totalScore}/50) for student ${evalObj.studentName} (${evalObj.studentUsn})`
-          },
-          ...prev.auditLogs
-        ]
-      };
-    });
-  };
-
-  // Coordinator: Create Task
-  const addTask = (newTask) => {
-    const taskObj = {
-      id: `tsk-${Date.now()}`,
-      status: "IN_PROGRESS",
-      ...newTask
-    };
-    setData(prev => ({
-      ...prev,
-      tasks: [taskObj, ...prev.tasks],
-      auditLogs: [
-        {
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.name,
-          action: "TASK_CREATED",
-          details: `Published milestone: ${newTask.title}`
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  // Send Message
-  const sendMessage = (msgObj) => {
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      sender: `${currentUser.name} (${currentRole})`,
-      senderRole: currentRole,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      isUnread: false,
-      ...msgObj
-    };
-    setData(prev => ({
-      ...prev,
-      messages: [newMsg, ...prev.messages]
-    }));
-  };
 
   return (
     <AuthContext.Provider
       value={{
-        data,
         currentUser,
         currentRole,
         activeTab,
+        isAuthLoading,
         setActiveTab,
         login,
         logout,
         switchTeacherRole,
-        quickSwitchUser,
         showRoleSelectionModal,
-        setShowRoleSelectionModal,
-        setGroupSubmissionMode,
-        updateComponentAssignments,
-        submitGroupComponent,
-        saveIndividualStudentEvaluation,
-        addTask,
-        sendMessage
+        setShowRoleSelectionModal
       }}
     >
       {children}

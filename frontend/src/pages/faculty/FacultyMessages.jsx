@@ -1,27 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const FacultyMessages = () => {
-  const { data, sendMessage, currentUser } = useAuth();
-  const [recipientGroup, setRecipientGroup] = useState(data.groups[0]?.id || '');
+  const { currentUser } = useAuth();
+  
+  const [messages, setMessages] = useState([]);
+  const [groups, setGroups] = useState([]);
+  
+  const [recipientGroupId, setRecipientGroupId] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
+  
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    if (currentUser?.user_id && currentUser?.faculty_id) {
+      fetchMessagesAndGroups(currentUser.user_id, currentUser.faculty_id);
+    }
+  }, [currentUser]);
+
+  const fetchMessagesAndGroups = async (userId, facultyId) => {
+    try {
+      setLoading(true);
+      const [fetchedMessages, fetchedGroups] = await Promise.all([
+        messageService.getMessagesForUser(userId),
+        academicService.getTeams({ guide_id: facultyId })
+      ]);
+      setMessages(fetchedMessages || []);
+      setGroups(fetchedGroups || []);
+      if (fetchedGroups && fetchedGroups.length > 0) {
+        setRecipientGroupId(fetchedGroups[0].team_id);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async (e) => {
     e.preventDefault();
-    const g = data.groups.find(x => x.id === recipientGroup);
-    sendMessage({
-      recipient: `Group ${g?.groupCode || 'All Groups'}`,
-      subject,
-      content
-    });
-    setSubject('');
-    setContent('');
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+    const g = groups.find(x => x.team_id === Number(recipientGroupId));
+    if (!g) return;
+    
+    if (!g.members || g.members.length === 0) {
+      setError("This group has no members to send messages to.");
+      return;
+    }
+
+    try {
+      setSending(true);
+      setError(null);
+      
+      // Send individual message to each member in the group
+      await Promise.all(
+        g.members.map(member => 
+          messageService.sendMessage({
+            sender_id: currentUser.user_id,
+            receiver_id: member.user_id,
+            message_text: `[${subject}] ${content}`
+          })
+        )
+      );
+      
+      setSubject('');
+      setContent('');
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+      
+      // Refresh messages
+      const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+      setMessages(msgs || []);
+    } catch (err) {
+      setError("Failed to send message: " + err.message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -33,44 +94,61 @@ export const FacultyMessages = () => {
         </p>
       </div>
 
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+
       <div className="grid-2">
         <Card title="Guide Outbox & History">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {data.messages.map((msg) => (
-              <div 
-                key={msg.id}
-                style={{
-                  border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
-                  padding: '14px',
-                  backgroundColor: '#FFFFFF'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '13px' }}>{msg.sender}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{msg.timestamp}</div>
-                </div>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: '#B82226', marginBottom: '4px' }}>
-                  To: {msg.recipient} — {msg.subject}
-                </div>
-                <p style={{ fontSize: '13px', color: '#444' }}>{msg.content}</p>
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <p>Loading history...</p>
+          ) : messages.length === 0 ? (
+            <p>No messages found.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {messages.map((msg) => {
+                const isSentByMe = msg.sender_id === currentUser.user_id;
+                const otherUserEmail = isSentByMe ? msg.receiver?.email : msg.sender?.email;
+                return (
+                  <div 
+                    key={msg.message_id}
+                    style={{
+                      border: '1px solid #E5E5E5',
+                      borderRadius: '4px',
+                      padding: '14px',
+                      backgroundColor: '#FFFFFF',
+                      borderLeft: isSentByMe ? '4px solid #A68E24' : '4px solid #114C94'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <div style={{ fontWeight: 700, color: '#243143', fontSize: '13px' }}>
+                        {isSentByMe ? `To: ${otherUserEmail}` : `From: ${otherUserEmail}`}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {new Date(msg.sent_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#444', whiteSpace: 'pre-wrap' }}>{msg.message_text}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
         <Card title="Send Guide Instructions">
-          {sent && <div className="alert alert-success">Instruction sent to student batch.</div>}
+          {sent && <div className="alert alert-success">Instructions dispatched to student batch successfully.</div>}
           <form onSubmit={handleSend}>
             <div className="form-group">
               <label className="form-label">Target Advised Group</label>
               <select
                 className="form-select"
-                value={recipientGroup}
-                onChange={(e) => setRecipientGroup(e.target.value)}
+                value={recipientGroupId}
+                onChange={(e) => setRecipientGroupId(e.target.value)}
+                required
               >
-                {data.groups.map(g => (
-                  <option key={g.id} value={g.id}>Group {g.groupCode} — {g.title}</option>
+                {groups.map(g => (
+                  <option key={g.team_id} value={g.team_id}>
+                    {g.team_code} ({g.subject?.subject_name})
+                  </option>
                 ))}
               </select>
             </div>
@@ -99,9 +177,9 @@ export const FacultyMessages = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={sending}>
               <Send size={15} />
-              <span>DISPATCH INSTRUCTION</span>
+              <span>{sending ? 'SENDING...' : 'DISPATCH INSTRUCTION'}</span>
             </button>
           </form>
         </Card>

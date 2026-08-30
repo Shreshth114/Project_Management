@@ -1,20 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const StudentStatus = () => {
-  const { data, currentUser } = useAuth();
-  const studentGroup = (data.groups || []).find(g => g.id === currentUser?.groupId) || data.groups[0];
-  const evalRecord = (data.groupEvaluations || []).find(e => e.groupId === studentGroup.id && e.studentUsn === currentUser.usn) || data.groupEvaluations[0];
+  const { currentUser } = useAuth();
+  const [team, setTeam] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentUser?.student_id) {
+      loadData(currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const loadData = async (studentId) => {
+    try {
+      setLoading(true);
+      const fetchedTeam = await academicService.getTeamByStudent(studentId);
+      setTeam(fetchedTeam);
+      
+      const evals = await evaluationService.getEvaluationsForStudent(studentId);
+      setEvaluations(evals || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading status...</div>;
+
+  const totalScore = evaluations.reduce((sum, e) => sum + (e.awarded_marks || 0), 0);
+  const maxPossible = evaluations.reduce((sum, e) => sum + (e.evaluation_criteria?.max_marks || 0), 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Individual Academic Status & Marks Transcript</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Personal evaluation transcript signed off by your assigned Faculty Guide ({studentGroup.guide}).
+          Personal evaluation transcript signed off by your assigned Faculty Guide ({team?.guide?.name || 'Unassigned'}).
         </p>
       </div>
 
@@ -32,19 +61,19 @@ export const StudentStatus = () => {
       <div className="grid-3">
         <Card title="Individual Score">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>
-            {evalRecord ? `${evalRecord.totalScore} / 50` : 'Pending Evaluation'}
+            {evaluations.length > 0 ? `${totalScore} / ${maxPossible}` : 'Pending Evaluation'}
           </div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Evaluated by {evalRecord?.evaluator || studentGroup.guide}</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Evaluated by {team?.guide?.name || 'Assigned Guide'}</div>
         </Card>
 
         <Card title="Group Submission Status">
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#038203' }}>✓ All Components Uploaded</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mode: {studentGroup.submissionMode}</div>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#038203' }}>✓ In Progress</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Team: {team?.team_code}</div>
         </Card>
 
         <Card title="Guide Feedback">
           <p style={{ fontSize: '13px', color: '#243143', fontStyle: 'italic' }}>
-            "{evalRecord?.feedback || 'Good overall progress in project development.'}"
+            "{evaluations[evaluations.length - 1]?.feedback || 'No feedback yet.'}"
           </p>
         </Card>
       </div>
@@ -61,48 +90,27 @@ export const StudentStatus = () => {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Technical Implementation</td>
-                <td>15</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.technicalImplementation ?? 14}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr>
-                <td>Project Understanding</td>
-                <td>10</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.projectUnderstanding ?? 9}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr>
-                <td>Individual Contribution</td>
-                <td>10</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.individualContribution ?? 9}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr>
-                <td>Documentation</td>
-                <td>5</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.documentation ?? 5}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr>
-                <td>Presentation</td>
-                <td>5</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.presentation ?? 5}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr>
-                <td>Viva Voce & Defense</td>
-                <td>5</td>
-                <td style={{ fontWeight: 700, color: '#038203' }}>{evalRecord?.scores?.viva ?? 4}</td>
-                <td><Badge variant="success">Completed (#038203)</Badge></td>
-              </tr>
-              <tr style={{ backgroundColor: '#F8F9FA' }}>
-                <td><strong>TOTAL AGGREGATE SCORE</strong></td>
-                <td><strong>50</strong></td>
-                <td style={{ fontWeight: 700, fontSize: '18px', color: '#B82226' }}>{evalRecord?.totalScore ?? 46} / 50</td>
-                <td><Badge variant="success">GRADE AWARDED: O (92%)</Badge></td>
-              </tr>
+              {evaluations.map(e => (
+                <tr key={e.evaluation_id}>
+                  <td>{e.evaluation_criteria?.criteria_name || 'General Criteria'}</td>
+                  <td>{e.evaluation_criteria?.max_marks || '-'}</td>
+                  <td style={{ fontWeight: 700, color: '#038203' }}>{e.awarded_marks}</td>
+                  <td><Badge variant="success">Evaluated</Badge></td>
+                </tr>
+              ))}
+              {evaluations.length === 0 && (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>No evaluations recorded yet.</td>
+                </tr>
+              )}
+              {evaluations.length > 0 && (
+                <tr style={{ backgroundColor: '#F8F9FA' }}>
+                  <td><strong>TOTAL AGGREGATE SCORE</strong></td>
+                  <td><strong>{maxPossible}</strong></td>
+                  <td style={{ fontWeight: 700, fontSize: '18px', color: '#B82226' }}>{totalScore} / {maxPossible}</td>
+                  <td><Badge variant="success">Completed</Badge></td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
