@@ -9,18 +9,21 @@ export const Login = ({ onSwitchToRegister }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const res = login(emailOrUsername, password);
-      setIsLoading(false);
+    try {
+      const res = await login(emailOrUsername, password);
       if (!res.success) {
-        setError(res.message);
+        setError(res.message || "Invalid credentials");
       }
-    }, 400);
+    } catch (err) {
+      setError(err.message || "An error occurred during authentication.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

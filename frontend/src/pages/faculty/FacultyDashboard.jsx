@@ -1,17 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, FileText, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const FacultyDashboard = () => {
   const { data, currentUser, setActiveTab } = useAuth();
   
-  const myGroups = (data.groups || []).filter(g => g.guide === currentUser?.name || g.guide === "Dr. R. Sharma");
+  const [myGroups, setMyGroups] = useState([]);
+
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      academicService.getTeams({ guide_id: currentUser.faculty_id }).then(setMyGroups).catch(console.error);
+    }
+  }, [currentUser]);
   
   // Aggregate pending submissions
   const pendingSubmissions = [];
-  myGroups.forEach(g => {
+  // Hardcoded mock logic for submissions since it's not part of this milestone
+  (data.groups || []).forEach(g => {
     if (g.components) {
       Object.keys(g.components).forEach(compKey => {
         const comp = g.components[compKey];
@@ -113,7 +121,7 @@ export const FacultyDashboard = () => {
               ))
             ) : (
               <div style={{ fontSize: '13px', color: '#666', padding: '10px 0' }}>
-                No pending deliverables requiring review.
+                No pending deliverables requiring review (Mock).
               </div>
             )}
           </div>
@@ -125,18 +133,16 @@ export const FacultyDashboard = () => {
               <thead>
                 <tr>
                   <th>Group Code</th>
-                  <th>Project Title</th>
-                  <th>Progress</th>
-                  <th>Mode</th>
+                  <th>Subject</th>
+                  <th>Members</th>
                 </tr>
               </thead>
               <tbody>
                 {myGroups.map((g) => (
-                  <tr key={g.id}>
-                    <td style={{ fontWeight: 700, color: '#243143' }}>{g.groupCode}</td>
-                    <td style={{ fontSize: '13px' }}>{g.title}</td>
-                    <td><strong style={{ color: '#B82226' }}>{g.overallProgress}%</strong></td>
-                    <td><Badge variant="navy">{g.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A' : 'Mode B'}</Badge></td>
+                  <tr key={g.team_id}>
+                    <td style={{ fontWeight: 700, color: '#243143' }}>{g.team_code}</td>
+                    <td style={{ fontSize: '13px' }}>{g.subject?.subject_name}</td>
+                    <td><Badge variant="navy">{g.members?.length || 0} Students</Badge></td>
                   </tr>
                 ))}
               </tbody>

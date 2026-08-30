@@ -1,74 +1,92 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialCollegeData } from '../data/mockData';
+import { supabase } from '../lib/supabase';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [data, setData] = useState(initialCollegeData);
-  
-  // Default logged-in user (preset as Student 1MS21CS042 for instant preview, can be changed via login)
-  const [currentUser, setCurrentUser] = useState(initialCollegeData.users[0]);
-  
-  // Current Active Working Role: 'STUDENT' | 'FACULTY' | 'COORDINATOR' | 'ADMIN'
-  const [currentRole, setCurrentRole] = useState('STUDENT');
-  
-  // Active Page Tab
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Modal state for role selection gateway if teacher has both roles
+  const [currentUser, setCurrentUser] = useState(null);
+  const [currentRole, setCurrentRole] = useState(null);
+  const [activeTab, setActiveTab] = useState('login');
   const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Login handler
-  const login = (emailOrUsername, password) => {
-    const found = data.users.find(
-      u => u.username.toLowerCase() === emailOrUsername.toLowerCase() || 
-           u.email.toLowerCase() === emailOrUsername.toLowerCase()
-    );
-
-    if (found) {
-      setCurrentUser(found);
-      if (found.role === 'STUDENT') {
-        setCurrentRole('STUDENT');
-        setActiveTab('dashboard');
-      } else if (found.role === 'ADMIN') {
-        setCurrentRole('ADMIN');
-        setActiveTab('dashboard');
-      } else if (found.role === 'TEACHER') {
-        if (found.teacherRoles.length > 1) {
-          setShowRoleSelectionModal(true);
-        } else {
-          setCurrentRole(found.teacherRoles[0]);
-          setActiveTab('dashboard');
-        }
+  useEffect(() => {
+    const handleProfileResolution = async (session) => {
+      if (!session) {
+        setCurrentUser(null);
+        setCurrentRole(null);
+        setActiveTab('login');
+        setIsAuthLoading(false);
+        return;
       }
+      try {
+        const profile = await authService.getUserProfile(session.user.email);
+        setCurrentUser(profile);
+        
+        if (profile.role === 'STUDENT') {
+          setCurrentRole('STUDENT');
+          setActiveTab('dashboard');
+        } else if (profile.role === 'ADMIN') {
+          setCurrentRole('ADMIN');
+          setActiveTab('dashboard');
+        } else if (profile.role === 'TEACHER') {
+          if (profile.teacherRoles && profile.teacherRoles.length > 1) {
+            setShowRoleSelectionModal(true);
+          } else {
+            setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
+            setActiveTab('dashboard');
+          }
+        }
+      } catch (err) {
+        console.error("Profile resolution error:", err);
+        setCurrentUser(null);
+        setCurrentRole(null);
+      } finally {
+        setIsAuthLoading(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleProfileResolution(session);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleProfileResolution(session);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      await authService.login(email, password);
       return { success: true };
-    } else {
-      return { success: false, message: "Invalid College Credentials. Please check USN / Email." };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
   };
 
-  // Switch Teacher Working Role (Faculty <-> Coordinator)
   const switchTeacherRole = (newRole) => {
     setCurrentRole(newRole);
     setActiveTab('dashboard');
     setShowRoleSelectionModal(false);
   };
 
-  // Quick Switch Preset User for Easy Assessment Demo
   const quickSwitchUser = (userId, targetRole) => {
-    const found = data.users.find(u => u.id === userId);
-    if (found) {
-      setCurrentUser(found);
-      setCurrentRole(targetRole || (found.teacherRoles ? found.teacherRoles[0] : found.role));
-      setActiveTab('dashboard');
-    }
+    console.warn("quickSwitchUser is disabled in real auth mode.");
   };
 
-  // Logout handler
-  const logout = () => {
-    setCurrentUser(null);
-    setCurrentRole(null);
-    setActiveTab('login');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
   };
 
   // 1. Group Leader: Set Submission Mode (Mode A vs Mode B)
@@ -264,6 +282,7 @@ export const AuthProvider = ({ children }) => {
         currentUser,
         currentRole,
         activeTab,
+        isAuthLoading,
         setActiveTab,
         login,
         logout,

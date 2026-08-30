@@ -2,34 +2,49 @@ import React, { useState } from 'react';
 import { PlusSquare, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { taskService } from '../../services/taskService';
 
 export const CoordinatorCreateTask = () => {
-  const { addTask, setActiveTab } = useAuth();
+  const { currentUser, setActiveTab } = useAuth();
   const [title, setTitle] = useState('');
   const [taskType, setTaskType] = useState('GROUP'); // INDIVIDUAL | GROUP
-  const [phase, setPhase] = useState('Phase 2');
   const [totalMarks, setTotalMarks] = useState(50);
-  const [deadline, setDeadline] = useState('2025-10-25');
-  const [allowedMode, setAllowedMode] = useState('BOTH'); // LEADER_SUBMITS_ALL | MEMBERS_SUBMIT_ASSIGNED | BOTH
+  const [deadline, setDeadline] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addTask({
-      title,
-      taskType,
-      phase,
-      totalMarks: Number(totalMarks),
-      deadline,
-      allowedMode,
-      description
-    });
-    setSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      setActiveTab('tasks');
-    }, 1500);
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const taskData = {
+        faculty_id: currentUser?.faculty_id,
+        title,
+        description,
+        task_type: taskType,
+        deadline
+      };
+      
+      const criteriaList = [
+        { criteria_name: 'Overall Task Evaluation', max_marks: totalMarks }
+      ];
+      
+      await taskService.createTaskWithCriteria(taskData, criteriaList);
+      
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        setActiveTab('tasks');
+      }, 1500);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,7 +59,7 @@ export const CoordinatorCreateTask = () => {
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Create & Publish Milestone Task</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-            Define Task Type (Individual vs Group) and Submission Modes.
+            Define Task Type (Individual vs Group) and Deadlines.
           </p>
         </div>
       </div>
@@ -55,6 +70,8 @@ export const CoordinatorCreateTask = () => {
           <span>Task milestone published successfully to student & faculty portals!</span>
         </div>
       )}
+      
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
 
       <Card title="Milestone Requirements & Task Configuration">
         <form onSubmit={handleSubmit}>
@@ -64,7 +81,7 @@ export const CoordinatorCreateTask = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Final Project Submission & Viva Voce"
+                placeholder="e.g. Final Project Submission"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -84,20 +101,7 @@ export const CoordinatorCreateTask = () => {
             </div>
           </div>
 
-          <div className="grid-3">
-            <div className="form-group">
-              <label className="form-label">Project Phase</label>
-              <select
-                className="form-select"
-                value={phase}
-                onChange={(e) => setPhase(e.target.value)}
-              >
-                <option value="Phase 1">Phase 1 — Synopsis & Survey</option>
-                <option value="Phase 2">Phase 2 — Mid-Term & Final Demo</option>
-                <option value="Phase 3">Phase 3 — Dissertation & Viva</option>
-              </select>
-            </div>
-
+          <div className="grid-2">
             <div className="form-group">
               <label className="form-label">Total Marks</label>
               <input
@@ -123,36 +127,21 @@ export const CoordinatorCreateTask = () => {
             </div>
           </div>
 
-          {taskType === 'GROUP' && (
-            <div className="form-group">
-              <label className="form-label">Allowed Group Submission Modes</label>
-              <select
-                className="form-select"
-                value={allowedMode}
-                onChange={(e) => setAllowedMode(e.target.value)}
-              >
-                <option value="BOTH">Allow Group Leader to Choose (Mode A or Mode B)</option>
-                <option value="LEADER_SUBMITS_ALL">Mode A Only: Leader Submits All Components</option>
-                <option value="MEMBERS_SUBMIT_ASSIGNED">Mode B Only: Members Submit Assigned Items</option>
-              </select>
-            </div>
-          )}
-
           <div className="form-group">
-            <label className="form-label">Task Description & Evaluation Criteria</label>
+            <label className="form-label">Task Description</label>
             <textarea
               className="form-textarea"
               rows={4}
-              placeholder="Specify requirements, components (Report, Source Code, Paper, PPT, Video, Link), and evaluation criteria..."
+              placeholder="Specify requirements, components, and expectations..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block">
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             <PlusSquare size={16} />
-            <span>PUBLISH MILESTONE TASK</span>
+            <span>{loading ? 'PUBLISHING...' : 'PUBLISH MILESTONE TASK'}</span>
           </button>
         </form>
       </Card>
