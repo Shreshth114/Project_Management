@@ -18,7 +18,7 @@ export const taskService = {
     
     const { data, error } = await query;
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async updateTaskDeadline(taskId, newDeadline) {

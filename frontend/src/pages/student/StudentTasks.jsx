@@ -9,6 +9,7 @@ export const StudentTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // In a full implementation, we'd filter tasks by the student's assigned subject or team.

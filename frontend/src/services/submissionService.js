@@ -43,7 +43,7 @@ export const submissionService = {
 
   async uploadFile(file, studentId, taskId) {
     const fileExt = file.name.split('.').pop();
-    const fileName = `\${studentId}-\${taskId}-\${Date.now()}.\${fileExt}`;
+    const fileName = `${studentId}-${taskId}-${Date.now()}.${fileExt}`;
     
     const { data, error } = await supabase.storage
       .from('submissions')
