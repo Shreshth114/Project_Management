@@ -1,12 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart2, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const FacultyStatus = () => {
-  const { data, currentUser } = useAuth();
-  const myGroups = data.groups.filter(g => g.guide === currentUser.name || g.guide === "Dr. R. Sharma");
+  const { currentUser } = useAuth();
+  const [teams, setTeams] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      loadData(currentUser.faculty_id);
+    }
+  }, [currentUser]);
+
+  const loadData = async (facultyId) => {
+    try {
+      setLoading(true);
+      const [fetchedTeams, fetchedEvals] = await Promise.all([
+        academicService.getTeams({ guide_id: facultyId }),
+        evaluationService.getAllEvaluations()
+      ]);
+      setTeams(fetchedTeams || []);
+      setEvaluations(fetchedEvals || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading compliance matrix...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -40,25 +68,28 @@ export const FacultyStatus = () => {
               </tr>
             </thead>
             <tbody>
-              {myGroups.map((g) => {
-                const totalMembers = g.members.length;
-                const evaluatedCount = data.groupEvaluations.filter(e => e.groupId === g.id).length;
+              {teams.map((g) => {
+                const totalMembers = g.members?.length || 0;
+                // Count unique students evaluated in this team
+                const teamEvals = evaluations.filter(e => e.submission?.team_id === g.team_id);
+                const evaluatedStudents = new Set(teamEvals.map(e => e.student_id)).size;
+                const progress = totalMembers > 0 ? Math.round((evaluatedStudents / totalMembers) * 100) : 0;
 
                 return (
-                  <tr key={g.id}>
-                    <td data-label="Group Code" style={{ fontWeight: 700, color: '#243143' }}>{g.groupCode}</td>
-                    <td data-label="Project Title" style={{ fontSize: '13px' }}>{g.title}</td>
-                    <td data-label="Mode"><Badge variant="navy">{g.submissionMode}</Badge></td>
+                  <tr key={g.team_id}>
+                    <td data-label="Group Code" style={{ fontWeight: 700, color: '#243143' }}>{g.team_code}</td>
+                    <td data-label="Project Title" style={{ fontSize: '13px' }}>{g.subject?.subject_name}</td>
+                    <td data-label="Mode"><Badge variant="navy">Digital</Badge></td>
                     <td data-label="Components Status">
                       <Badge variant="success">✓ All Components Submitted (#038203)</Badge>
                     </td>
                     <td data-label="Individual Evaluations">
-                      <Badge variant={evaluatedCount === totalMembers ? 'success' : 'warning'}>
-                        {evaluatedCount} / {totalMembers} Students Evaluated
+                      <Badge variant={evaluatedStudents === totalMembers && totalMembers > 0 ? 'success' : 'warning'}>
+                        {evaluatedStudents} / {totalMembers} Students Evaluated
                       </Badge>
                     </td>
                     <td data-label="Overall Health" style={{ fontWeight: 700, color: '#038203' }}>
-                      {g.overallProgress}% Complete
+                      {progress}% Complete
                     </td>
                   </tr>
                 );

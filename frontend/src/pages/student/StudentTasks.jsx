@@ -8,12 +8,15 @@ import { taskService } from '../../services/taskService';
 export const StudentTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // In a full implementation, we'd filter tasks by the student's assigned subject or team.
     // For this milestone, we fetch all tasks.
-    taskService.getTasks().then(setTasks).catch(console.error).finally(() => setLoading(false));
+    taskService.getTasks()
+      .then(setTasks)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
@@ -32,7 +35,8 @@ export const StudentTasks = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {tasks.length === 0 ? (
+        {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+        {tasks.length === 0 && !error ? (
           <p>No tasks found.</p>
         ) : (
           tasks.map((task) => {

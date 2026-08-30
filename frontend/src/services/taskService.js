@@ -21,6 +21,18 @@ export const taskService = {
     return data;
   },
 
+  async updateTaskDeadline(taskId, newDeadline) {
+    const { data, error } = await supabase
+      .from('task')
+      .update({ deadline: newDeadline })
+      .eq('task_id', taskId)
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+
   async createTaskWithCriteria(taskData, criteriaList) {
     // 1. Insert Task
     const { data: taskRecord, error: taskError } = await supabase

@@ -1,25 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, MessageSquare, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const StudentMessages = () => {
-  const { data, sendMessage } = useAuth();
+  const { currentUser } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [studentGroup, setStudentGroup] = useState(null);
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    if (currentUser?.user_id) {
+      fetchMessagesAndGroup(currentUser.user_id, currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const fetchMessagesAndGroup = async (userId, studentId) => {
+    try {
+      setLoading(true);
+      const [msgs, group] = await Promise.all([
+        messageService.getMessagesForUser(userId),
+        academicService.getTeamByStudent(studentId)
+      ]);
+      setMessages(msgs || []);
+      setStudentGroup(group);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async (e) => {
     e.preventDefault();
-    sendMessage({
-      recipient: "Guide & Coordinator Panel",
-      subject,
-      content
-    });
-    setSubject('');
-    setContent('');
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    if (!studentGroup?.guide?.user_id) {
+      setError("No guide assigned to send messages to.");
+      return;
+    }
+    
+    try {
+      setError(null);
+      await messageService.sendMessage({
+        sender_id: currentUser.user_id,
+        receiver_id: studentGroup.guide.user_id,
+        message_text: `[${subject}] ${content}`
+      });
+      
+      setSubject('');
+      setContent('');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      
+      // Refresh messages
+      const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+      setMessages(msgs || []);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -30,39 +73,58 @@ export const StudentMessages = () => {
           Official communication channel with faculty guides and project coordinators.
         </p>
       </div>
+      
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
       <div className="grid-2">
         {/* Inbox / Announcements list */}
         <Card title="Portal Noticeboard & Messages">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {data.messages.map((msg) => (
-              <div 
-                key={msg.id}
-                style={{
-                  border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
-                  padding: '14px',
-                  backgroundColor: msg.isUnread ? '#FCF8E3' : '#FFFFFF'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{msg.sender}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{msg.timestamp}</div>
-                </div>
-                <div style={{ fontWeight: 600, fontSize: '13px', color: '#B82226', marginBottom: '6px' }}>
-                  {msg.subject}
-                </div>
-                <p style={{ fontSize: '13px', color: '#444' }}>{msg.content}</p>
-              </div>
-            ))}
-          </div>
+          {loading ? (
+            <p>Loading messages...</p>
+          ) : messages.length === 0 ? (
+            <p>No messages found.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {messages.map((msg) => {
+                const isReceived = msg.receiver_id === currentUser.user_id;
+                const displayName = isReceived ? (msg.sender?.email || `User ${msg.sender_id}`) : (msg.receiver?.email || `User ${msg.receiver_id}`);
+                const roleBadge = isReceived ? msg.sender?.role : msg.receiver?.role;
+                
+                return (
+                  <div 
+                    key={msg.message_id}
+                    style={{
+                      border: '1px solid #E5E5E5',
+                      borderRadius: '4px',
+                      padding: '14px',
+                      backgroundColor: isReceived && !msg.is_read ? '#FCF8E3' : '#FFFFFF',
+                      borderLeft: isReceived ? '4px solid #114C94' : '4px solid #E5E5E5'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>
+                        {isReceived ? `From: ${displayName}` : `To: ${displayName}`}
+                        <span style={{ marginLeft: '8px', fontSize: '11px', backgroundColor: '#E5E5E5', padding: '2px 6px', borderRadius: '4px' }}>
+                          {roleBadge}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {new Date(msg.sent_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#444', whiteSpace: 'pre-wrap' }}>{msg.message_text}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
         {/* Compose Form */}
-        <Card title="Send Message to Guide / Coordinator">
+        <Card title="Send Message to Guide">
           {success && (
             <div className="alert alert-success">
-              Message dispatched to guide panel.
+              Message dispatched to guide successfully.
             </div>
           )}
           <form onSubmit={handleSend}>
@@ -71,7 +133,7 @@ export const StudentMessages = () => {
               <input
                 type="text"
                 className="form-input"
-                value="Dr. R. Sharma (Guide) & Prof. V. Kulkarni (Coordinator)"
+                value={studentGroup?.guide ? `${studentGroup.guide.name} (Guide)` : 'Loading guide...'}
                 disabled
               />
             </div>
@@ -100,7 +162,7 @@ export const StudentMessages = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={!studentGroup?.guide}>
               <Send size={15} />
               <span>SEND MESSAGE</span>
             </button>

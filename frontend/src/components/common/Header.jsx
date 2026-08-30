@@ -3,7 +3,7 @@ import { Menu, LogOut, User, RefreshCw, ShieldCheck, ChevronDown } from 'lucide-
 import { useAuth } from '../../context/AuthContext';
 
 export const Header = ({ onToggleMobileDrawer }) => {
-  const { currentUser, currentRole, logout, switchTeacherRole, quickSwitchUser } = useAuth();
+  const { currentUser, currentRole, logout, switchTeacherRole } = useAuth();
   const [showDemoMenu, setShowDemoMenu] = useState(false);
 
   const isDualRoleTeacher = currentUser && 
@@ -52,66 +52,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
           </div>
         )}
 
-        {/* Demo Persona Switcher Dropdown for Quick Inspection */}
-        <div style={{ position: 'relative' }}>
-          <button 
-            className="btn btn-secondary btn-sm"
-            style={{ fontSize: '12px', padding: '4px 8px', display: 'flex', alignItems: 'center', gap: '4px' }}
-            onClick={() => setShowDemoMenu(!showDemoMenu)}
-          >
-            <span>Demo Roles</span>
-            <ChevronDown size={14} />
-          </button>
 
-          {showDemoMenu && (
-            <div 
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '110%',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E5E5E5',
-                borderRadius: '4px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                width: '210px',
-                zIndex: 250,
-                padding: '6px 0'
-              }}
-            >
-              <div style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase' }}>
-                Quick Persona Demo
-              </div>
-              <button 
-                className="btn btn-block"
-                style={{ justifyContent: 'flex-start', padding: '8px 12px', borderRadius: 0, background: 'none', color: '#243143', fontSize: '13px' }}
-                onClick={() => { quickSwitchUser('u-student-1', 'STUDENT'); setShowDemoMenu(false); }}
-              >
-                🎓 Student (Rahul S.)
-              </button>
-              <button 
-                className="btn btn-block"
-                style={{ justifyContent: 'flex-start', padding: '8px 12px', borderRadius: 0, background: 'none', color: '#243143', fontSize: '13px' }}
-                onClick={() => { quickSwitchUser('u-teacher-1', 'FACULTY'); setShowDemoMenu(false); }}
-              >
-                👨‍🏫 Faculty (Dr. Sharma)
-              </button>
-              <button 
-                className="btn btn-block"
-                style={{ justifyContent: 'flex-start', padding: '8px 12px', borderRadius: 0, background: 'none', color: '#243143', fontSize: '13px' }}
-                onClick={() => { quickSwitchUser('u-teacher-1', 'COORDINATOR'); setShowDemoMenu(false); }}
-              >
-                📋 Coordinator (Dr. Sharma)
-              </button>
-              <button 
-                className="btn btn-block"
-                style={{ justifyContent: 'flex-start', padding: '8px 12px', borderRadius: 0, background: 'none', color: '#243143', fontSize: '13px' }}
-                onClick={() => { quickSwitchUser('u-admin-1', 'ADMIN'); setShowDemoMenu(false); }}
-              >
-                🛡️ Admin (Academic Office)
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Logged in User Meta & Logout */}
         {currentUser && (

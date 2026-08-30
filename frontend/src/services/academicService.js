@@ -27,6 +27,14 @@ export const academicService = {
     if (error) throw error;
     return data;
   },
+
+  async getFaculty() {
+    const { data, error } = await supabase
+      .from('faculty')
+      .select('faculty_id, name, is_coordinator, subject_id, user_id');
+    if (error) throw error;
+    return data;
+  },
   
   // --- TEAMS ---
   
@@ -38,8 +46,8 @@ export const academicService = {
         team_code,
         subject_id,
         subject:subject(subject_code, subject_name),
-        guide:faculty(name),
-        members:student(student_id, usn, name)
+        guide:faculty(name, user_id),
+        members:student(student_id, usn, name, user_id)
       `)
       .order('team_code');
       
@@ -75,10 +83,22 @@ export const academicService = {
         team_code,
         subject_id,
         subject:subject(subject_code, subject_name),
-        guide:faculty(name),
-        members:student(student_id, usn, name)
+        guide:faculty(name, user_id),
+        members:student(student_id, usn, name, user_id)
       `)
       .eq('team_id', studentData.team_id)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+  
+  async updateTeamGuide(teamId, newGuideId) {
+    const { data, error } = await supabase
+      .from('team')
+      .update({ guide_id: newGuideId })
+      .eq('team_id', teamId)
+      .select()
       .single();
       
     if (error) throw error;

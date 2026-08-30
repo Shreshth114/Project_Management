@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, BookOpen, Shield, Award } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const StudentProfile = () => {
-  const { currentUser, data } = useAuth();
-  const studentGroup = data.groups.find(g => g.id === currentUser?.groupId) || data.groups[0];
+  const { currentUser } = useAuth();
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentUser?.student_id) {
+      loadTeam(currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const loadTeam = async (studentId) => {
+    try {
+      setLoading(true);
+      const data = await academicService.getTeamByStudent(studentId);
+      setTeam(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading profile...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -45,19 +67,19 @@ export const StudentProfile = () => {
 
         <Card title="System Managed Enrolment">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-            <div><strong>Subject Code:</strong> {currentUser.subject || data.subjectCode}</div>
+            <div><strong>Subject Code:</strong> {team?.subject?.subject_code || 'Unassigned'}</div>
             <div><strong>Academic Batch:</strong> {currentUser.batch || '2021–2025 (8th Sem)'}</div>
-            <div><strong>Allocated Guide:</strong> {currentUser.guideName || studentGroup.guide}</div>
-            <div><strong>Group Association:</strong> {studentGroup.groupCode}</div>
-            <div><strong>Leader Status:</strong> {currentUser.isGroupLeader ? 'Team Leader' : 'Group Member'}</div>
+            <div><strong>Allocated Guide:</strong> {team?.guide?.name || 'Unassigned'}</div>
+            <div><strong>Group Association:</strong> {team?.team_code || 'Unassigned'}</div>
+            <div><strong>Leader Status:</strong> Group Member</div>
           </div>
         </Card>
 
         <Card title="Project Group Overview">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-            <div><strong>Group Title:</strong> {studentGroup.title}</div>
-            <div><strong>Domain:</strong> {studentGroup.domain}</div>
-            <div><strong>Submission Mode:</strong> <Badge variant="navy">{studentGroup.submissionMode}</Badge></div>
+            <div><strong>Group Title:</strong> {team?.subject?.subject_name || 'Project'}</div>
+            <div><strong>Domain:</strong> Unspecified</div>
+            <div><strong>Submission Mode:</strong> <Badge variant="navy">Digital</Badge></div>
             <div><strong>Overall Status:</strong> <Badge variant="success">Active</Badge></div>
           </div>
         </Card>

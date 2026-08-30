@@ -1,26 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, MessageSquare, Megaphone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const CoordinatorMessages = () => {
-  const { data, sendMessage } = useAuth();
-  const [recipient, setRecipient] = useState('All Groups (CSE 8th Sem)');
+  const { currentUser } = useAuth();
+  const [teams, setTeams] = useState([]);
+  const [recipientTeam, setRecipientTeam] = useState('');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [sent, setSent] = useState(false);
+  const [myMessages, setMyMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleBroadcast = (e) => {
+  useEffect(() => {
+    if (currentUser?.user_id) {
+      loadData();
+    }
+  }, [currentUser]);
+
+  const loadData = async () => {
+    try {
+      const fetchedTeams = await academicService.getTeams();
+      setTeams(fetchedTeams || []);
+      if (fetchedTeams?.length > 0) {
+        setRecipientTeam(fetchedTeams[0].team_id);
+      }
+      
+      const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+      // Only show messages sent by coordinator as "circulars"
+      setMyMessages(msgs.filter(m => m.sender_id === currentUser.user_id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleBroadcast = async (e) => {
     e.preventDefault();
-    sendMessage({
-      recipient,
-      subject,
-      content
-    });
-    setSubject('');
-    setContent('');
-    setSent(true);
-    setTimeout(() => setSent(false), 3000);
+    if (!recipientTeam) return;
+    setLoading(true);
+    
+    try {
+      // Find team to get all member user_ids
+      const team = teams.find(t => t.team_id === recipientTeam);
+      if (team && team.members) {
+        // Send message to each member
+        const fullMessage = `[${subject}]\n${content}`;
+        const promises = team.members.map(member => 
+          messageService.sendMessage({
+            sender_id: currentUser.user_id,
+            receiver_id: member.user_id,
+            message_text: fullMessage
+          })
+        );
+        await Promise.all(promises);
+      }
+      
+      setSubject('');
+      setContent('');
+      setSent(true);
+      setTimeout(() => setSent(false), 3000);
+      loadData(); // Refresh list
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,9 +82,9 @@ export const CoordinatorMessages = () => {
       <div className="grid-2">
         <Card title="Published Circulars & Announcements">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {data.messages.map((msg) => (
+            {myMessages.map((msg) => (
               <div 
-                key={msg.id}
+                key={msg.message_id}
                 style={{
                   border: '1px solid #E5E5E5',
                   borderRadius: '4px',
@@ -46,15 +93,16 @@ export const CoordinatorMessages = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '13px' }}>{msg.sender}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>{msg.timestamp}</div>
+                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '13px' }}>{currentUser.name}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>{new Date(msg.sent_at).toLocaleString()}</div>
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '13px', color: '#B82226', marginBottom: '4px' }}>
-                  Target: {msg.recipient} — {msg.subject}
+                  Target: User ID {msg.receiver_id}
                 </div>
-                <p style={{ fontSize: '13px', color: '#444' }}>{msg.content}</p>
+                <p style={{ fontSize: '13px', color: '#444', whiteSpace: 'pre-wrap' }}>{msg.message_text}</p>
               </div>
             ))}
+            {myMessages.length === 0 && <p style={{ fontSize: '13px', color: '#666' }}>No circulars published yet.</p>}
           </div>
         </Card>
 
@@ -62,15 +110,15 @@ export const CoordinatorMessages = () => {
           {sent && <div className="alert alert-success">Department broadcast issued successfully!</div>}
           <form onSubmit={handleBroadcast}>
             <div className="form-group">
-              <label className="form-label">Broadcast Target</label>
+              <label className="form-label">Broadcast Target (Team)</label>
               <select
                 className="form-select"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
+                value={recipientTeam}
+                onChange={(e) => setRecipientTeam(e.target.value)}
               >
-                <option value="All Groups (CSE 8th Sem)">All 36 Final Year Project Batches (144 Students)</option>
-                <option value="All Faculty Guides">All Department Faculty Advisors</option>
-                <option value="Group GP-04">Group GP-04 (Edge AI)</option>
+                {teams.map(t => (
+                  <option key={t.team_id} value={t.team_id}>{t.team_code} - {t.subject?.subject_name}</option>
+                ))}
               </select>
             </div>
 
@@ -98,9 +146,9 @@ export const CoordinatorMessages = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
               <Megaphone size={16} />
-              <span>ISSUE BROADCAST CIRCULAR</span>
+              <span>{loading ? 'SENDING...' : 'ISSUE BROADCAST CIRCULAR'}</span>
             </button>
           </form>
         </Card>

@@ -3,19 +3,28 @@ import { Lock, Mail, ShieldAlert, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Login = ({ onSwitchToRegister }) => {
-  const { login, quickSwitchUser } = useAuth();
+  const { login } = useAuth();
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedPersona) {
+      setError("Please select a persona before logging in.");
+      return;
+    }
+    await handleLogin(emailOrUsername, password);
+  };
+
+  const handleLogin = async (email, pass) => {
     setError('');
     setIsLoading(true);
 
     try {
-      const res = await login(emailOrUsername, password);
+      const res = await login(email, pass, selectedPersona);
       if (!res.success) {
         setError(res.message || "Invalid credentials");
       }
@@ -24,6 +33,11 @@ export const Login = ({ onSwitchToRegister }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const selectPersona = (role) => {
+    setSelectedPersona(role);
+    setError('');
   };
 
   return (
@@ -88,9 +102,50 @@ export const Login = ({ onSwitchToRegister }) => {
             </div>
           )}
 
+          {/* Quick Persona Demo Switcher for Evaluation */}
+          <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #E5E5E5' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#243143', marginBottom: '10px' }}>
+              1. Select Your Persona:
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'STUDENT' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('STUDENT')}
+                style={{ fontSize: '12px' }}
+              >
+                🎓 Student
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'FACULTY' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('FACULTY')}
+                style={{ fontSize: '12px' }}
+              >
+                👨‍🏫 Faculty
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'COORDINATOR' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('COORDINATOR')}
+                style={{ fontSize: '12px' }}
+              >
+                📋 Coordinator
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'ADMIN' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('ADMIN')}
+                style={{ fontSize: '12px' }}
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">College Email / USN / Username</label>
+              <label className="form-label">2. College Email / USN / Username</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
@@ -105,7 +160,7 @@ export const Login = ({ onSwitchToRegister }) => {
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label className="form-label">Password</label>
+                <label className="form-label">3. Password</label>
                 <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to registered email address."); }} style={{ fontSize: '12px', color: '#B82226', textDecoration: 'none' }}>
                   Forgot Password?
                 </a>
@@ -126,50 +181,9 @@ export const Login = ({ onSwitchToRegister }) => {
               style={{ marginTop: '12px', padding: '11px' }}
               disabled={isLoading}
             >
-              {isLoading ? 'Authenticating Credentials...' : 'LOGIN TO PORTAL'}
+              {isLoading ? 'Authenticating Credentials...' : '4. LOGIN TO PORTAL'}
             </button>
           </form>
-
-          {/* Quick Persona Demo Switcher for Evaluation */}
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #E5E5E5' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#243143', marginBottom: '10px' }}>
-              Quick Persona Demo Shortcuts:
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm" 
-                onClick={() => quickSwitchUser('u-student-1', 'STUDENT')}
-                style={{ fontSize: '12px' }}
-              >
-                🎓 Student Log In
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm" 
-                onClick={() => quickSwitchUser('u-teacher-1', 'FACULTY')}
-                style={{ fontSize: '12px' }}
-              >
-                👨‍🏫 Faculty Log In
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm" 
-                onClick={() => quickSwitchUser('u-teacher-1', 'COORDINATOR')}
-                style={{ fontSize: '12px' }}
-              >
-                📋 Coordinator Log In
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-secondary btn-sm" 
-                onClick={() => quickSwitchUser('u-admin-1', 'ADMIN')}
-                style={{ fontSize: '12px' }}
-              >
-                🛡️ Admin Log In
-              </button>
-            </div>
-          </div>
 
           {/* Student Registration Link */}
           <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '13px' }}>

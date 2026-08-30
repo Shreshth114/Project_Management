@@ -4,38 +4,45 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
+import { submissionService } from '../../services/submissionService';
+import { taskService } from '../../services/taskService';
 
 export const FacultyDashboard = () => {
   const { data, currentUser, setActiveTab } = useAuth();
   
   const [myGroups, setMyGroups] = useState([]);
+  const [pendingSubmissions, setPendingSubmissions] = useState([]);
 
   useEffect(() => {
     if (currentUser?.faculty_id) {
-      academicService.getTeams({ guide_id: currentUser.faculty_id }).then(setMyGroups).catch(console.error);
+      academicService.getTeams({ guide_id: currentUser.faculty_id })
+        .then(async (teams) => {
+          setMyGroups(teams || []);
+          
+          if (teams && teams.length > 0) {
+            const allTasks = await taskService.getTasks();
+            const allSubmissions = [];
+            for (const team of teams) {
+              const teamSubs = await submissionService.getSubmissionsByTeam(team.team_id);
+              if (teamSubs) {
+                teamSubs.forEach(sub => {
+                  allSubmissions.push({
+                    id: sub.submission_id,
+                    groupCode: team.team_code,
+                    taskTitle: allTasks.find(t => t.task_id === sub.task_id)?.title || `Task ${sub.task_id}`,
+                    fileName: sub.file_name,
+                    fileSize: sub.file_type,
+                    submittedAt: new Date(sub.submitted_at).toLocaleDateString()
+                  });
+                });
+              }
+            }
+            setPendingSubmissions(allSubmissions);
+          }
+        })
+        .catch(console.error);
     }
   }, [currentUser]);
-  
-  // Aggregate pending submissions
-  const pendingSubmissions = [];
-  // Hardcoded mock logic for submissions since it's not part of this milestone
-  (data.groups || []).forEach(g => {
-    if (g.components) {
-      Object.keys(g.components).forEach(compKey => {
-        const comp = g.components[compKey];
-        if (comp.status === 'COMPLETED') {
-          pendingSubmissions.push({
-            id: `${g.id}-${compKey}`,
-            groupCode: g.groupCode,
-            taskTitle: comp.title,
-            fileName: comp.fileName || comp.url || "Deliverable",
-            fileSize: comp.fileSize || "Link",
-            submittedAt: comp.submittedAt || "Recent"
-          });
-        }
-      });
-    }
-  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

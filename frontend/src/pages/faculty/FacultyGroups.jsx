@@ -19,8 +19,15 @@ export const FacultyGroups = () => {
   const fetchMyGroups = async (facultyId) => {
     try {
       setLoading(true);
-      const data = await academicService.getTeams({ guide_id: facultyId });
-      setMyGroups(data || []);
+      const teams = await academicService.getTeams({ guide_id: currentUser.faculty_id });
+      // Map to expected structure if needed, or use directly
+      const mapped = teams.map(t => ({
+        id: t.team_id,
+        groupCode: t.team_code,
+        title: t.subject?.subject_name || "Project",
+        members: (t.members || []).map(m => ({ usn: m.usn, name: m.name }))
+      }));
+      setMyGroups(mapped);
     } catch (err) {
       setError(err.message);
     } finally {

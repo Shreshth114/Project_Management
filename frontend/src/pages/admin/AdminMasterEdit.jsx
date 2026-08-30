@@ -1,19 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, ShieldAlert, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { academicService } from '../../services/academicService';
+import { taskService } from '../../services/taskService';
 
 export const AdminMasterEdit = () => {
-  const { data } = useAuth();
-  const [selectedGroup, setSelectedGroup] = useState(data.groups[0]?.id || '');
-  const [newGuide, setNewGuide] = useState(data.users[1]?.name || 'Dr. R. Sharma');
+  const { currentUser } = useAuth();
+  const [teams, setTeams] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [faculties, setFaculties] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [newGuide, setNewGuide] = useState('');
+  const [selectedTask, setSelectedTask] = useState('');
   const [extensionHours, setExtensionHours] = useState(48);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleGuideOverride = (e) => {
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [fetchedTeams, fetchedTasks, fetchedFaculties] = await Promise.all([
+        academicService.getTeams(),
+        taskService.getTasks(),
+        academicService.getFaculty()
+      ]);
+      setTeams(fetchedTeams || []);
+      setTasks(fetchedTasks || []);
+      setFaculties(fetchedFaculties || []);
+      
+      if (fetchedTeams?.length > 0) setSelectedGroup(fetchedTeams[0].team_id);
+      if (fetchedTasks?.length > 0) setSelectedTask(fetchedTasks[0].task_id);
+      if (fetchedFaculties?.length > 0) setNewGuide(fetchedFaculties[0].faculty_id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuideOverride = async (e) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    try {
+      await academicService.updateTeamGuide(selectedGroup, newGuide);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      loadData(); // Refresh to reflect new guide
+    } catch (err) {
+      console.error(err);
+      alert('Failed to override guide: ' + err.message);
+    }
+  };
+
+  const handleDeadlineOverride = async (e) => {
+    e.preventDefault();
+    try {
+      const task = tasks.find(t => t.task_id === selectedTask);
+      if (!task) return;
+      const currentDeadline = new Date(task.deadline);
+      currentDeadline.setHours(currentDeadline.getHours() + parseInt(extensionHours, 10));
+      
+      await taskService.updateTaskDeadline(selectedTask, currentDeadline.toISOString());
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      loadData(); // Refresh to reflect new deadline
+    } catch (err) {
+      console.error(err);
+      alert('Failed to extend deadline: ' + err.message);
+    }
   };
 
   return (
@@ -42,8 +101,8 @@ export const AdminMasterEdit = () => {
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
               >
-                {data.groups.map(g => (
-                  <option key={g.id} value={g.id}>{g.groupCode} - {g.title}</option>
+                {teams.map(g => (
+                  <option key={g.team_id} value={g.team_id}>{g.team_code} - {g.subject?.subject_name}</option>
                 ))}
               </select>
             </div>
@@ -55,9 +114,9 @@ export const AdminMasterEdit = () => {
                 value={newGuide}
                 onChange={(e) => setNewGuide(e.target.value)}
               >
-                <option value="Dr. R. Sharma">Dr. R. Sharma (Professor)</option>
-                <option value="Prof. V. Kulkarni">Prof. V. Kulkarni (Assoc Professor)</option>
-                <option value="Dr. Anita M.">Dr. Anita M. (Professor)</option>
+                {faculties.map(f => (
+                  <option key={f.faculty_id} value={f.faculty_id}>{f.name}</option>
+                ))}
               </select>
             </div>
 
@@ -69,12 +128,16 @@ export const AdminMasterEdit = () => {
         </Card>
 
         <Card title="Emergency Milestone Deadline Extension">
-          <form onSubmit={(e) => { e.preventDefault(); setSaved(true); setTimeout(() => setSaved(false), 3000); }}>
+          <form onSubmit={handleDeadlineOverride}>
             <div className="form-group">
               <label className="form-label">Select Milestone Phase</label>
-              <select className="form-select">
-                {data.tasks.map(t => (
-                  <option key={t.id} value={t.id}>{t.phase} - {t.title}</option>
+              <select 
+                className="form-select"
+                value={selectedTask}
+                onChange={(e) => setSelectedTask(e.target.value)}
+              >
+                {tasks.map(t => (
+                  <option key={t.task_id} value={t.task_id}>{t.title} (Due: {new Date(t.deadline).toLocaleDateString()})</option>
                 ))}
               </select>
             </div>
