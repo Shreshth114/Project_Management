@@ -7,7 +7,13 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentRole, setCurrentRole] = useState(null);
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('activeTab') || 'login';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
   const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [pendingRole, setPendingRole] = useState(null);
@@ -22,7 +28,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       try {
-        const profile = await authService.getUserProfile(session.user.email);
+        const profile = await authService.getUserProfile(session.user);
         
         // If there's a pending role from a fresh login, validate it
         if (pendingRole) {
@@ -47,20 +53,20 @@ export const AuthProvider = ({ children }) => {
         
         if (profile.role === 'STUDENT') {
           setCurrentRole('STUDENT');
-          setActiveTab('dashboard');
+          setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
         } else if (profile.role === 'ADMIN') {
           setCurrentRole('ADMIN');
-          setActiveTab('dashboard');
+          setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
         } else if (profile.role === 'TEACHER') {
           if (pendingRole === 'COORDINATOR' || pendingRole === 'FACULTY') {
             setCurrentRole(pendingRole);
-            setActiveTab('dashboard');
+            setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
           } else if (profile.teacherRoles && profile.teacherRoles.length > 1) {
             setShowRoleSelectionModal(true);
-            setActiveTab('dashboard');
+            setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
           } else {
             setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
-            setActiveTab('dashboard');
+            setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
           }
         }
         setPendingRole(null);
@@ -92,7 +98,11 @@ export const AuthProvider = ({ children }) => {
       const res = await authService.login(email, password);
       
       // We manually validate the profile here so we can return an error immediately to Login.jsx
-      const profile = await authService.getUserProfile(email);
+      const session = await supabase.auth.getSession();
+      const user = session.data?.session?.user;
+      if (!user) throw new Error("No user session returned after login.");
+      
+      const profile = await authService.getUserProfile(user);
       let isValid = false;
       if (expectedRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
       if (expectedRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
@@ -121,6 +131,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('activeTab');
     } catch (err) {
       console.error("Logout failed", err);
     }

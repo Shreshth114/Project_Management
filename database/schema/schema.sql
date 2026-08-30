@@ -1,7 +1,7 @@
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
+    auth_id UUID UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255),
     role VARCHAR(20) NOT NULL
 );
 

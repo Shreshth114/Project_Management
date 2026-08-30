@@ -12,12 +12,12 @@ export const authService = {
     if (error) throw error;
   },
 
-  async getUserProfile(email) {
-    // 1. Fetch the user's role from public.users table mapped by email
+  async getUserProfile(user) {
+    // 1. Fetch the user's role from public.users table mapped by auth_id
     const { data: userRecord, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('auth_id', user.id)
       .single();
 
     if (userError || !userRecord) {
@@ -40,8 +40,8 @@ export const authService = {
       if (studentRecord) profile = { ...profile, ...studentRecord };
       
       // Transform keys to match existing UI mock expectations temporarily
-      profile.name = profile.name || email;
-      profile.username = profile.usn || email;
+      profile.name = profile.name || user.email;
+      profile.username = profile.usn || user.email;
       
     } else if (role === 'FACULTY') {
       const { data: facultyRecord } = await supabase
@@ -52,8 +52,8 @@ export const authService = {
         
       if (facultyRecord) profile = { ...profile, ...facultyRecord };
       
-      profile.name = profile.name || email;
-      profile.username = email;
+      profile.name = profile.name || user.email;
+      profile.username = user.email;
       
       // Determine if they are a coordinator
       profile.teacherRoles = ['FACULTY'];
@@ -74,7 +74,7 @@ export const authService = {
       if (adminRecord) profile = { ...profile, ...adminRecord };
       
       profile.name = "System Administrator";
-      profile.username = email;
+      profile.username = user.email;
     }
 
     return profile;
