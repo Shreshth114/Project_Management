@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Users, ExternalLink, UserCheck } from 'lucide-react';
+import { Search, Users, ExternalLink, UserCheck, Eye, X, CheckSquare, FolderCheck, Award } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -7,6 +7,9 @@ import { Badge } from '../../components/common/Badge';
 export const CoordinatorGroups = () => {
   const { data } = useAuth();
   const [search, setSearch] = useState('');
+  const [inspectingGroup, setInspectingGroup] = useState(null);
+
+  const groupEvaluations = data.groupEvaluations || [];
 
   const filteredGroups = data.groups.filter(g => 
     g.groupCode.toLowerCase().includes(search.toLowerCase()) ||
@@ -18,9 +21,9 @@ export const CoordinatorGroups = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Department Groups & Guide Allocations</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Department Groups & Project Progress</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-            Comprehensive directory of 36 final year project groups and allocated faculty guides.
+            Inspect submitted deliverables, faculty evaluation status, and individual student progress per project group.
           </p>
         </div>
 
@@ -35,7 +38,7 @@ export const CoordinatorGroups = () => {
         </div>
       </div>
 
-      <Card title="Project Batches Directory">
+      <Card title="Project Batches Directory (Click Progress to Inspect Deliverables & Faculty Review)">
         <div className="table-container responsive-table-stack">
           <table className="portal-table">
             <thead>
@@ -43,31 +46,172 @@ export const CoordinatorGroups = () => {
                 <th>Code</th>
                 <th>Project Title & Domain</th>
                 <th>Allocated Guide</th>
-                <th>Team Members Count</th>
-                <th>Phase 1</th>
-                <th>Phase 2</th>
-                <th>Progress</th>
+                <th>Team Members</th>
+                <th>Submission Mode</th>
+                <th>Overall Progress</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredGroups.map((g) => (
                 <tr key={g.id}>
-                  <td data-label="Code" style={{ fontWeight: 700, color: '#243143' }}>{g.groupCode}</td>
+                  <td data-label="Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.groupCode}</td>
                   <td data-label="Title & Domain">
-                    <div style={{ fontWeight: 700, color: '#243143' }}>{g.title}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>Domain: {g.domain}</div>
+                    <div style={{ fontWeight: 700, color: '#3A1F6F' }}>{g.title}</div>
+                    <div style={{ fontSize: '12px', color: '#55636B' }}>Domain: {g.domain}</div>
                   </td>
                   <td data-label="Guide" style={{ fontWeight: 600 }}>{g.guide}</td>
                   <td data-label="Members">{g.members.length} Students</td>
-                  <td data-label="Phase 1"><Badge variant="success">{g.phase1Status}</Badge></td>
-                  <td data-label="Phase 2"><Badge variant="warning">{g.phase2Status}</Badge></td>
-                  <td data-label="Progress" style={{ fontWeight: 700, color: '#B82226' }}>{g.overallProgress}%</td>
+                  <td data-label="Mode">
+                    <Badge variant="purple">
+                      {g.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A (Group)' : 'Mode B (Distributed)'}
+                    </Badge>
+                  </td>
+                  <td data-label="Progress">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div className="progress-container" style={{ width: '80px' }}>
+                        <div className="progress-bar" style={{ width: `${g.overallProgress}%` }}></div>
+                      </div>
+                      <strong style={{ fontSize: '13px', color: '#3A1F6F' }}>{g.overallProgress}%</strong>
+                    </div>
+                  </td>
+                  <td data-label="Action">
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setInspectingGroup(g)}
+                      title="View submitted files, faculty grading status, and student marks"
+                    >
+                      <Eye size={13} />
+                      <span>Inspect Progress</span>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </Card>
+
+      {/* Coordinator Group Progress Inspection Modal */}
+      {inspectingGroup && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog" style={{ maxWidth: '720px' }}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FolderCheck size={18} />
+                <span>Group Progress & Deliverables Inspection ({inspectingGroup.groupCode})</span>
+              </h3>
+              <button 
+                onClick={() => setInspectingGroup(null)}
+                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+                <h4 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                  {inspectingGroup.title}
+                </h4>
+                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                  Domain: <strong>{inspectingGroup.domain}</strong> | Faculty Guide: <strong>{inspectingGroup.guide}</strong>
+                </div>
+              </div>
+
+              {/* 1. Submitted Deliverables & Files Overview */}
+              <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+                1. Submitted Deliverables & Artifacts Status:
+              </h5>
+
+              <div className="table-container responsive-table-stack" style={{ marginBottom: '20px' }}>
+                <table className="portal-table">
+                  <thead>
+                    <tr>
+                      <th>Deliverable Component</th>
+                      <th>Upload Status</th>
+                      <th>Submitted File / Link</th>
+                      <th>Upload Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inspectingGroup.components && Object.keys(inspectingGroup.components).map(compKey => {
+                      const comp = inspectingGroup.components[compKey];
+                      const isDone = comp.status === 'COMPLETED';
+
+                      return (
+                        <tr key={compKey}>
+                          <td data-label="Component" style={{ fontWeight: 700, color: '#3A1F6F' }}>{comp.title}</td>
+                          <td data-label="Status">
+                            <Badge variant={isDone ? 'success' : 'warning'}>
+                              {isDone ? '✓ Uploaded' : '○ Pending'}
+                            </Badge>
+                          </td>
+                          <td data-label="File/Link" style={{ fontSize: '12px', color: '#DE3B0B', fontWeight: 600 }}>
+                            {isDone ? (comp.fileName || comp.url) : 'Pending Upload'}
+                          </td>
+                          <td data-label="Date" style={{ fontSize: '12px', color: '#55636B' }}>
+                            {comp.submittedAt || '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 2. Faculty Evaluation Status & Student Marks */}
+              <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+                2. Faculty Evaluation Status & Individual Student Marks:
+              </h5>
+
+              <div className="table-container responsive-table-stack">
+                <table className="portal-table">
+                  <thead>
+                    <tr>
+                      <th>USN</th>
+                      <th>Student Name</th>
+                      <th>Faculty Guide Review</th>
+                      <th>Individual Score</th>
+                      <th>Evaluation Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inspectingGroup.members.map(m => {
+                      const evalRec = groupEvaluations.find(e => e.groupId === inspectingGroup.id && e.studentUsn === m.usn);
+
+                      return (
+                        <tr key={m.usn}>
+                          <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                          <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
+                          <td data-label="Review" style={{ fontSize: '12px', color: '#55636B' }}>
+                            {evalRec ? evalRec.feedback : 'Under faculty review'}
+                          </td>
+                          <td data-label="Score" style={{ fontWeight: 800, color: '#3A1F6F' }}>
+                            {evalRec ? `${evalRec.totalScore} / 100` : 'Pending'}
+                          </td>
+                          <td data-label="Status">
+                            <Badge variant={evalRec ? 'success' : 'warning'}>
+                              {evalRec ? '✓ Evaluated' : '○ Pending Review'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setInspectingGroup(null)}>
+                Close Group Inspection View
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -4,17 +4,17 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { RitLogo } from '../../components/common/RitLogo';
 
-export const RegisterStudent = ({ onBackToLogin }) => {
+export const RegisterFaculty = ({ onBackToLogin }) => {
   const { data, registerUser } = useAuth();
   
-  const [usn, setUsn] = useState('');
+  const [empCode, setEmpCode] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dept, setDept] = useState('CSE');
+  const [designation, setDesignation] = useState('Associate Professor');
   const [selectedSubject, setSelectedSubject] = useState(data.subjects[0]?.code || '21CSP81');
-  const [batch, setBatch] = useState('2021-2025 (8th Sem CSE)');
-  const [guide, setGuide] = useState(data.facultyGuides[0]?.name || 'Dr. R. Sharma');
-  const [password, setPassword] = useState('student123');
+  const [password, setPassword] = useState('faculty123');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -23,28 +23,26 @@ export const RegisterStudent = ({ onBackToLogin }) => {
     setError('');
 
     if (!email.toLowerCase().includes('@msrit.edu')) {
-      setError('Please provide an official college email (@msrit.edu).');
+      setError('Please provide an official institutional faculty email (@msrit.edu).');
       return;
     }
 
     const newUser = {
-      username: usn.toUpperCase(),
-      usn: usn.toUpperCase(),
+      username: empCode || email.split('@')[0],
       name,
       email,
-      role: 'STUDENT',
-      department: 'CSE',
+      role: 'FACULTY',
+      teacherRoles: ['FACULTY'],
+      department: dept,
+      designation,
       subject: selectedSubject,
-      batch,
-      guide,
       phone,
-      password,
-      groupId: 'G01'
+      password
     };
 
     const res = registerUser(newUser);
     if (res.success) {
-      setSuccess('Student Enrolment completed successfully! Redirecting to login...');
+      setSuccess('Faculty Registration completed successfully! Redirecting to login...');
       setTimeout(() => {
         onBackToLogin();
       }, 2000);
@@ -64,7 +62,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '580px',
+        maxWidth: '560px',
         backgroundColor: '#FFFFFF',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -78,7 +76,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
           display: 'flex',
           alignItems: 'center',
           gap: '14px',
-          borderBottom: '4px solid #E63B00'
+          borderBottom: '4px solid #B8115B'
         }}>
           <button 
             type="button" 
@@ -98,10 +96,10 @@ export const RegisterStudent = ({ onBackToLogin }) => {
           </button>
           <div>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
-              Student Registration Portal
+              Faculty & Evaluator Enrolment Portal
             </h2>
             <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
-              Select System-Managed Subject, Batch & Guide
+              Select System-Managed Subject, Department & Designation
             </div>
           </div>
         </div>
@@ -124,23 +122,23 @@ export const RegisterStudent = ({ onBackToLogin }) => {
           <form onSubmit={handleRegister}>
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">University Seat Number (USN)</label>
+                <label className="form-label">Employee / Faculty ID</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. 1MS21CS042"
-                  value={usn}
-                  onChange={(e) => setUsn(e.target.value)}
+                  placeholder="e.g. FAC202108"
+                  value={empCode}
+                  onChange={(e) => setEmpCode(e.target.value)}
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">Full Name with Title</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Full name per VTU record"
+                  placeholder="e.g. Dr. Ramesh Kumar"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -150,11 +148,11 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">College Email (@msrit.edu)</label>
+                <label className="form-label">Institutional Email (@msrit.edu)</label>
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="student@msrit.edu"
+                  placeholder="faculty@msrit.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -174,47 +172,49 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               </div>
             </div>
 
-            <div className="grid-3">
+            <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">System Subject</label>
+                <label className="form-label">Department</label>
                 <select 
                   className="form-select"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  value={dept}
+                  onChange={(e) => setDept(e.target.value)}
                 >
-                  {data.subjects.map(s => (
-                    <option key={s.id} value={s.code}>
-                      {s.code} - {s.name}
-                    </option>
-                  ))}
+                  <option value="CSE">Computer Science & Eng (CSE)</option>
+                  <option value="ECE">Electronics & Comm (ECE)</option>
+                  <option value="ISE">Information Science (ISE)</option>
+                  <option value="MECH">Mechanical Eng (MECH)</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Academic Batch</label>
+                <label className="form-label">Designation</label>
                 <select 
                   className="form-select"
-                  value={batch}
-                  onChange={(e) => setBatch(e.target.value)}
+                  value={designation}
+                  onChange={(e) => setDesignation(e.target.value)}
                 >
-                  {data.batches.map(b => (
-                    <option key={b.id} value={b.title}>{b.title}</option>
-                  ))}
+                  <option value="Professor & Head">Professor & Head</option>
+                  <option value="Professor">Professor</option>
+                  <option value="Associate Professor">Associate Professor</option>
+                  <option value="Assistant Professor">Assistant Professor</option>
                 </select>
               </div>
+            </div>
 
-              <div className="form-group">
-                <label className="form-label">Allocated Guide</label>
-                <select 
-                  className="form-select"
-                  value={guide}
-                  onChange={(e) => setGuide(e.target.value)}
-                >
-                  {data.facultyGuides.map(g => (
-                    <option key={g.id} value={g.name}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="form-group">
+              <label className="form-label">System Subject / Course Code</label>
+              <select 
+                className="form-select"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+              >
+                {data.subjects.map(s => (
+                  <option key={s.id} value={s.code}>
+                    {s.code} - {s.name} ({s.branch})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -228,9 +228,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '16px', padding: '12px' }}>
+            <button type="submit" className="btn btn-magenta btn-block" style={{ marginTop: '16px', padding: '12px' }}>
               <UserCheck size={16} />
-              <span>SUBMIT STUDENT ENROLMENT</span>
+              <span>SUBMIT FACULTY ENROLMENT</span>
             </button>
           </form>
         </div>

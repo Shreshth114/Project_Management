@@ -10,7 +10,7 @@ export const CoordinatorCreateTask = () => {
   const [phase, setPhase] = useState('Phase 2');
   const [totalMarks, setTotalMarks] = useState(50);
   const [deadline, setDeadline] = useState('2025-10-25');
-  const [allowedMode, setAllowedMode] = useState('BOTH'); // LEADER_SUBMITS_ALL | MEMBERS_SUBMIT_ASSIGNED | BOTH
+  const [submissionMode, setSubmissionMode] = useState('LEADER_SUBMITS_ALL'); // LEADER_SUBMITS_ALL (Mode A) | MEMBERS_SUBMIT_ASSIGNED (Mode B)
   const [description, setDescription] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -22,7 +22,7 @@ export const CoordinatorCreateTask = () => {
       phase,
       totalMarks: Number(totalMarks),
       deadline,
-      allowedMode,
+      submissionMode,
       description
     });
     setSuccess(true);
@@ -42,9 +42,9 @@ export const CoordinatorCreateTask = () => {
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Create & Publish Milestone Task</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Create & Publish Milestone Task</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-            Define Task Type (Individual vs Group) and Submission Modes.
+            Coordinator-enforced milestone requirements and group submission modes.
           </p>
         </div>
       </div>
@@ -72,14 +72,14 @@ export const CoordinatorCreateTask = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Task Type</label>
+              <label className="form-label">Task Category</label>
               <select
                 className="form-select"
                 value={taskType}
                 onChange={(e) => setTaskType(e.target.value)}
               >
-                <option value="GROUP">👥 Group Task (One Shared Project per Group)</option>
-                <option value="INDIVIDUAL">👤 Individual Task (Independent Submissions)</option>
+                <option value="GROUP">👥 Group Task (Shared Project Deliverable)</option>
+                <option value="INDIVIDUAL">👤 Individual Task (Independent Component)</option>
               </select>
             </div>
           </div>
@@ -99,7 +99,7 @@ export const CoordinatorCreateTask = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Total Marks</label>
+              <label className="form-label">Total Evaluation Marks</label>
               <input
                 type="number"
                 min={5}
@@ -123,20 +123,22 @@ export const CoordinatorCreateTask = () => {
             </div>
           </div>
 
-          {taskType === 'GROUP' && (
-            <div className="form-group">
-              <label className="form-label">Allowed Group Submission Modes</label>
-              <select
-                className="form-select"
-                value={allowedMode}
-                onChange={(e) => setAllowedMode(e.target.value)}
-              >
-                <option value="BOTH">Allow Group Leader to Choose (Mode A or Mode B)</option>
-                <option value="LEADER_SUBMITS_ALL">Mode A Only: Leader Submits All Components</option>
-                <option value="MEMBERS_SUBMIT_ASSIGNED">Mode B Only: Members Submit Assigned Items</option>
-              </select>
-            </div>
-          )}
+          {/* Submission Mode: Strict Coordinator Choice (No student choice allowed) */}
+          <div className="form-group">
+            <label className="form-label">Submission Mode (Coordinator Decision Only)</label>
+            <select
+              className="form-select"
+              value={submissionMode}
+              onChange={(e) => setSubmissionMode(e.target.value)}
+            >
+              <option value="LEADER_SUBMITS_ALL">
+                Mode A: Group Mode (Anyone in group submits, contents reflect for ALL group members & faculty)
+              </option>
+              <option value="MEMBERS_SUBMIT_ASSIGNED">
+                Mode B: Individual Mode (All individuals of group submit their assigned parts separately)
+              </option>
+            </select>
+          </div>
 
           <div className="form-group">
             <label className="form-label">Task Description & Evaluation Criteria</label>

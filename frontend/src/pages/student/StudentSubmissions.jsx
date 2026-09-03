@@ -3,13 +3,14 @@ import { Upload, FileCheck, CheckCircle, ExternalLink, Shield, Layers, UserCheck
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
-import { GroupSubmissionManagement } from '../../components/student/GroupSubmissionManagement';
 
 export const StudentSubmissions = () => {
   const { data, currentUser, submitGroupComponent } = useAuth();
   
   // Find group associated with current student
   const groups = data.groups || [];
+  const tasks = data.tasks || [];
+
   const studentGroup = groups.find(g => g.id === currentUser?.groupId) || groups[0];
   const isLeader = currentUser?.isGroupLeader || studentGroup?.leaderUsn === currentUser?.usn;
 
@@ -34,7 +35,7 @@ export const StudentSubmissions = () => {
       });
     }
 
-    setSuccessMsg(`Component "${compObj?.title || compKey}" submitted successfully for Group ${studentGroup.groupCode}!`);
+    setSuccessMsg(`Component "${compObj?.title || compKey}" submitted successfully! Reflected for all Group ${studentGroup.groupCode} members.`);
     setFile(null);
     setUrlInput('');
     setTimeout(() => setSuccessMsg(''), 4000);
@@ -45,16 +46,17 @@ export const StudentSubmissions = () => {
   }
 
   const componentsObj = studentGroup.components || {};
+  const isGroupMode = studentGroup.submissionMode === 'LEADER_SUBMITS_ALL' || studentGroup.submissionMode === 'GROUP';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
       <div style={{
-        backgroundColor: '#243143',
+        backgroundColor: '#3A1F6F',
         color: '#FFFFFF',
         padding: '24px',
-        borderRadius: '4px',
-        borderLeft: '6px solid #B82226',
+        borderRadius: '6px',
+        borderBottom: '4px solid #DE3B0B',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -62,19 +64,19 @@ export const StudentSubmissions = () => {
         gap: '12px'
       }}>
         <div>
-          <div style={{ fontSize: '12px', color: '#9F9F9F', fontWeight: 700, textTransform: 'uppercase' }}>
-            ONE COMBINED GROUP PROJECT SUBMISSION
+          <div style={{ fontSize: '12px', color: '#E0D6F5', fontWeight: 700, textTransform: 'uppercase' }}>
+            COORDINATOR-CONFIGURED SUBMISSION GOVERNANCE
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
             {studentGroup.title}
           </h1>
-          <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
             Group Code: <strong>{studentGroup.groupCode}</strong> | Leader: <strong>{studentGroup.leaderName}</strong> | Guide: <strong>{studentGroup.guide}</strong>
           </div>
         </div>
 
-        <Badge variant="navy">
-          Mode: {studentGroup.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A (Leader Submits All)' : 'Mode B (Distributed Submission)'}
+        <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
+          Mode: {isGroupMode ? 'Group Mode (1 Upload Reflected for All)' : 'Individual Mode (Personal Upload)'}
         </Badge>
       </div>
 
@@ -85,15 +87,13 @@ export const StudentSubmissions = () => {
         </div>
       )}
 
-      {/* Group Leader Control Panel (Rendered only if current user is Group Leader) */}
-      {isLeader && (
-        <GroupSubmissionManagement group={studentGroup} />
-      )}
-
       {/* ONE COMBINED GROUP PROJECT COMPONENTS VIEW */}
-      <Card title={`ONE GROUP PROJECT COMPONENTS (${studentGroup.groupCode})`}>
+      <Card title={`PROJECT DELIVERABLES & COMPONENTS (${studentGroup.groupCode})`}>
         <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
-          All group members view the same combined project submission and component statuses.
+          {isGroupMode 
+            ? "Group Mode: Submissions made by any member reflect for ALL team members under this project."
+            : "Individual Mode: Every student must upload their assigned deliverables individually."
+          }
         </p>
 
         <div className="table-container responsive-table-stack">
@@ -102,7 +102,6 @@ export const StudentSubmissions = () => {
               <tr>
                 <th>Component Title</th>
                 <th>Submission Status</th>
-                <th>Responsible Student(s)</th>
                 <th>Submitted File / Link</th>
                 <th>Submitted By</th>
                 <th>Submission Date</th>
@@ -113,87 +112,54 @@ export const StudentSubmissions = () => {
               {Object.keys(componentsObj).map(compKey => {
                 const comp = componentsObj[compKey];
                 const isCompleted = comp.status === 'COMPLETED';
-                
-                // Responsible checking logic
-                let isResponsible = false;
-                if (studentGroup.submissionMode === 'LEADER_SUBMITS_ALL') {
-                  isResponsible = isLeader;
-                } else {
-                  // Mode B: check if current user USN is in assignedUsns
-                  isResponsible = comp.assignedUsns ? comp.assignedUsns.includes(currentUser.usn) : isLeader;
-                }
 
                 return (
                   <tr key={compKey}>
-                    <td data-label="Component Title" style={{ fontWeight: 700, color: '#243143' }}>
+                    <td data-label="Component Title" style={{ fontWeight: 700, color: '#3A1F6F' }}>
                       {comp.title}
                     </td>
 
                     <td data-label="Submission Status">
-                      <Badge variant={isCompleted ? 'success' : 'info'}>
+                      <Badge variant={isCompleted ? 'success' : 'warning'}>
                         {isCompleted ? '✓ Completed' : '○ Pending'}
                       </Badge>
-                    </td>
-
-                    <td data-label="Responsible Student(s)">
-                      {studentGroup.submissionMode === 'LEADER_SUBMITS_ALL' ? (
-                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#243143' }}>
-                          Team Leader ({studentGroup.leaderName})
-                        </span>
-                      ) : (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                          {comp.assignedNames && comp.assignedNames.length > 0 ? (
-                            comp.assignedNames.map((name, idx) => (
-                              <Badge key={idx} variant="navy">{name}</Badge>
-                            ))
-                          ) : (
-                            <span style={{ fontSize: '12px', color: '#999' }}>Unassigned</span>
-                          )}
-                        </div>
-                      )}
                     </td>
 
                     <td data-label="Submitted File / Link">
                       {isCompleted ? (
                         compKey === 'deploymentLink' ? (
-                          <a href={comp.url} target="_blank" rel="noreferrer" style={{ color: '#B82226', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <a href={comp.url} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             <span>{comp.url}</span>
                             <ExternalLink size={13} />
                           </a>
                         ) : (
-                          <span style={{ color: '#114C94', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize})</span>
+                          <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize})</span>
                         )
                       ) : (
-                        <span style={{ color: '#999', fontSize: '13px' }}>Not uploaded yet</span>
+                        <span style={{ color: '#8A9198', fontSize: '13px' }}>Not uploaded yet</span>
                       )}
                     </td>
 
-                    <td data-label="Submitted By" style={{ fontSize: '13px', color: '#555' }}>
-                      {comp.submittedByNames && comp.submittedByNames.length > 0 ? comp.submittedByNames.join(' + ') : '—'}
+                    <td data-label="Submitted By" style={{ fontSize: '13px', color: '#55636B' }}>
+                      {comp.submittedByNames && comp.submittedByNames.length > 0 ? comp.submittedByNames.join(' + ') : studentGroup.leaderName}
                     </td>
 
-                    <td data-label="Submission Date" style={{ fontSize: '12px', color: '#666' }}>
+                    <td data-label="Submission Date" style={{ fontSize: '12px', color: '#55636B' }}>
                       {comp.submittedAt || '—'}
                     </td>
 
                     <td data-label="Action">
-                      {isResponsible ? (
-                        <button 
-                          className="btn btn-primary btn-sm"
-                          onClick={() => {
-                            setActiveComponentKey(compKey);
-                            const element = document.getElementById('upload-section');
-                            if (element) element.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                        >
-                          <Upload size={13} />
-                          <span>{isCompleted ? 'Re-upload' : 'Upload'}</span>
-                        </button>
-                      ) : (
-                        <span style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
-                          View Only
-                        </span>
-                      )}
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                          setActiveComponentKey(compKey);
+                          const element = document.getElementById('upload-section');
+                          if (element) element.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        <Upload size={13} />
+                        <span>{isCompleted ? 'Re-upload' : 'Upload'}</span>
+                      </button>
                     </td>
                   </tr>
                 );
@@ -205,10 +171,10 @@ export const StudentSubmissions = () => {
 
       {/* Component Upload Form Section */}
       <div id="upload-section">
-        <Card title={`Upload Component: ${componentsObj[activeComponentKey]?.title || 'Deliverable'}`}>
+        <Card title={`Upload Component Deliverable: ${componentsObj[activeComponentKey]?.title || 'Deliverable'}`}>
           <form onSubmit={(e) => handleComponentUpload(e, activeComponentKey)}>
             <div className="form-group">
-              <label className="form-label">Active Component Target</label>
+              <label className="form-label">Select Target Component</label>
               <select 
                 className="form-select"
                 value={activeComponentKey}
@@ -242,8 +208,8 @@ export const StudentSubmissions = () => {
                   textAlign: 'center',
                   backgroundColor: '#FAFAFA'
                 }}>
-                  <Upload size={28} color="#9F9F9F" style={{ margin: '0 auto 6px' }} />
-                  <div style={{ fontSize: '14px', fontWeight: 600 }}>
+                  <Upload size={28} color="#8A9198" style={{ margin: '0 auto 6px' }} />
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#3A1F6F' }}>
                     {file ? file.name : "Click to select deliverable file"}
                   </div>
                   <input
@@ -261,7 +227,7 @@ export const StudentSubmissions = () => {
 
             <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
               <FileCheck size={16} />
-              <span>SUBMIT COMPONENT TO GROUP PROJECT</span>
+              <span>SUBMIT DELIVERABLE TO PROJECT</span>
             </button>
           </form>
         </Card>

@@ -84,12 +84,14 @@ export const FacultyEvaluation = () => {
     setTimeout(() => setSavedSuccess(''), 4000);
   };
 
+  const isGroupMode = selectedGroup?.submissionMode === 'LEADER_SUBMITS_ALL' || selectedGroup?.submissionMode === 'GROUP';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Faculty Rubric Evaluation Portal</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Rubric Evaluation Portal</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Evaluate ONE combined Group Project, then evaluate EVERY group member individually with separate marks.
+          Review submitted deliverables, then evaluate EVERY group member individually with separate marks.
         </p>
       </div>
 
@@ -129,30 +131,30 @@ export const FacultyEvaluation = () => {
               onChange={(e) => setSelectedTaskId(e.target.value)}
             >
               {tasks.map(t => (
-                <option key={t.id} value={t.id}>{t.taskType === 'GROUP' ? '👥' : '👤'} {t.title}</option>
+                <option key={t.id} value={t.id}>{t.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED' ? '👤' : '👥'} {t.title}</option>
               ))}
             </select>
           </div>
         </div>
       </Card>
 
-      {/* TOP SECTION: ONE COMBINED GROUP PROJECT VIEW */}
+      {/* TOP SECTION: COMBINED GROUP PROJECT SUBMISSIONS */}
       {selectedGroup && (
-        <Card title={`1. COMBINED GROUP PROJECT SUBMISSION (${selectedGroup.groupCode})`}>
+        <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${selectedGroup.groupCode})`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#243143', margin: 0 }}>{selectedGroup.title}</h2>
-              <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
-                Domain: <strong>{selectedGroup.domain}</strong> | Leader: <strong>{selectedGroup.leaderName}</strong> | Guide: <strong>{selectedGroup.guide}</strong>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{selectedGroup.title}</h2>
+              <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                Domain: <strong>{selectedGroup.domain}</strong> | Faculty Guide: <strong>{selectedGroup.guide}</strong>
               </div>
             </div>
-            <Badge variant="navy">
-              {selectedGroup.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A: Leader Submits All' : 'Mode B: Distributed Submissions'}
+            <Badge variant="purple">
+              {isGroupMode ? 'Mode A: Group Submission (1 Upload Reflected for All Members)' : 'Mode B: Individual Submissions'}
             </Badge>
           </div>
 
-          <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#243143', marginBottom: '10px' }}>
-            Group Project Components & Deliverables:
+          <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>
+            Group Deliverables & Component Submissions:
           </h4>
 
           <div className="table-container responsive-table-stack" style={{ marginBottom: '12px' }}>
@@ -162,7 +164,7 @@ export const FacultyEvaluation = () => {
                   <th>Component</th>
                   <th>Status</th>
                   <th>Submitted File / Link</th>
-                  <th>Submitted By</th>
+                  <th>Submission Origin</th>
                   <th>Date</th>
                 </tr>
               </thead>
@@ -173,29 +175,35 @@ export const FacultyEvaluation = () => {
 
                   return (
                     <tr key={compKey}>
-                      <td data-label="Component" style={{ fontWeight: 700, color: '#243143' }}>{comp.title}</td>
+                      <td data-label="Component" style={{ fontWeight: 700, color: '#3A1F6F' }}>{comp.title}</td>
                       <td data-label="Status">
-                        <Badge variant={isCompleted ? 'success' : 'info'}>
+                        <Badge variant={isCompleted ? 'success' : 'warning'}>
                           {isCompleted ? '✓ Submitted' : '○ Pending'}
                         </Badge>
                       </td>
                       <td data-label="File/Link">
                         {isCompleted ? (
                           compKey === 'deploymentLink' ? (
-                            <a href={comp.url} target="_blank" rel="noreferrer" style={{ color: '#B82226', fontWeight: 600 }}>
+                            <a href={comp.url} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600 }}>
                               {comp.url}
                             </a>
                           ) : (
-                            <span style={{ color: '#114C94', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize})</span>
+                            <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize})</span>
                           )
                         ) : (
-                          <span style={{ color: '#999' }}>Pending Upload</span>
+                          <span style={{ color: '#8A9198' }}>Pending Upload</span>
                         )}
                       </td>
-                      <td data-label="Submitted By" style={{ fontSize: '13px' }}>
-                        {comp.submittedByNames && comp.submittedByNames.length > 0 ? comp.submittedByNames.join(' + ') : '—'}
+
+                      {/* Display Submission Origin: Mode A displays Group Code, Mode B displays Student Name + Group Code */}
+                      <td data-label="Submission Origin" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
+                        {isGroupMode 
+                          ? `${selectedGroup.groupCode} (Group Submission)`
+                          : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${selectedGroup.groupCode}]` : `${selectedGroup.leaderName} [${selectedGroup.groupCode}]`)
+                        }
                       </td>
-                      <td data-label="Date" style={{ fontSize: '12px', color: '#666' }}>
+
+                      <td data-label="Date" style={{ fontSize: '12px', color: '#55636B' }}>
                         {comp.submittedAt || '—'}
                       </td>
                     </tr>
@@ -209,9 +217,9 @@ export const FacultyEvaluation = () => {
 
       {/* BOTTOM SECTION: INDIVIDUAL EVALUATION ROSTER & RUBRIC FORM */}
       {selectedGroup && (
-        <Card title="2. INDIVIDUAL STUDENT EVALUATIONS (CRITICAL BUSINESS RULE)">
+        <Card title="2. INDIVIDUAL STUDENT EVALUATIONS (SEPARATE MARKS PER MEMBER)">
           <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
-            The project is ONE group project, but EVERY student is evaluated individually using the SAME criteria rubric. Students receive separate individual marks.
+            Deliverables are reflected across the team, but EVERY student is evaluated separately with individual marks.
           </p>
 
           {/* Group Members Evaluation Roster Table */}
@@ -221,8 +229,8 @@ export const FacultyEvaluation = () => {
                 <tr>
                   <th>USN</th>
                   <th>Student Name</th>
-                  <th>Role</th>
-                  <th>Component Responsibility</th>
+                  <th>Team Role</th>
+                  <th>Submissions Reflected</th>
                   <th>Individual Marks Awarded</th>
                   <th>Evaluation Status</th>
                   <th>Action</th>
@@ -234,20 +242,18 @@ export const FacultyEvaluation = () => {
                   const isSelected = m.usn === activeStudentUsn;
 
                   return (
-                    <tr key={m.usn} style={{ backgroundColor: isSelected ? '#FDF8F8' : 'transparent' }}>
-                      <td data-label="USN" style={{ fontWeight: 700, color: '#243143' }}>{m.usn}</td>
+                    <tr key={m.usn} style={{ backgroundColor: isSelected ? '#FDF0F2' : 'transparent' }}>
+                      <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
                       <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                      <td data-label="Role"><Badge variant={m.role === 'Team Lead' ? 'navy' : 'info'}>{m.role}</Badge></td>
-                      <td data-label="Responsibility" style={{ fontSize: '12px', color: '#555' }}>
-                        {selectedGroup.submissionMode === 'LEADER_SUBMITS_ALL' 
-                          ? (m.usn === selectedGroup.leaderUsn ? 'All Components (Leader)' : 'Group Member')
-                          : 'Distributed Assigned Items'}
+                      <td data-label="Team Role"><Badge variant={m.role === 'Team Lead' ? 'purple' : 'navy'}>{m.role}</Badge></td>
+                      <td data-label="Submissions" style={{ fontSize: '12px', color: '#55636B' }}>
+                        {isGroupMode ? '✓ Group Deliverables Reflected' : m.assignedModule}
                       </td>
-                      <td data-label="Marks Awarded" style={{ fontWeight: 700, fontSize: '15px', color: '#B82226' }}>
+                      <td data-label="Marks Awarded" style={{ fontWeight: 800, fontSize: '15px', color: '#DE3B0B' }}>
                         {evalRec ? `${evalRec.totalScore} / 50` : 'Not Evaluated'}
                       </td>
                       <td data-label="Status">
-                        <Badge variant={evalRec ? 'success' : 'info'}>
+                        <Badge variant={evalRec ? 'success' : 'warning'}>
                           {evalRec ? '✓ Evaluated' : '○ Pending'}
                         </Badge>
                       </td>
@@ -269,24 +275,24 @@ export const FacultyEvaluation = () => {
           {/* Individual Student Rubric Form */}
           {activeStudentObj && (
             <div style={{
-              border: '2px solid #B82226',
+              border: '2px solid #DE3B0B',
               borderRadius: '6px',
               padding: '20px',
               backgroundColor: '#FFFFFF'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
                 <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#243143', margin: 0 }}>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})
                   </h3>
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: '#55636B', marginTop: '2px' }}>
                     Group: {selectedGroup.groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: '#B82226' }}>
-                    {totalScore} <span style={{ fontSize: '14px', color: '#9F9F9F' }}>/ 50</span>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#DE3B0B' }}>
+                    {totalScore} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ 50</span>
                   </div>
                   <Badge variant="success">Rubric Total</Badge>
                 </div>

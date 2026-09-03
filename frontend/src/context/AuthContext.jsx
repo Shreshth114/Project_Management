@@ -1,45 +1,98 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialCollegeData } from '../data/mockData';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [data, setData] = useState(initialCollegeData);
+  // Load stored custom users from localStorage if available
+  const [data, setData] = useState(() => {
+    const saved = localStorage.getItem('rit_college_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return initialCollegeData;
+      }
+    }
+    return initialCollegeData;
+  });
   
-  // Default logged-in user (preset as Student 1MS21CS042 for instant preview, can be changed via login)
-  const [currentUser, setCurrentUser] = useState(initialCollegeData.users[0]);
+  // Current logged in user (null by default so Login screen opens cleanly)
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem('rit_current_user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
   
   // Current Active Working Role: 'STUDENT' | 'FACULTY' | 'COORDINATOR' | 'ADMIN'
-  const [currentRole, setCurrentRole] = useState('STUDENT');
+  const [currentRole, setCurrentRole] = useState(() => {
+    return localStorage.getItem('rit_current_role') || null;
+  });
   
   // Active Page Tab
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
-  // Modal state for role selection gateway if teacher has both roles
-  const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('rit_active_tab') || 'login';
+  });
 
-  // Login handler
+  // Flag to display Mode Selection Landing Page for Faculty logins
+  const [showModeSelectionLanding, setShowModeSelectionLanding] = useState(false);
+
+  // Sync data changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('rit_college_data', JSON.stringify(data));
+  }, [data]);
+
+  // Login handler with flexible alias matching for student@msrit.edu, faculty@msrit.edu, admin@msrit.edu
   const login = (emailOrUsername, password) => {
-    const found = data.users.find(
-      u => u.username.toLowerCase() === emailOrUsername.toLowerCase() || 
-           u.email.toLowerCase() === emailOrUsername.toLowerCase()
+    const input = emailOrUsername.trim().toLowerCase();
+
+    // Check alias shortcuts or registered users
+    let found = data.users.find(
+      u => u.username.toLowerCase() === input || 
+           u.email.toLowerCase() === input ||
+           (u.usn && u.usn.toLowerCase() === input)
     );
+
+    // Fallback preset mappings for student@msrit.edu, faculty@msrit.edu, admin@msrit.edu
+    if (!found) {
+      if (input === 'student@msrit.edu' || input === 'student') {
+        found = data.users.find(u => u.role === 'STUDENT') || data.users[0];
+      } else if (input === 'faculty@msrit.edu' || input === 'faculty') {
+        found = data.users.find(u => u.role === 'TEACHER') || data.users.find(u => u.email === 'dr.sharma@msrit.edu');
+      } else if (input === 'admin@msrit.edu' || input === 'admin') {
+        found = data.users.find(u => u.role === 'ADMIN');
+      }
+    }
 
     if (found) {
       setCurrentUser(found);
+      localStorage.setItem('rit_current_user', JSON.stringify(found));
+
       if (found.role === 'STUDENT') {
         setCurrentRole('STUDENT');
+        localStorage.setItem('rit_current_role', 'STUDENT');
         setActiveTab('dashboard');
+        localStorage.setItem('rit_active_tab', 'dashboard');
+        setShowModeSelectionLanding(false);
       } else if (found.role === 'ADMIN') {
         setCurrentRole('ADMIN');
+        localStorage.setItem('rit_current_role', 'ADMIN');
         setActiveTab('dashboard');
-      } else if (found.role === 'TEACHER') {
-        if (found.teacherRoles.length > 1) {
-          setShowRoleSelectionModal(true);
-        } else {
-          setCurrentRole(found.teacherRoles[0]);
-          setActiveTab('dashboard');
-        }
+        localStorage.setItem('rit_active_tab', 'dashboard');
+        setShowModeSelectionLanding(false);
+      } else if (found.role === 'TEACHER' || found.role === 'FACULTY' || found.role === 'COORDINATOR') {
+        // Faculty login defaults to Faculty Mode Selection Landing Page
+        setCurrentRole('FACULTY');
+        localStorage.setItem('rit_current_role', 'FACULTY');
+        setActiveTab('dashboard');
+        localStorage.setItem('rit_active_tab', 'dashboard');
+        setShowModeSelectionLanding(true);
       }
       return { success: true };
     } else {
@@ -47,21 +100,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register User (Student or Faculty Account Creation)
+  const registerUser = (newUser) => {
+    const existing = data.users.find(
+      u => u.email.toLowerCase() === newUser.email.toLowerCase() ||
+           (newUser.usn && u.usn && u.usn.toLowerCase() === newUser.usn.toLowerCase())
+    );
+
+    if (existing) {
+      return { success: false, message: "An account already exists for this email address or USN. Please return to login." };
+    }
+
+    const createdUser = {
+      id: `u-${Date.now()}`,
+      ...newUser
+    };
+
+    setData(prev => ({
+      ...prev,
+      users: [createdUser, ...prev.users]
+    }));
+
+    return { success: true };
+  };
+
   // Switch Teacher Working Role (Faculty <-> Coordinator)
   const switchTeacherRole = (newRole) => {
     setCurrentRole(newRole);
+    localStorage.setItem('rit_current_role', newRole);
     setActiveTab('dashboard');
-    setShowRoleSelectionModal(false);
-  };
-
-  // Quick Switch Preset User for Easy Assessment Demo
-  const quickSwitchUser = (userId, targetRole) => {
-    const found = data.users.find(u => u.id === userId);
-    if (found) {
-      setCurrentUser(found);
-      setCurrentRole(targetRole || (found.teacherRoles ? found.teacherRoles[0] : found.role));
-      setActiveTab('dashboard');
-    }
+    localStorage.setItem('rit_active_tab', 'dashboard');
+    setShowModeSelectionLanding(false);
   };
 
   // Logout handler
@@ -69,9 +138,21 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
     setCurrentRole(null);
     setActiveTab('login');
+    setShowModeSelectionLanding(false);
+    localStorage.removeItem('rit_current_user');
+    localStorage.removeItem('rit_current_role');
+    localStorage.removeItem('rit_active_tab');
   };
 
-  // 1. Group Leader: Set Submission Mode (Mode A vs Mode B)
+  // Delete Message Function
+  const deleteMessage = (messageId) => {
+    setData(prev => ({
+      ...prev,
+      messages: prev.messages.filter(m => m.id !== messageId)
+    }));
+  };
+
+  // Group Leader: Set Submission Mode (Mode A vs Mode B)
   const setGroupSubmissionMode = (groupId, newMode) => {
     setData(prev => ({
       ...prev,
@@ -85,7 +166,7 @@ export const AuthProvider = ({ children }) => {
         {
           id: `log-${Date.now()}`,
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
+          user: currentUser?.username || 'user',
           action: "MODE_CHANGE",
           details: `Group ${groupId} leader switched submission mode to ${newMode}`
         },
@@ -94,44 +175,7 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
-  // 2. Group Leader: Update Distributed Component Assignments
-  const updateComponentAssignments = (groupId, updatedAssignments) => {
-    // updatedAssignments is an object: { componentKey: [array of assigned USNs] }
-    setData(prev => ({
-      ...prev,
-      groups: prev.groups.map(g => {
-        if (g.id === groupId) {
-          const newComponents = { ...g.components };
-          Object.keys(updatedAssignments).forEach(compKey => {
-            const assignedUsns = updatedAssignments[compKey];
-            const assignedNames = g.members
-              .filter(m => assignedUsns.includes(m.usn))
-              .map(m => m.name);
-
-            newComponents[compKey] = {
-              ...newComponents[compKey],
-              assignedUsns,
-              assignedNames
-            };
-          });
-          return { ...g, components: newComponents };
-        }
-        return g;
-      }),
-      auditLogs: [
-        {
-          id: `log-${Date.now()}`,
-          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
-          action: "ASSIGNMENTS_UPDATED",
-          details: `Updated distributed component submission responsibilities for Group ${groupId}`
-        },
-        ...prev.auditLogs
-      ]
-    }));
-  };
-
-  // 3. Submit/Upload a Group Project Component
+  // Submit/Upload a Group Project Component
   const submitGroupComponent = (groupId, componentKey, payload) => {
     setData(prev => ({
       ...prev,
@@ -141,8 +185,11 @@ export const AuthProvider = ({ children }) => {
           const existingSubmittedUsns = comp.submittedByUsns || [];
           const existingSubmittedNames = comp.submittedByNames || [];
 
-          const newSubmittedUsns = Array.from(new Set([...existingSubmittedUsns, currentUser.usn]));
-          const newSubmittedNames = Array.from(new Set([...existingSubmittedNames, currentUser.name]));
+          const userUsn = currentUser?.usn || '1MS21CS042';
+          const userName = currentUser?.name || 'Rahul Sharma';
+
+          const newSubmittedUsns = Array.from(new Set([...existingSubmittedUsns, userUsn]));
+          const newSubmittedNames = Array.from(new Set([...existingSubmittedNames, userName]));
 
           const updatedComp = {
             ...comp,
@@ -169,18 +216,17 @@ export const AuthProvider = ({ children }) => {
         {
           id: `log-${Date.now()}`,
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.username,
+          user: currentUser?.username || 'user',
           action: "COMPONENT_SUBMITTED",
-          details: `${currentUser.name} uploaded ${componentKey} for Group ${groupId}`
+          details: `${currentUser?.name || 'Student'} uploaded ${componentKey} for Group ${groupId}`
         },
         ...prev.auditLogs
       ]
     }));
   };
 
-  // 4. CRITICAL RULE: Save Individual Student Evaluation Marks
+  // Save Individual Student Evaluation Marks
   const saveIndividualStudentEvaluation = (evalObj) => {
-    // evalObj: { groupId, taskId, studentUsn, studentName, evaluator, scores, totalScore, feedback }
     setData(prev => {
       const existingIdx = prev.groupEvaluations.findIndex(
         e => e.groupId === evalObj.groupId && e.studentUsn === evalObj.studentUsn && e.taskId === evalObj.taskId
@@ -208,7 +254,7 @@ export const AuthProvider = ({ children }) => {
           {
             id: `log-${Date.now()}`,
             timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            user: currentUser.name,
+            user: currentUser?.name || 'Faculty',
             action: "INDIVIDUAL_EVALUATION",
             details: `Saved individual marks (${evalObj.totalScore}/50) for student ${evalObj.studentName} (${evalObj.studentUsn})`
           },
@@ -232,7 +278,7 @@ export const AuthProvider = ({ children }) => {
         {
           id: `log-${Date.now()}`,
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-          user: currentUser.name,
+          user: currentUser?.name || 'Coordinator',
           action: "TASK_CREATED",
           details: `Published milestone: ${newTask.title}`
         },
@@ -245,7 +291,8 @@ export const AuthProvider = ({ children }) => {
   const sendMessage = (msgObj) => {
     const newMsg = {
       id: `msg-${Date.now()}`,
-      sender: `${currentUser.name} (${currentRole})`,
+      sender: currentUser?.name || 'User',
+      senderId: currentUser?.id || 'u-user',
       senderRole: currentRole,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
       isUnread: false,
@@ -262,17 +309,18 @@ export const AuthProvider = ({ children }) => {
       value={{
         data,
         currentUser,
-        currentRole,
+        currentRole: currentRole || (currentUser?.role === 'TEACHER' ? 'FACULTY' : currentUser?.role),
+        activeRole: currentRole || (currentUser?.role === 'TEACHER' ? 'FACULTY' : currentUser?.role),
         activeTab,
         setActiveTab,
+        showModeSelectionLanding,
+        setShowModeSelectionLanding,
         login,
+        registerUser,
         logout,
         switchTeacherRole,
-        quickSwitchUser,
-        showRoleSelectionModal,
-        setShowRoleSelectionModal,
+        deleteMessage,
         setGroupSubmissionMode,
-        updateComponentAssignments,
         submitGroupComponent,
         saveIndividualStudentEvaluation,
         addTask,
