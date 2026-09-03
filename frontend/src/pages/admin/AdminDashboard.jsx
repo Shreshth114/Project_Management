@@ -6,11 +6,29 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 
 export const AdminDashboard = () => {
-  const { data, setActiveTab } = useAuth();
+  const { setActiveTab } = useAuth();
   const [stats, setStats] = useState({ subjectsCount: 0, teamsCount: 0, usersCount: 0 });
+  const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
-    academicService.getAdminStats().then(setStats).catch(console.error);
+    const loadDashboard = async () => {
+      try {
+        const [adminStats, directory, logs] = await Promise.all([
+          academicService.getAdminStats(),
+          academicService.getAdminUserDirectory(),
+          academicService.getAdminAuditLogs()
+        ]);
+
+        setStats(adminStats);
+        setUsers(directory.users || []);
+        setAuditLogs(logs);
+      } catch (error) {
+        console.error('Admin dashboard load failed:', error);
+      }
+    };
+
+    loadDashboard();
   }, []);
 
   return (
@@ -47,8 +65,8 @@ export const AdminDashboard = () => {
         </Card>
 
         <Card title="Audit Logs Recorded">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#B82226' }}>{data.auditLogs.length} Events</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mock logs preserved</div>
+          <div style={{ fontSize: '28px', fontWeight: 700, color: '#B82226' }}>{auditLogs.length} Events</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Recent database records</div>
         </Card>
       </div>
 
@@ -72,7 +90,7 @@ export const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.users.map((u) => (
+                {users.map((u) => (
                   <tr key={u.id}>
                     <td style={{ fontWeight: 700, color: '#243143' }}>{u.username}</td>
                     <td>{u.name}</td>
@@ -87,9 +105,12 @@ export const AdminDashboard = () => {
 
         <Card title="Recent System Activity Audit Log">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {data.auditLogs.map((log) => (
+            {auditLogs.length === 0 && (
+              <div style={{ color: '#666', fontSize: '13px' }}>No audit activity recorded.</div>
+            )}
+            {auditLogs.map((log) => (
               <div 
-                key={log.id}
+                key={log.log_id}
                 style={{
                   border: '1px solid #E5E5E5',
                   borderRadius: '4px',
@@ -102,7 +123,7 @@ export const AdminDashboard = () => {
                   <strong style={{ color: '#B82226' }}>[{log.action}]</strong>
                   <span style={{ fontSize: '11px', color: '#9F9F9F' }}>{log.timestamp}</span>
                 </div>
-                <div style={{ color: '#444' }}>{log.details} (User: {log.user})</div>
+                <div style={{ color: '#444' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
               </div>
             ))}
           </div>
