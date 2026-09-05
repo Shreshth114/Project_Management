@@ -5,34 +5,24 @@ import { Card } from '../../components/common/Card';
 import { taskService } from '../../services/taskService';
 
 export const CoordinatorCreateTask = () => {
-<<<<<<< HEAD
-  const { addTask, setActiveTab } = useAuth();
+  const { addTask, setActiveTab, currentUser } = useAuth();
   
   // Row 1 States: Task Name | Category (Dropdown) | Deadline Date
   const [taskName, setTaskName] = useState('');
   const [category, setCategory] = useState('GROUP'); // GROUP | INDIVIDUAL
   const [deadline, setDeadline] = useState('2025-10-25');
 
-  // Assessment Box Items List State (matching hand-drawn sketch media_1788544700238.jpg)
+  // Assessment Box Items List State (matching hand-drawn sketch)
   const [assessmentItems, setAssessmentItems] = useState([
     { id: 'item-1', description: 'Technical Report & System Architecture', marks: 15 },
     { id: 'item-2', description: 'Source Code & Prototype Demonstration', marks: 25 },
     { id: 'item-3', description: 'Viva Voce & Individual Defense', marks: 10 }
   ]);
 
-=======
-  const { currentUser, setActiveTab } = useAuth();
-  const [title, setTitle] = useState('');
-  const [taskType, setTaskType] = useState('GROUP'); // INDIVIDUAL | GROUP
-  const [totalMarks, setTotalMarks] = useState(50);
-  const [deadline, setDeadline] = useState(new Date().toISOString().split('T')[0]);
-  const [description, setDescription] = useState('');
->>>>>>> origin/main
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-<<<<<<< HEAD
   const handleAddItem = () => {
     setAssessmentItems([
       ...assessmentItems,
@@ -57,58 +47,57 @@ export const CoordinatorCreateTask = () => {
     return assessmentItems.reduce((acc, item) => acc + (Number(item.marks) || 0), 0);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const totalMarks = calculateTotalMarks();
-    
-    addTask({
-      title: taskName,
-      taskType: category,
-      phase: 'Phase 2',
-      totalMarks,
-      deadline,
-      submissionMode: category === 'GROUP' ? 'LEADER_SUBMITS_ALL' : 'MEMBERS_SUBMIT_ASSIGNED',
-      assessmentItems,
-      description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; ')
-    });
-
-    setSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      setActiveTab('tasks');
-    }, 1500);
-=======
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const totalMarks = calculateTotalMarks();
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-      
-      const taskData = {
-        faculty_id: currentUser?.faculty_id,
-        title,
-        description,
-        task_type: taskType,
-        deadline
-      };
-      
-      const criteriaList = [
-        { criteria_name: 'Overall Task Evaluation', max_marks: totalMarks }
-      ];
-      
-      await taskService.createTaskWithCriteria(taskData, criteriaList);
-      
+      // 1. Save to AuthContext local state
+      if (addTask) {
+        addTask({
+          title: taskName,
+          taskType: category,
+          phase: 'Phase 2',
+          totalMarks,
+          deadline,
+          submissionMode: category === 'GROUP' ? 'LEADER_SUBMITS_ALL' : 'MEMBERS_SUBMIT_ASSIGNED',
+          assessmentItems,
+          description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; ')
+        });
+      }
+
+      // 2. Save to Supabase backend if available
+      try {
+        const taskData = {
+          faculty_id: currentUser?.faculty_id,
+          title: taskName,
+          description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; '),
+          task_type: category,
+          deadline
+        };
+
+        const criteriaList = assessmentItems.map(item => ({
+          criteria_name: item.description || 'Assessment Component',
+          max_marks: Number(item.marks) || 10
+        }));
+
+        await taskService.createTaskWithCriteria(taskData, criteriaList);
+      } catch (backendErr) {
+        console.warn('Backend task creation warning:', backendErr);
+      }
+
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        setActiveTab('tasks');
+        if (setActiveTab) setActiveTab('tasks');
       }, 1500);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to create task');
     } finally {
       setLoading(false);
     }
->>>>>>> origin/main
   };
 
   return (
@@ -116,18 +105,14 @@ export const CoordinatorCreateTask = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button 
           className="btn btn-secondary btn-sm" 
-          onClick={() => setActiveTab('tasks')}
+          onClick={() => setActiveTab && setActiveTab('tasks')}
         >
           <ArrowLeft size={16} />
         </button>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Create & Publish Milestone Task</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-<<<<<<< HEAD
             Define Task Name, Category, Submission Deadline, and Assessment Components.
-=======
-            Define Task Type (Individual vs Group) and Deadlines.
->>>>>>> origin/main
           </p>
         </div>
       </div>
@@ -150,15 +135,9 @@ export const CoordinatorCreateTask = () => {
               <input
                 type="text"
                 className="form-input"
-<<<<<<< HEAD
                 placeholder="e.g. Final Project Submission & Viva Voce"
                 value={taskName}
                 onChange={(e) => setTaskName(e.target.value)}
-=======
-                placeholder="e.g. Final Project Submission"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
->>>>>>> origin/main
                 required
               />
             </div>
@@ -170,7 +149,6 @@ export const CoordinatorCreateTask = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-<<<<<<< HEAD
                 <option value="GROUP">👥 Group Task (Shared Project Deliverable)</option>
                 <option value="INDIVIDUAL">👤 Individual Task (Independent Component)</option>
               </select>
@@ -178,30 +156,6 @@ export const CoordinatorCreateTask = () => {
 
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">Submission Deadline</label>
-=======
-                <option value="GROUP">👥 Group Task (One Shared Project per Group)</option>
-                <option value="INDIVIDUAL">👤 Individual Task (Independent Submissions)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label">Total Marks</label>
-              <input
-                type="number"
-                min={5}
-                max={100}
-                className="form-input"
-                value={totalMarks}
-                onChange={(e) => setTotalMarks(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Submission Deadline Date</label>
->>>>>>> origin/main
               <input
                 type="date"
                 className="form-input"
@@ -212,8 +166,7 @@ export const CoordinatorCreateTask = () => {
             </div>
           </div>
 
-<<<<<<< HEAD
-          {/* ASSESSMENT BOX (Exact Hand-Drawn Sketch Layout media_1788544700238.jpg) */}
+          {/* ASSESSMENT BOX */}
           <div style={{
             border: '2px solid #3A1F6F',
             borderRadius: '6px',
@@ -226,7 +179,6 @@ export const CoordinatorCreateTask = () => {
                 Assessment Components & Rubrics
               </h3>
 
-              {/* [+] Add item Button */}
               <button
                 type="button"
                 className="btn btn-purple btn-sm"
@@ -256,28 +208,28 @@ export const CoordinatorCreateTask = () => {
                     #{index + 1}
                   </span>
 
-                  <div style={{ flex: 1 }}>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Description / Component Name"
-                      value={item.description}
-                      onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                      required
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Component Description (e.g. Methodology & Implementation Code)"
+                    value={item.description}
+                    onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                    style={{ flex: 1 }}
+                    required
+                  />
 
-                  <div style={{ width: '130px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#55636B' }}>Marks:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '130px' }}>
                     <input
                       type="number"
-                      min={1}
-                      max={100}
                       className="form-input"
+                      min="1"
+                      max="100"
                       value={item.marks}
                       onChange={(e) => handleItemChange(item.id, 'marks', e.target.value)}
+                      style={{ width: '70px', textAlign: 'center' }}
                       required
                     />
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#55636B' }}>Marks</span>
                   </div>
 
                   {assessmentItems.length > 1 && (
@@ -312,26 +264,9 @@ export const CoordinatorCreateTask = () => {
           </div>
 
           {/* FINAL PUBLISH TASK BUTTON */}
-          <button type="submit" className="btn btn-primary btn-block" style={{ padding: '12px', fontSize: '15px' }}>
+          <button type="submit" className="btn btn-primary btn-block" style={{ padding: '12px', fontSize: '15px' }} disabled={loading}>
             <PlusSquare size={18} />
-            <span>PUBLISH MILESTONE TASK</span>
-=======
-          <div className="form-group">
-            <label className="form-label">Task Description</label>
-            <textarea
-              className="form-textarea"
-              rows={4}
-              placeholder="Specify requirements, components, and expectations..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            <PlusSquare size={16} />
             <span>{loading ? 'PUBLISHING...' : 'PUBLISH MILESTONE TASK'}</span>
->>>>>>> origin/main
           </button>
         </form>
       </Card>

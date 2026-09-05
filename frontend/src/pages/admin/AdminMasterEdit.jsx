@@ -1,102 +1,43 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  PlusSquare, 
-  Calendar, 
-  Send, 
-  CheckCircle, 
-  Trash2, 
-  UserCheck, 
-  MessageSquare, 
-  Settings,
-  Edit
+  PlusSquare, Calendar, Send, CheckCircle, Trash2, 
+  UserCheck, MessageSquare, Settings, Edit, ShieldAlert, RefreshCw 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
-
-export const AdminMasterEdit = () => {
-  const { data, sendMessage, deleteMessage } = useAuth();
-
-  // Deadlines State
-  const [selectedTask, setSelectedTask] = useState(data.tasks[0]?.id || 'tsk-grp-01');
-  const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('2025-11-15');
-  const [newEvalDeadline, setNewEvalDeadline] = useState('2025-11-20');
-  const [deadlineSuccess, setDeadlineSuccess] = useState('');
-
-  // Circular State
-  const [circularSubject, setCircularSubject] = useState('');
-  const [circularContent, setCircularContent] = useState('');
-  const [circularSuccess, setCircularSuccess] = useState('');
-
-  // Assign Coordinator State
-  const [subjectToAssign, setSubjectToAssign] = useState(data.subjects[0]?.code || '21CSP81');
-  const [newCoordinatorName, setNewCoordinatorName] = useState('Prof. V. Kulkarni');
-  const [assignSuccess, setAssignSuccess] = useState('');
-
-  // Master Message Deletion Notice State
-  const [msgNotice, setMsgNotice] = useState('');
-
-  const handleExtendDeadlines = (e) => {
-    e.preventDefault();
-    const taskObj = data.tasks.find(t => t.id === selectedTask);
-    if (taskObj) {
-      taskObj.deadline = newSubmissionDeadline;
-    }
-    setDeadlineSuccess(`Submission deadline for "${taskObj?.title || 'Task'}" extended to ${newSubmissionDeadline}!`);
-    setTimeout(() => setDeadlineSuccess(''), 4000);
-  };
-
-  const handleBroadcastCircular = (e) => {
-    e.preventDefault();
-    sendMessage({
-      recipient: 'All System Users (Students, Faculty, Coordinators)',
-      category: 'CIRCULAR',
-      senderRole: 'ADMIN',
-      sender: 'Academic Admin Office',
-      subject: circularSubject,
-      content: circularContent
-    });
-
-    setCircularSubject('');
-    setCircularContent('');
-    setCircularSuccess('Official System Circular broadcasted to all users successfully!');
-    setTimeout(() => setCircularSuccess(''), 4000);
-  };
-
-  const handleAssignCoordinator = (e) => {
-    e.preventDefault();
-    const subObj = data.subjects.find(s => s.code === subjectToAssign);
-    if (subObj) {
-      subObj.coordinator = newCoordinatorName;
-    }
-    setAssignSuccess(`Assigned ${newCoordinatorName} as Coordinator for ${subjectToAssign}!`);
-    setTimeout(() => setAssignSuccess(''), 4000);
-  };
-
-  const handleDeleteSystemMessage = (msgId) => {
-    deleteMessage(msgId);
-    setMsgNotice('Message permanently deleted by System Administrator.');
-    setTimeout(() => setMsgNotice(''), 3000);
-=======
-import React, { useState, useEffect } from 'react';
-import { Settings, ShieldAlert, CheckCircle, RefreshCw } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { Card } from '../../components/common/Card';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 
+
 export const AdminMasterEdit = () => {
-  const { currentUser } = useAuth();
+  const { data, sendMessage, deleteMessage, currentUser } = useAuth();
+  
+  // MAIN state
   const [teams, setTeams] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [faculties, setFaculties] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('');
   const [newGuide, setNewGuide] = useState('');
-  const [selectedTask, setSelectedTask] = useState('');
   const [extensionHours, setExtensionHours] = useState(48);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // HEAD state
+  const [selectedTask, setSelectedTask] = useState(data?.tasks?.[0]?.id || 'tsk-grp-01');
+  const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('2025-11-15');
+  const [newEvalDeadline, setNewEvalDeadline] = useState('2025-11-20');
+  const [deadlineSuccess, setDeadlineSuccess] = useState('');
+
+  const [circularSubject, setCircularSubject] = useState('');
+  const [circularContent, setCircularContent] = useState('');
+  const [circularSuccess, setCircularSuccess] = useState('');
+
+  const [subjectToAssign, setSubjectToAssign] = useState(data?.subjects?.[0]?.code || '21CSP81');
+  const [newCoordinatorName, setNewCoordinatorName] = useState('Prof. V. Kulkarni');
+  const [assignSuccess, setAssignSuccess] = useState('');
+
+  const [msgNotice, setMsgNotice] = useState('');
 
   useEffect(() => {
     loadData();
@@ -130,7 +71,7 @@ export const AdminMasterEdit = () => {
       await academicService.updateTeamGuide(selectedGroup, newGuide);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-      loadData(); // Refresh to reflect new guide
+      loadData();
     } catch (err) {
       console.error(err);
       alert('Failed to override guide: ' + err.message);
@@ -149,12 +90,56 @@ export const AdminMasterEdit = () => {
       
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-      loadData(); // Refresh to reflect new deadline
+      loadData();
     } catch (err) {
       console.error(err);
       alert('Failed to extend deadline: ' + err.message);
     }
->>>>>>> origin/main
+  };
+
+  const handleExtendDeadlines = (e) => {
+    e.preventDefault();
+    if (!data?.tasks) return;
+    const taskObj = data.tasks.find(t => t.id === selectedTask);
+    if (taskObj) {
+      taskObj.deadline = newSubmissionDeadline;
+    }
+    setDeadlineSuccess(`Submission deadline for "${taskObj?.title || 'Task'}" extended to ${newSubmissionDeadline}!`);
+    setTimeout(() => setDeadlineSuccess(''), 4000);
+  };
+
+  const handleBroadcastCircular = (e) => {
+    e.preventDefault();
+    sendMessage({
+      recipient: 'All System Users (Students, Faculty, Coordinators)',
+      category: 'CIRCULAR',
+      senderRole: 'ADMIN',
+      sender: 'Academic Admin Office',
+      subject: circularSubject,
+      content: circularContent
+    });
+
+    setCircularSubject('');
+    setCircularContent('');
+    setCircularSuccess('Official System Circular broadcasted to all users successfully!');
+    setTimeout(() => setCircularSuccess(''), 4000);
+  };
+
+  const handleAssignCoordinator = (e) => {
+    e.preventDefault();
+    if (!data?.subjects) return;
+    const subObj = data.subjects.find(s => s.code === subjectToAssign);
+    if (subObj) {
+      subObj.coordinator = newCoordinatorName;
+    }
+    setAssignSuccess(`Assigned ${newCoordinatorName} as Coordinator for ${subjectToAssign}!`);
+    setTimeout(() => setAssignSuccess(''), 4000);
+  };
+
+  const handleDeleteSystemMessage = (msgId) => {
+    deleteMessage(msgId);
+    setMsgNotice('Message permanently deleted by System Administrator.');
+    setTimeout(() => setMsgNotice(''), 3000);
   };
 
   return (
@@ -191,49 +176,15 @@ export const AdminMasterEdit = () => {
                 value={selectedTask}
                 onChange={(e) => setSelectedTask(e.target.value)}
               >
-<<<<<<< HEAD
-                {data.tasks.map(t => (
-                  <option key={t.id} value={t.id}>{t.title} ({t.deadline})</option>
-=======
-                {teams.map(g => (
-                  <option key={g.team_id} value={g.team_id}>{g.team_code} - {g.subject?.subject_name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Reassign Faculty Guide</label>
-              <select
-                className="form-select"
-                value={newGuide}
-                onChange={(e) => setNewGuide(e.target.value)}
-              >
-                {faculties.map(f => (
-                  <option key={f.faculty_id} value={f.faculty_id}>{f.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <button type="submit" className="btn btn-primary">
-              <Settings size={16} />
-              <span>REASSIGN FACULTY GUIDE</span>
-            </button>
-          </form>
-        </Card>
-
-        <Card title="Emergency Milestone Deadline Extension">
-          <form onSubmit={handleDeadlineOverride}>
-            <div className="form-group">
-              <label className="form-label">Select Milestone Phase</label>
-              <select 
-                className="form-select"
-                value={selectedTask}
-                onChange={(e) => setSelectedTask(e.target.value)}
-              >
-                {tasks.map(t => (
-                  <option key={t.task_id} value={t.task_id}>{t.title} (Due: {new Date(t.deadline).toLocaleDateString()})</option>
->>>>>>> origin/main
-                ))}
+                {tasks && tasks.length > 0 ? (
+                  tasks.map(t => (
+                    <option key={t.task_id || t.id} value={t.task_id || t.id}>{t.title} ({t.deadline})</option>
+                  ))
+                ) : (
+                  data?.tasks?.map(t => (
+                    <option key={t.id} value={t.id}>{t.title} ({t.deadline})</option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -263,6 +214,78 @@ export const AdminMasterEdit = () => {
           <button type="submit" className="btn btn-purple">
             <Calendar size={16} />
             <span>APPLY DEADLINE EXTENSION</span>
+          </button>
+        </form>
+      </Card>
+
+      {/* EMERGENCY DEADLINE OVERRIDE (MAIN) */}
+      <Card title="Emergency Milestone Deadline Extension (System)">
+        <form onSubmit={handleDeadlineOverride}>
+          <div className="grid-3">
+            <div className="form-group">
+              <label className="form-label">Select Milestone Phase</label>
+              <select 
+                className="form-select"
+                value={selectedTask}
+                onChange={(e) => setSelectedTask(e.target.value)}
+              >
+                {tasks.map(t => (
+                  <option key={t.task_id} value={t.task_id}>{t.title}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Extension (Hours)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={extensionHours}
+                onChange={(e) => setExtensionHours(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            <Settings size={16} />
+            <span>EXTEND DEADLINE HOURS</span>
+          </button>
+        </form>
+      </Card>
+
+      {/* REASSIGN FACULTY GUIDE (MAIN) */}
+      <Card title="Reassign Project Group Faculty Guide">
+        <form onSubmit={handleGuideOverride}>
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Select Project Group</label>
+              <select
+                className="form-select"
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+              >
+                {teams.map(g => (
+                  <option key={g.team_id} value={g.team_id}>{g.team_code} - {g.subject?.subject_name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Reassign Faculty Guide</label>
+              <select
+                className="form-select"
+                value={newGuide}
+                onChange={(e) => setNewGuide(e.target.value)}
+              >
+                {faculties.map(f => (
+                  <option key={f.faculty_id} value={f.faculty_id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="btn btn-primary">
+            <UserCheck size={16} />
+            <span>REASSIGN FACULTY GUIDE</span>
           </button>
         </form>
       </Card>

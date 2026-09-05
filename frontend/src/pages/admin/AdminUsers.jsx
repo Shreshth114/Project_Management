@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Edit, Eye, Key } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-=======
-import React, { useEffect, useState } from 'react';
 import { academicService } from '../../services/academicService';
->>>>>>> origin/main
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 
@@ -32,10 +28,7 @@ const matchesSearch = (item, searchTerm) => {
 };
 
 export const AdminUsers = () => {
-<<<<<<< HEAD
   const { data } = useAuth();
-=======
->>>>>>> origin/main
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [teams, setTeams] = useState([]);
@@ -46,21 +39,6 @@ export const AdminUsers = () => {
   const [error, setError] = useState('');
   const [expandedTeams, setExpandedTeams] = useState({});
 
-<<<<<<< HEAD
-  const filtered = (data.users || []).filter(u => {
-    const matchesSearch = (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.username && u.username.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.email && u.email.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.usn && u.usn.toLowerCase().includes(search.toLowerCase()));
-    
-    let matchesRole = true;
-    if (roleFilter === 'STUDENT') matchesRole = u.role === 'STUDENT';
-    else if (roleFilter === 'FACULTY_ONLY') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.length === 1 && u.teacherRoles.includes('FACULTY');
-    else if (roleFilter === 'BOTH') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.includes('COORDINATOR');
-    else if (roleFilter === 'ADMIN') matchesRole = u.role === 'ADMIN';
-
-    return matchesSearch && matchesRole;
-=======
   useEffect(() => {
     let ignore = false;
 
@@ -99,7 +77,21 @@ export const AdminUsers = () => {
   const visibleStudents = students.filter((student) => {
     const matchesRole = roleFilter === 'ALL' || roleFilter === 'STUDENT';
     return matchesRole && matchesSearch(student, search);
->>>>>>> origin/main
+  });
+  
+  const filtered = (students || []).filter(u => {
+    const matchesSearchFilter = (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
+                          (u.username && u.username.toLowerCase().includes(search.toLowerCase())) ||
+                          (u.email && u.email.toLowerCase().includes(search.toLowerCase())) ||
+                          (u.usn && u.usn.toLowerCase().includes(search.toLowerCase()));
+    
+    let matchesRole = true;
+    if (roleFilter === 'STUDENT') matchesRole = u.role === 'STUDENT';
+    else if (roleFilter === 'FACULTY_ONLY') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.length === 1 && u.teacherRoles.includes('FACULTY');
+    else if (roleFilter === 'BOTH') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.includes('COORDINATOR');
+    else if (roleFilter === 'ADMIN') matchesRole = u.role === 'ADMIN';
+
+    return matchesSearchFilter && matchesRole;
   });
   const visibleFaculty = faculty.filter((person) => {
     const matchesRole = roleFilter === 'ALL' || roleFilter === 'FACULTY';
@@ -134,7 +126,6 @@ export const AdminUsers = () => {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <select
             className="form-select"
-<<<<<<< HEAD
             style={{ width: '220px' }}
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -144,34 +135,19 @@ export const AdminUsers = () => {
             <option value="FACULTY_ONLY">JUST FACULTY</option>
             <option value="BOTH">FACULTY & COORDINATOR</option>
             <option value="ADMIN">ADMIN</option>
-=======
-            style={{ width: '180px' }}
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="ALL">All Users</option>
-            <option value="STUDENT">Students</option>
-            <option value="FACULTY">Faculty</option>
-            <option value="ADMIN">Admins</option>
->>>>>>> origin/main
           </select>
 
           <input
             type="text"
             className="form-input"
             style={{ width: '240px' }}
-<<<<<<< HEAD
-            placeholder="Search name, USN, email..."
-=======
             placeholder="Search name, USN, email, team, subject, guide..."
->>>>>>> origin/main
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* Academic Batches Roster */}
       <Card title="Academic Batches Roster">
         <div className="table-container">
@@ -290,201 +266,7 @@ export const AdminUsers = () => {
           </table>
         </div>
       </Card>
-=======
-      {loading && (
-        <Card title="Admin Users Directory">
-          <div style={{ padding: '20px', color: '#243143' }}>Loading user directory...</div>
-        </Card>
-      )}
 
-      {!loading && error && (
-        <Card title="Admin Users Directory">
-          <div style={{ padding: '20px', color: '#b42318' }}>{error}</div>
-        </Card>
-      )}
-
-      {!loading && !error && (
-        <>
-          <Card title="System Academic Teams / Batches">
-            <div className="table-container">
-              <table className="portal-table">
-                <thead>
-                  <tr>
-                    <th>Team / Batch</th>
-                    <th>Subject</th>
-                    <th>Guide</th>
-                    <th>Number of Students</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleTeams.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" style={{ textAlign: 'center', color: '#666' }}>No teams found.</td>
-                    </tr>
-                  ) : (
-                    visibleTeams.map((team) => (
-                      <React.Fragment key={team.team_id}>
-                        <tr>
-                          <td style={{ fontWeight: 700, color: '#243143' }}>{team.teamCode || 'Unassigned team'}</td>
-                          <td>{team.subjectName || team.subjectCode || 'Not assigned'}</td>
-                          <td>{team.guideName || 'Not assigned'}</td>
-                          <td>{team.studentCount}</td>
-                          <td>
-                            <button className="btn btn-secondary btn-sm" onClick={() => toggleTeam(team.team_id)}>
-                              {expandedTeams[team.team_id] ? 'Hide' : 'Show'}
-                            </button>
-                          </td>
-                        </tr>
-
-                        {expandedTeams[team.team_id] && (
-                          <tr>
-                            <td colSpan="5" style={{ background: '#f7f9fb' }}>
-                              <div style={{ padding: '12px 0' }}>
-                                <div style={{ fontWeight: 700, marginBottom: '8px', color: '#243143' }}>Students in this team</div>
-                                {team.students.length === 0 ? (
-                                  <div style={{ color: '#666' }}>No students assigned.</div>
-                                ) : (
-                                  <table className="portal-table" style={{ width: '100%' }}>
-                                    <thead>
-                                      <tr>
-                                        <th>USN</th>
-                                        <th>Name</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {team.students.map((student) => (
-                                        <tr key={student.student_id}>
-                                          <td>{student.usn}</td>
-                                          <td>{student.name}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          {showStudents && (
-            <Card title="Students">
-              <div className="table-container responsive-table-stack">
-                <table className="portal-table">
-                  <thead>
-                    <tr>
-                      <th>USN</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Team / Batch</th>
-                      <th>Subject</th>
-                      <th>Guide</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleStudents.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" style={{ textAlign: 'center', color: '#666' }}>No students found.</td>
-                      </tr>
-                    ) : (
-                      visibleStudents.map((student) => (
-                        <tr key={student.id}>
-                          <td data-label="USN" style={{ fontWeight: 700, color: '#243143' }}>{student.usn || 'N/A'}</td>
-                          <td data-label="Name">{student.name || 'Unknown student'}</td>
-                          <td data-label="Email">{student.email}</td>
-                          <td data-label="Team / Batch">{student.teamCode || 'Not assigned'}</td>
-                          <td data-label="Subject">{student.subjectCode || student.subjectName || 'Not assigned'}</td>
-                          <td data-label="Guide">{student.guideName || 'Not assigned'}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-
-          {showFaculty && (
-            <Card title="Faculty">
-              <div className="table-container responsive-table-stack">
-                <table className="portal-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Subject</th>
-                      <th>Coordinator Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleFaculty.length === 0 ? (
-                      <tr>
-                        <td colSpan="4" style={{ textAlign: 'center', color: '#666' }}>No faculty found.</td>
-                      </tr>
-                    ) : (
-                      visibleFaculty.map((person) => (
-                        <tr key={person.id}>
-                          <td data-label="Name" style={{ fontWeight: 700, color: '#243143' }}>{person.name}</td>
-                          <td data-label="Email">{person.email}</td>
-                          <td data-label="Subject">{person.subjectCode || person.subjectName || 'Not assigned'}</td>
-                          <td data-label="Coordinator Status">
-                            {person.isCoordinator ? (
-                              <Badge variant="success">COORDINATOR</Badge>
-                            ) : (
-                              <Badge variant="navy">FACULTY</Badge>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-
-          {showAdmins && (
-            <Card title="Admins">
-              <div className="table-container responsive-table-stack">
-                <table className="portal-table">
-                  <thead>
-                    <tr>
-                      <th>Name / Identifier</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleAdmins.length === 0 ? (
-                      <tr>
-                        <td colSpan="3" style={{ textAlign: 'center', color: '#666' }}>No admins found.</td>
-                      </tr>
-                    ) : (
-                      visibleAdmins.map((admin) => (
-                        <tr key={admin.id}>
-                          <td data-label="Name / Identifier" style={{ fontWeight: 700, color: '#243143' }}>{admin.name || 'System Administrator'}</td>
-                          <td data-label="Email">{admin.email}</td>
-                          <td data-label="Role">
-                            <Badge variant="navy">{admin.role}</Badge>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-        </>
-      )}
->>>>>>> origin/main
     </div>
   );
 };

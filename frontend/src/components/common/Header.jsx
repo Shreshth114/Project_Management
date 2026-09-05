@@ -12,19 +12,14 @@ import { RitLogo } from './RitLogo';
 import { Badge } from './Badge';
 
 export const Header = ({ onToggleMobileDrawer }) => {
-<<<<<<< HEAD
   const { 
     currentUser, 
-    activeRole, 
+    activeRole,
+    currentRole,
     switchTeacherRole, 
     logout,
-    activeTab,
-    data
+    activeTab
   } = useAuth();
-=======
-  const { currentUser, currentRole, logout, switchTeacherRole } = useAuth();
-  const [showDemoMenu, setShowDemoMenu] = useState(false);
->>>>>>> origin/main
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -112,7 +107,6 @@ export const Header = ({ onToggleMobileDrawer }) => {
           </button>
         )}
 
-<<<<<<< HEAD
         {/* Notifications & System Circulars Dropdown */}
         <div style={{ position: 'relative' }}>
           <button
@@ -145,7 +139,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {circularsList.length || 1}
+              {circularsList.length || 0}
             </span>
           </button>
 
@@ -209,16 +203,6 @@ export const Header = ({ onToggleMobileDrawer }) => {
             </div>
           )}
         </div>
-=======
-        {!isDualRoleTeacher && currentRole && (
-          <div className="role-badge-pill" style={{ cursor: 'default' }}>
-            <ShieldCheck size={13} />
-            <span>{currentRole}</span>
-          </div>
-        )}
-
-
->>>>>>> origin/main
 
         {/* User Profile Dropdown */}
         <div style={{ position: 'relative' }}>

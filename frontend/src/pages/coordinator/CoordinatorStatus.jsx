@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { BarChart2, AlertCircle, CheckCircle, Clock, Eye, X, Users, FolderCheck } from 'lucide-react';
-=======
 import React, { useState, useEffect } from 'react';
-import { BarChart2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
->>>>>>> origin/main
+import { BarChart2, AlertCircle, CheckCircle, Clock, Eye, X, Users, FolderCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -12,10 +7,8 @@ import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 
 export const CoordinatorStatus = () => {
-<<<<<<< HEAD
   const { data } = useAuth();
   const [inspectingGroupStatus, setInspectingGroupStatus] = useState(null);
-=======
   const [teams, setTeams] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,8 +34,6 @@ export const CoordinatorStatus = () => {
   };
 
   if (loading) return <div>Loading compliance matrix...</div>;
->>>>>>> origin/main
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
@@ -94,21 +85,14 @@ export const CoordinatorStatus = () => {
                 const progress = totalMembers > 0 ? Math.round((evaluatedStudents / totalMembers) * 100) : 0;
 
                 return (
-<<<<<<< HEAD
-                  <tr key={g.id}>
-                    <td data-label="Batch Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.groupCode}</td>
-                    <td data-label="Project Title" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>{g.title}</td>
+                  <tr key={g.id || g.team_id}>
+                    <td data-label="Batch Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.groupCode || g.team_code}</td>
+                    <td data-label="Project Title" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>{g.title || g.subject?.subject_name}</td>
                     <td data-label="Mode">
                       <Badge variant="purple">
                         {g.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A (Group)' : 'Mode B (Distributed)'}
                       </Badge>
                     </td>
-=======
-                  <tr key={g.team_id}>
-                    <td data-label="Batch Code" style={{ fontWeight: 700, color: '#243143' }}>{g.team_code}</td>
-                    <td data-label="Project Title" style={{ fontSize: '13px' }}>{g.subject?.subject_name}</td>
-                    <td data-label="Mode"><Badge variant="navy">Digital</Badge></td>
->>>>>>> origin/main
                     <td data-label="Components Status">
                       <Badge variant="success">✓ Submitted</Badge>
                     </td>
@@ -117,7 +101,6 @@ export const CoordinatorStatus = () => {
                         {evaluatedStudents} / {totalMembers} Members Evaluated
                       </Badge>
                     </td>
-<<<<<<< HEAD
                     <td data-label="Action">
                       <button
                         type="button"
@@ -128,12 +111,6 @@ export const CoordinatorStatus = () => {
                         <Eye size={13} />
                         <span>Inspect Members</span>
                       </button>
-=======
-                    <td data-label="Health Status">
-                      <Badge variant={progress >= 80 ? 'success' : 'warning'}>
-                        {progress}% Complete
-                      </Badge>
->>>>>>> origin/main
                     </td>
                   </tr>
                 );

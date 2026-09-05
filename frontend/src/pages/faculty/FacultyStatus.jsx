@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { Search, Filter, CheckCircle, Clock, Eye, X, Award } from 'lucide-react';
-=======
 import React, { useState, useEffect } from 'react';
-import { BarChart2, CheckCircle, Clock } from 'lucide-react';
->>>>>>> origin/main
+import { Search, Filter, CheckCircle, Clock, Eye, X, Award, BarChart2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -12,7 +7,6 @@ import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 
 export const FacultyStatus = () => {
-<<<<<<< HEAD
   const { data } = useAuth();
   
   const [usnSearch, setUsnSearch] = useState('');
@@ -64,7 +58,6 @@ export const FacultyStatus = () => {
 
     return matchesSearch && matchesStatus;
   });
-=======
   const { currentUser } = useAuth();
   const [teams, setTeams] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
@@ -93,8 +86,6 @@ export const FacultyStatus = () => {
   };
 
   if (loading) return <div>Loading compliance matrix...</div>;
->>>>>>> origin/main
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
@@ -151,7 +142,6 @@ export const FacultyStatus = () => {
               </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
               {filteredStudents.map((s) => (
                 <tr key={s.usn}>
                   <td data-label="Student USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.usn}</td>
@@ -194,34 +184,6 @@ export const FacultyStatus = () => {
                   </td>
                 </tr>
               ))}
-=======
-              {teams.map((g) => {
-                const totalMembers = g.members?.length || 0;
-                // Count unique students evaluated in this team
-                const teamEvals = evaluations.filter(e => e.submission?.team_id === g.team_id);
-                const evaluatedStudents = new Set(teamEvals.map(e => e.student_id)).size;
-                const progress = totalMembers > 0 ? Math.round((evaluatedStudents / totalMembers) * 100) : 0;
-
-                return (
-                  <tr key={g.team_id}>
-                    <td data-label="Group Code" style={{ fontWeight: 700, color: '#243143' }}>{g.team_code}</td>
-                    <td data-label="Project Title" style={{ fontSize: '13px' }}>{g.subject?.subject_name}</td>
-                    <td data-label="Mode"><Badge variant="navy">Digital</Badge></td>
-                    <td data-label="Components Status">
-                      <Badge variant="success">✓ All Components Submitted (#038203)</Badge>
-                    </td>
-                    <td data-label="Individual Evaluations">
-                      <Badge variant={evaluatedStudents === totalMembers && totalMembers > 0 ? 'success' : 'warning'}>
-                        {evaluatedStudents} / {totalMembers} Students Evaluated
-                      </Badge>
-                    </td>
-                    <td data-label="Overall Health" style={{ fontWeight: 700, color: '#038203' }}>
-                      {progress}% Complete
-                    </td>
-                  </tr>
-                );
-              })}
->>>>>>> origin/main
             </tbody>
           </table>
         </div>

@@ -6,13 +6,8 @@ import { RegisterFaculty } from './pages/auth/RegisterFaculty';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 const MainContent = () => {
-<<<<<<< HEAD
-  const { currentUser, activeTab } = useAuth();
-  const [authView, setAuthView] = useState('login'); // 'login' | 'register-student' | 'register-faculty'
-=======
   const { currentUser, activeTab, isAuthLoading } = useAuth();
-  const [authView, setAuthView] = useState('login'); // 'login' | 'register'
->>>>>>> origin/main
+  const [authView, setAuthView] = useState('login'); // 'login' | 'register-student' | 'register-faculty'
 
   if (isAuthLoading) {
     return (
