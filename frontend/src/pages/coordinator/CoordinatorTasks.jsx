@@ -52,15 +52,12 @@ export const CoordinatorTasks = () => {
     e.preventDefault();
     if (!editingTask) return;
 
-    // Update in data.tasks
-    const target = data.tasks.find(t => t.id === editingTask.id);
-    if (target) {
-      target.title = title;
-      target.description = description;
-      target.deadline = deadline;
-      target.maxMarks = maxMarks;
-      target.submissionMode = submissionMode;
-    }
+    setTasks(prev => prev.map(t => {
+      if (t.id === editingTask.id) {
+        return { ...t, title, description, deadline, maxMarks: parseInt(maxMarks), submissionMode };
+      }
+      return t;
+    }));
 
     setSuccessMsg(`Milestone task "${title}" updated successfully!`);
     setEditingTask(null);
@@ -90,7 +87,7 @@ export const CoordinatorTasks = () => {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {data.tasks.map((task) => (
+        {tasks.map((task) => (
           <Card key={task.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
               <div>
