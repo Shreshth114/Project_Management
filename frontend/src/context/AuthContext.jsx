@@ -1,10 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { authService } from '../services/authService';
+import { initialCollegeData } from '../data/mockData';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const [data, setData] = useState(() => {
+    const saved = localStorage.getItem('rit_college_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return initialCollegeData;
+      }
+    }
+    return initialCollegeData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rit_college_data', JSON.stringify(data));
+  }, [data]);
+
   const [currentUser, setCurrentUser] = useState(null);
   const [currentRole, setCurrentRole] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
@@ -92,28 +109,30 @@ export const AuthProvider = ({ children }) => {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [pendingRole]);
 
   const login = async (email, password, expectedRole) => {
     try {
       setPendingRole(expectedRole);
-      const res = await authService.login(email, password);
+      await authService.login(email, password);
       
       const session = await supabase.auth.getSession();
       const user = session.data?.session?.user;
       if (!user) throw new Error("No user session returned after login.");
       
       const profile = await authService.getUserProfile(user);
-      let isValid = false;
-      if (expectedRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
-      if (expectedRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
-      if (expectedRole === 'FACULTY' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('FACULTY')) isValid = true;
-      if (expectedRole === 'COORDINATOR' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('COORDINATOR')) isValid = true;
+      if (expectedRole) {
+        let isValid = false;
+        if (expectedRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
+        if (expectedRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
+        if (expectedRole === 'FACULTY' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('FACULTY')) isValid = true;
+        if (expectedRole === 'COORDINATOR' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('COORDINATOR')) isValid = true;
 
-      if (!isValid) {
-        await authService.logout();
-        setPendingRole(null);
-        return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
+        if (!isValid) {
+          await authService.logout();
+          setPendingRole(null);
+          return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
+        }
       }
 
       return { success: true };
@@ -137,9 +156,136 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
       localStorage.removeItem('activeTab');
+      setCurrentUser(null);
+      setCurrentRole(null);
+      setActiveTab('login');
     } catch (err) {
       console.error("Logout failed", err);
     }
+  };
+
+  const addTask = (newTask) => {
+    const taskObj = {
+      id: `tsk-${Date.now()}`,
+      status: "IN_PROGRESS",
+      ...newTask
+    };
+    setData(prev => ({
+      ...prev,
+      tasks: [taskObj, ...(prev.tasks || [])],
+      auditLogs: [
+        {
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          user: currentUser?.name || 'Coordinator',
+          action: "TASK_CREATED",
+          details: `Published milestone: ${newTask.title}`
+        },
+        ...(prev.auditLogs || [])
+      ]
+    }));
+  };
+
+  const sendMessage = (msgObj) => {
+    const newMsg = {
+      id: `msg-${Date.now()}`,
+      sender: currentUser?.name || 'User',
+      senderId: currentUser?.id || currentUser?.user_id || 'u-user',
+      senderRole: currentRole || currentUser?.role,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      isUnread: false,
+      ...msgObj
+    };
+    setData(prev => ({
+      ...prev,
+      messages: [newMsg, ...(prev.messages || [])]
+    }));
+  };
+
+  const deleteMessage = (messageId) => {
+    setData(prev => ({
+      ...prev,
+      messages: (prev.messages || []).filter(m => m.id !== messageId && m.message_id !== messageId)
+    }));
+  };
+
+  const setGroupSubmissionMode = (groupId, newMode) => {
+    setData(prev => ({
+      ...prev,
+      groups: (prev.groups || []).map(g => {
+        if (g.id === groupId) {
+          return { ...g, submissionMode: newMode };
+        }
+        return g;
+      })
+    }));
+  };
+
+  const submitGroupComponent = (groupId, componentKey, payload) => {
+    setData(prev => ({
+      ...prev,
+      groups: (prev.groups || []).map(g => {
+        if (g.id === groupId) {
+          const comp = g.components ? g.components[componentKey] : {};
+          const existingSubmittedUsns = comp?.submittedByUsns || [];
+          const existingSubmittedNames = comp?.submittedByNames || [];
+
+          const userUsn = currentUser?.usn || '1MS21CS042';
+          const userName = currentUser?.name || 'Student';
+
+          const newSubmittedUsns = Array.from(new Set([...existingSubmittedUsns, userUsn]));
+          const newSubmittedNames = Array.from(new Set([...existingSubmittedNames, userName]));
+
+          const updatedComp = {
+            ...comp,
+            status: "COMPLETED",
+            submittedByUsns: newSubmittedUsns,
+            submittedByNames: newSubmittedNames,
+            fileName: payload.fileName || comp?.fileName,
+            fileSize: payload.fileSize || comp?.fileSize,
+            url: payload.url || comp?.url,
+            submittedAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+          };
+
+          return {
+            ...g,
+            components: {
+              ...(g.components || {}),
+              [componentKey]: updatedComp
+            }
+          };
+        }
+        return g;
+      })
+    }));
+  };
+
+  const saveIndividualStudentEvaluation = (evalObj) => {
+    setData(prev => {
+      const existingIdx = (prev.groupEvaluations || []).findIndex(
+        e => e.groupId === evalObj.groupId && e.studentUsn === evalObj.studentUsn && e.taskId === evalObj.taskId
+      );
+
+      let newGroupEvaluations = [...(prev.groupEvaluations || [])];
+      const record = {
+        id: `eval-${evalObj.groupId}-${evalObj.studentUsn}`,
+        status: "COMPLETED",
+        evaluatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        maxScore: 50,
+        ...evalObj
+      };
+
+      if (existingIdx >= 0) {
+        newGroupEvaluations[existingIdx] = record;
+      } else {
+        newGroupEvaluations.push(record);
+      }
+
+      return {
+        ...prev,
+        groupEvaluations: newGroupEvaluations
+      };
+    });
   };
 
   return (
@@ -158,7 +304,15 @@ export const AuthProvider = ({ children }) => {
         showRoleSelectionModal,
         setShowRoleSelectionModal,
         showModeSelectionLanding,
-        setShowModeSelectionLanding
+        setShowModeSelectionLanding,
+        data,
+        setData,
+        addTask,
+        sendMessage,
+        deleteMessage,
+        setGroupSubmissionMode,
+        submitGroupComponent,
+        saveIndividualStudentEvaluation
       }}
     >
       {children}
