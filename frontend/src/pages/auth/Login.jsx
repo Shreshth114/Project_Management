@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, Key, Mail, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RitLogo } from '../../components/common/RitLogo';
 
@@ -7,7 +7,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
   const { login } = useAuth();
   
   const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); // Empty by default
   const [error, setError] = useState('');
 
   const handleLogin = (e) => {
@@ -26,8 +26,12 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
   };
 
   const handleGoogleSignIn = () => {
-    // Demo Google Auth simulation for student
-    login('1MS21CS042@msrit.edu', 'password123');
+    login('student@msrit.edu', 'student123');
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    alert("Please contact the System Admin at admin@msrit.edu for password reset.");
   };
 
   return (
@@ -47,7 +51,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
         overflow: 'hidden'
       }}>
-        {/* Card Header with Official RIT Branding */}
+        {/* Header Banner */}
         <div style={{
           backgroundColor: '#242044',
           color: '#FFFFFF',
@@ -67,7 +71,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
           </p>
         </div>
 
-        {/* Card Body */}
+        {/* Form Body */}
         <div style={{ padding: '28px 24px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', marginBottom: '4px' }}>
             Portal Sign In
@@ -130,22 +134,24 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <label className="form-label">College Email / USN / Username</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. 1MS21CS042 or dr.sharma@msrit.edu"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  required
-                />
-              </div>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. 1MS21CS042 or dr.sharma@msrit.edu"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                required
+              />
             </div>
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Contact institutional IT admin for password reset."); }} style={{ fontSize: '12px', color: '#B8115B', fontWeight: 600 }}>
+                <a 
+                  href="#forgot" 
+                  onClick={handleForgotPassword} 
+                  style={{ fontSize: '12px', color: '#B8115B', fontWeight: 600 }}
+                >
                   Forgot Password?
                 </a>
               </div>
@@ -165,7 +171,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
             </button>
           </form>
 
-          {/* Dual Account Registration Options */}
+          {/* Dual Registration Options */}
           <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E5E5E5', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: '#55636B', marginBottom: '10px', fontWeight: 600 }}>
               First Time User? Register Below:

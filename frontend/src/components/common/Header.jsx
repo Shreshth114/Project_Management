@@ -1,18 +1,11 @@
 import React, { useState } from 'react';
 import { 
   Bell, 
-  User, 
-  LogOut, 
   Menu, 
   RefreshCw, 
-  CheckCircle, 
   ChevronDown,
-  Shield,
-  Layers,
-  BookOpen,
-  MessageSquare,
-  X,
-  FileText
+  LogOut,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RitLogo } from './RitLogo';
@@ -31,7 +24,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Check if faculty user is assigned as coordinator by Admin
+  // Check if faculty is assigned as coordinator by Admin
   const isAssignedCoordinator = (data.subjects || []).some(
     s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
   ) || currentUser?.role === 'COORDINATOR';
@@ -41,23 +34,35 @@ export const Header = ({ onToggleMobileDrawer }) => {
                     currentUser?.role === 'COORDINATOR' ||
                     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
-  // Circulars broadcast by Admin/Coordinator
-  const circularsList = (data.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN' || m.senderRole === 'COORDINATOR');
+  const handleModeToggle = () => {
+    if (activeRole === 'COORDINATOR') {
+      switchTeacherRole('FACULTY');
+    } else {
+      if (isAssignedCoordinator) {
+        switchTeacherRole('COORDINATOR');
+      } else {
+        alert("You are not assigned as coordinator, if any issues contact admin");
+      }
+    }
+  };
+
+  const circularsList = (data.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
 
   const formatTitle = (tab) => {
     switch (tab) {
       case 'dashboard': return 'Dashboard Overview';
-      case 'project': case 'projects': case 'groups': return 'Project & Team Management';
+      case 'groups': return 'Project Teams & Subjects';
       case 'tasks': return 'Academic Milestones & Tasks';
-      case 'create-task': return 'Create & Assign Task';
+      case 'create-task': return 'Create & Publish Milestone Task';
       case 'submissions': return 'Student Submissions Queue';
-      case 'evaluation': case 'evaluations': return 'Individual Evaluation Rubrics';
-      case 'status': return 'Status & Marks Transcript';
-      case 'messages': return 'Direct Messages';
-      case 'subjects': return 'Subject & Branch Governance';
-      case 'users': return 'User Access Directory';
-      case 'logs': return 'Audit Logs & Activity';
-      case 'profile': return 'User Profile Settings';
+      case 'evaluation': return 'Faculty Rubric Evaluations';
+      case 'status': return 'Compliance & Status Matrix';
+      case 'messages': return 'Messages & Communication';
+      case 'subjects': return 'Subject & Coordinator Governance';
+      case 'users': return 'Registered Accounts Directory';
+      case 'logs': return 'Security & Event Audit Logs';
+      case 'master-edit': return 'Master Edit & Deadlines Control';
+      case 'profile': return 'User Profile & Enrolments';
       default: return 'Portal Overview';
     }
   };
@@ -78,23 +83,23 @@ export const Header = ({ onToggleMobileDrawer }) => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontWeight: 700, fontSize: '15px', color: '#FFFFFF' }}>
+        <span style={{ fontWeight: 800, fontSize: '15px', color: '#FFFFFF' }}>
           {formatTitle(activeTab)}
         </span>
 
-        {currentUser?.branch && (
-          <Badge variant="purple" style={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#FFF', borderColor: 'transparent' }}>
-            {currentUser.branch} Dept
+        {currentUser?.department && (
+          <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
+            {currentUser.department} Dept
           </Badge>
         )}
       </div>
 
       <div className="header-right">
-        {/* Mode Switcher Pill: Rendered ONLY if Faculty is actually assigned as Coordinator */}
+        {/* Mode Switcher Pill: Only shown if user is teacher, labeled "Coordinator Access" */}
         {isTeacher && isAssignedCoordinator && (
           <button 
             className="role-mode-switcher"
-            onClick={() => switchTeacherRole(activeRole === 'FACULTY' ? 'COORDINATOR' : 'FACULTY')}
+            onClick={handleModeToggle}
             title="Toggle between Evaluator and Coordinator workspaces"
           >
             <RefreshCw size={13} />
@@ -116,7 +121,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               justifyContent: 'center',
               padding: '6px'
             }}
-            title="Notifications & Official System Circulars"
+            title="System Circulars & Notifications"
           >
             <Bell size={20} color="#FFFFFF" />
             <span style={{
@@ -134,7 +139,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {circularsList.length || 2}
+              {circularsList.length || 1}
             </span>
           </button>
 
@@ -154,7 +159,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               overflow: 'hidden'
             }}>
               <div style={{
-                backgroundColor: '#3A1F6F',
+                background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
                 color: '#FFFFFF',
                 padding: '12px 16px',
                 display: 'flex',
@@ -163,7 +168,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               }}>
                 <div style={{ fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Bell size={15} />
-                  <span>System Circulars & Notifications</span>
+                  <span>Official System Circulars</span>
                 </div>
                 <button 
                   onClick={() => setShowNotifications(false)}
@@ -180,18 +185,18 @@ export const Header = ({ onToggleMobileDrawer }) => {
                     style={{
                       padding: '10px 16px',
                       borderBottom: '1px solid #F0F0F0',
-                      backgroundColor: item.isUnread ? '#FDF0F2' : '#FFFFFF'
+                      backgroundColor: '#FFFFFF'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#DE3B0B' }}>
-                        📢 {item.category || 'CIRCULAR'}
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
+                        📢 OFFICIAL CIRCULAR
                       </span>
                       <span style={{ fontSize: '10px', color: '#8A9198' }}>{item.timestamp}</span>
                     </div>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: '#3A1F6F' }}>{item.subject}</div>
                     <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
-                    <div style={{ fontSize: '10px', color: '#8A9198', marginTop: '4px' }}>From: {item.sender}</div>
+                    <div style={{ fontSize: '10px', color: '#8A9198', marginTop: '4px' }}>From: Admin Office</div>
                   </div>
                 ))}
               </div>
@@ -219,12 +224,12 @@ export const Header = ({ onToggleMobileDrawer }) => {
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              backgroundColor: '#9D1B55',
+              backgroundColor: '#B8115B',
               color: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '13px'
             }}>
               {currentUser?.name ? currentUser.name.charAt(0) : 'U'}

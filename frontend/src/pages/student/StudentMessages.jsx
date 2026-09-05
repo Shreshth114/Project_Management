@@ -1,53 +1,48 @@
 import React, { useState } from 'react';
-import { Send, MessageSquare, Trash2, CheckCircle, UserCheck } from 'lucide-react';
+import { Send, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
-import { Badge } from '../../components/common/Badge';
 
 export const StudentMessages = () => {
-  const { data, currentUser, deleteMessage } = useAuth();
+  const { data, currentUser, sendMessage } = useAuth();
   
+  const [facultyRecipient, setFacultyRecipient] = useState('Dr. R. Sharma (Faculty Evaluator)');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Filter direct messages (excluding circulars)
-  const messagesList = (data.messages || []).filter(m => m.category !== 'CIRCULAR');
+  // Filter direct messages between Student and Faculty ONLY
+  const messagesList = (data.messages || []).filter(m => {
+    if (m.category === 'CIRCULAR') return false;
+    const isStudentFacultyMsg = m.senderRole === 'FACULTY' || m.recipientRole === 'FACULTY' || 
+                                m.senderRole === 'STUDENT' || m.recipientRole === 'STUDENT' ||
+                                m.recipient?.includes('Dr. R. Sharma') || m.sender?.includes('Dr. R. Sharma');
+    return isStudentFacultyMsg;
+  });
 
   const handleSend = (e) => {
     e.preventDefault();
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      sender: currentUser?.name || 'Rahul Sharma (Student)',
+    sendMessage({
+      recipient: facultyRecipient,
+      recipientRole: 'FACULTY',
       senderRole: 'STUDENT',
-      recipient: 'Prof. V. Kulkarni (Subject Coordinator)',
+      category: 'DIRECT',
       subject,
-      content,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      isUnread: true,
-      category: 'DIRECT'
-    };
+      content
+    });
 
-    data.messages.push(newMsg);
     setSubject('');
     setContent('');
-    setSuccess('Message sent directly to Subject Coordinator!');
+    setSuccess('Message dispatched directly to Faculty Evaluator!');
     setTimeout(() => setSuccess(''), 3500);
-  };
-
-  const isAuthor = (msg) => {
-    if (!currentUser) return false;
-    return msg.sender === currentUser.name || 
-           msg.sender.includes(currentUser.name) || 
-           (msg.senderRole === 'STUDENT' && currentUser.role === 'STUDENT');
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Direct Messaging (Student ↔ Coordinator)</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student ↔ Faculty Direct Messaging</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Official direct communication channel between student project teams and assigned Subject Coordinators.
+          Communication channel exclusively between student project teams and assigned Faculty Evaluators.
         </p>
       </div>
 
@@ -60,79 +55,59 @@ export const StudentMessages = () => {
 
       <div className="grid-2">
         {/* Direct Messages List */}
-        <Card title="Direct Conversation Inbox">
+        <Card title="Student ↔ Faculty Conversation Inbox">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {messagesList.map((msg) => {
-              const userIsAuthor = isAuthor(msg);
-
-              return (
-                <div 
-                  key={msg.id}
-                  style={{
-                    border: '1px solid #E5E5E5',
-                    borderRadius: '4px',
-                    padding: '14px',
-                    backgroundColor: msg.isUnread ? '#FDF0F2' : '#FFFFFF'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
-                      {msg.sender}
-                      <span style={{ fontSize: '11px', color: '#8A9198', marginLeft: '6px' }}>
-                        ({msg.senderRole})
-                      </span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
-                      
-                      {/* Trash Delete button visible ONLY for messages sent by the logged-in user */}
-                      {userIsAuthor && (
-                        <button
-                          type="button"
-                          onClick={() => deleteMessage(msg.id)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#DE3B0B',
-                            cursor: 'pointer',
-                            padding: '2px'
-                          }}
-                          title="Delete message authored by you"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
+            {messagesList.map((msg) => (
+              <div 
+                key={msg.id}
+                style={{
+                  border: '1px solid #E5E5E5',
+                  borderRadius: '4px',
+                  padding: '14px',
+                  backgroundColor: msg.isUnread ? '#FDF0F2' : '#FFFFFF'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
+                    {msg.sender}
+                    <span style={{ fontSize: '11px', color: '#8A9198', marginLeft: '6px' }}>
+                      ({msg.senderRole || 'FACULTY'})
+                    </span>
                   </div>
-
-                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#DE3B0B', marginBottom: '6px' }}>
-                    {msg.subject}
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#55636B', lineHeight: 1.4 }}>{msg.content}</p>
+                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
                 </div>
-              );
-            })}
+
+                <div style={{ fontWeight: 700, fontSize: '14px', color: '#DE3B0B', marginBottom: '6px' }}>
+                  {msg.subject}
+                </div>
+                <p style={{ fontSize: '13px', color: '#55636B', lineHeight: 1.4 }}>{msg.content}</p>
+                <div style={{ fontSize: '11px', color: '#8A9198', marginTop: '6px' }}>
+                  To: {msg.recipient}
+                </div>
+              </div>
+            ))}
 
             {messagesList.length === 0 && (
               <div style={{ textAlign: 'center', padding: '20px', color: '#8A9198' }}>
-                No direct messages in your inbox.
+                No direct messages between student and faculty found.
               </div>
             )}
           </div>
         </Card>
 
         {/* Compose Form */}
-        <Card title="Compose Message to Subject Coordinator">
+        <Card title="Dispatch Message to Faculty Evaluator">
           <form onSubmit={handleSend}>
             <div className="form-group">
-              <label className="form-label">Recipient (Subject Coordinator)</label>
-              <input
-                type="text"
-                className="form-input"
-                value="Prof. V. Kulkarni (Subject Coordinator)"
-                disabled
-              />
+              <label className="form-label">Select Faculty Recipient</label>
+              <select
+                className="form-select"
+                value={facultyRecipient}
+                onChange={(e) => setFacultyRecipient(e.target.value)}
+              >
+                <option value="Dr. R. Sharma (Faculty Evaluator)">Dr. R. Sharma (Faculty Evaluator)</option>
+                <option value="Prof. V. Kulkarni (Faculty Evaluator)">Prof. V. Kulkarni (Faculty Evaluator)</option>
+              </select>
             </div>
 
             <div className="form-group">
@@ -140,7 +115,7 @@ export const StudentMessages = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Request for milestone deadline clarification"
+                placeholder="e.g. Query regarding viva voce rubric scoring"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 required
@@ -152,7 +127,7 @@ export const StudentMessages = () => {
               <textarea
                 className="form-textarea"
                 rows={5}
-                placeholder="Type your message to the coordinator..."
+                placeholder="Type your message to the faculty evaluator..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
@@ -161,7 +136,7 @@ export const StudentMessages = () => {
 
             <button type="submit" className="btn btn-primary btn-block">
               <Send size={15} />
-              <span>DISPATCH MESSAGE TO COORDINATOR</span>
+              <span>DISPATCH MESSAGE TO FACULTY</span>
             </button>
           </form>
         </Card>

@@ -1,153 +1,139 @@
 import React, { useState } from 'react';
-import { History, ShieldAlert, Filter, Eye, X, CheckSquare, Users } from 'lucide-react';
+import { Eye, X, Users, ShieldAlert, History } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 
 export const AdminLogs = () => {
   const { data } = useAuth();
-  const [filterAction, setFilterAction] = useState('ALL');
-  const [selectedGroupModal, setSelectedGroupModal] = useState(null);
+  const [inspectingLog, setInspectingLog] = useState(null);
 
-  const filteredLogs = data.auditLogs.filter(log => {
-    if (filterAction === 'ALL') return true;
-    return log.action === filterAction;
-  });
-
-  const handleLogClick = (log) => {
-    // If log is related to group submission, open group inspection modal
-    const groupG01 = (data.groups || [])[0];
-    setSelectedGroupModal({
-      log,
-      group: groupG01
-    });
-  };
+  // Group G01 student roster for details modal
+  const groupG01Roster = [
+    { usn: "1MS21CS042", name: "Rahul Sharma", role: "Team Lead", module: "System Architecture & Quantization", uploadedAt: "2025-10-08 14:20" },
+    { usn: "1MS21CS015", name: "Ananya Hegde", role: "ML Engineer", module: "ECG Dataset Preprocessing", uploadedAt: "2025-10-08 14:25" },
+    { usn: "1MS21CS062", name: "Karthik Raja", role: "Embedded Specialist", module: "Raspberry Pi Hardware Setup", uploadedAt: "2025-10-08 14:32" },
+    { usn: "1MS21CS099", name: "Priya V", role: "Documentation Lead", module: "IEEE Final Project Report", uploadedAt: "2025-10-08 14:40" }
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>System Security & Activity Audit Logs</h1>
-          <p className="text-muted" style={{ fontSize: '14px' }}>
-            Immutable event audit trail for file uploads, evaluation entries, and group project submissions.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Filter size={16} color="#3A1F6F" />
-          <select
-            className="form-select"
-            style={{ width: '200px' }}
-            value={filterAction}
-            onChange={(e) => setFilterAction(e.target.value)}
-          >
-            <option value="ALL">All Event Types</option>
-            <option value="GROUP_SUBMISSION">Group Submissions</option>
-            <option value="INDIVIDUAL_EVALUATION">Evaluations</option>
-            <option value="SUBJECT_ASSIGNMENT">Subject Assignments</option>
-          </select>
-        </div>
+      <div>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>System Audit Logs & Security Trail</h1>
+        <p className="text-muted" style={{ fontSize: '14px' }}>
+          Immutable system log entries capturing submission events, mode changes, and evaluation activities.
+        </p>
       </div>
 
-      <Card title="Recorded System Audit Logs (Click Group Submission Event to Inspect Student Roster)">
+      <Card title="System Activity & Submission Event Log">
         <div className="table-container responsive-table-stack">
           <table className="portal-table">
             <thead>
               <tr>
-                <th>Event Log ID</th>
+                <th>Event ID</th>
                 <th>Timestamp</th>
-                <th>User Identity</th>
-                <th>Action Type</th>
-                <th>Event Details & Audit Notes</th>
-                <th>Action</th>
+                <th>User / USN</th>
+                <th>Event Action</th>
+                <th>Event Details & Description</th>
+                <th>Student Roster Details</th>
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log) => (
-                <tr key={log.id}>
-                  <td data-label="Event Log ID" style={{ fontWeight: 800, color: '#DE3B0B' }}>{log.id}</td>
-                  <td data-label="Timestamp">{log.timestamp}</td>
-                  <td data-label="User Identity" style={{ fontWeight: 600 }}>{log.user}</td>
-                  <td data-label="Action Type"><Badge variant="purple">{log.action}</Badge></td>
-                  <td data-label="Event Details" style={{ fontSize: '13px' }}>{log.details}</td>
-                  <td data-label="Action">
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => handleLogClick(log)}
-                      title="Inspect student details for this project event"
-                    >
-                      <Eye size={13} />
-                      <span>Inspect Details</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {(data.auditLogs || []).map((log) => {
+                const isGroupSubmission = log.action === 'GROUP_SUBMISSION' || log.action === 'COMPONENT_SUBMISSION';
+                
+                // Replace "leader submitted all" text with "one of grp member submitted all the components"
+                let updatedDetails = log.details;
+                if (updatedDetails.includes("leader submitted all") || updatedDetails.includes("Leader uploaded all")) {
+                  updatedDetails = "Group G01: one of grp member submitted all the components";
+                }
+
+                return (
+                  <tr key={log.id}>
+                    <td data-label="Event ID" style={{ fontWeight: 800, color: '#3A1F6F' }}>{log.id}</td>
+                    <td data-label="Timestamp" style={{ fontSize: '12px', color: '#55636B' }}>{log.timestamp}</td>
+                    <td data-label="User / USN" style={{ fontWeight: 700, color: '#DE3B0B' }}>{log.user}</td>
+                    <td data-label="Event Action"><Badge variant="purple">{log.action}</Badge></td>
+                    <td data-label="Details" style={{ fontSize: '13px' }}>{updatedDetails}</td>
+                    <td data-label="Student Roster">
+                      {isGroupSubmission ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setInspectingLog(log)}
+                          title="Inspect student details for this group submission event"
+                        >
+                          <Eye size={13} />
+                          <span>Inspect Details</span>
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '12px', color: '#8A9198' }}>N/A</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </Card>
 
-      {/* Group Submission Details Modal */}
-      {selectedGroupModal && (
+      {/* Group Submission Details Inspection Modal */}
+      {inspectingLog && (
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '680px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Users size={18} />
-                <span>Group Project Roster & Submission Details ({selectedGroupModal.group.groupCode})</span>
+                <span>Group Project Roster Inspection (Group G01)</span>
               </h3>
               <button 
-                onClick={() => setSelectedGroupModal(null)}
+                onClick={() => setInspectingLog(null)}
                 style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
-                  {selectedGroupModal.group.title}
-                </h4>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
-                  Domain: <strong>{selectedGroupModal.group.domain}</strong> | Guide: <strong>{selectedGroupModal.group.guide}</strong>
+              <div style={{ marginBottom: '14px', borderBottom: '1px solid #E5E5E5', paddingBottom: '10px' }}>
+                <div style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '15px' }}>
+                  Event Log: {inspectingLog.action} ({inspectingLog.timestamp})
+                </div>
+                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '2px' }}>
+                  one of grp member submitted all the components for Group G01
                 </div>
               </div>
 
-              <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
-                Enrolled Team Members Roster:
-              </h5>
+              <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>
+                Enrolled Group Members & Component Upload Timestamps:
+              </h4>
 
-              <div className="table-container responsive-table-stack" style={{ marginBottom: '16px' }}>
+              <div className="table-container responsive-table-stack">
                 <table className="portal-table">
                   <thead>
                     <tr>
                       <th>USN</th>
                       <th>Student Name</th>
-                      <th>Team Role</th>
-                      <th>Assigned Work Module</th>
+                      <th>Assigned Module</th>
+                      <th>Upload Timestamp</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedGroupModal.group.members.map((m) => (
-                      <tr key={m.usn}>
-                        <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
-                        <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                        <td data-label="Team Role"><Badge variant={m.role === 'Team Lead' ? 'purple' : 'navy'}>{m.role}</Badge></td>
-                        <td data-label="Assigned Module" style={{ fontSize: '12px' }}>{m.assignedModule}</td>
+                    {groupG01Roster.map(s => (
+                      <tr key={s.usn}>
+                        <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.usn}</td>
+                        <td data-label="Student Name" style={{ fontWeight: 600 }}>{s.name}</td>
+                        <td data-label="Assigned Module" style={{ fontSize: '12px' }}>{s.module}</td>
+                        <td data-label="Upload Timestamp" style={{ fontSize: '12px', color: '#55636B' }}>{s.uploadedAt}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-
-              <div style={{ fontSize: '12px', color: '#55636B', backgroundColor: '#F8F9FA', padding: '10px 12px', borderRadius: '4px' }}>
-                <strong>Audit Note:</strong> {selectedGroupModal.log.details} (Timestamp: {selectedGroupModal.log.timestamp})
-              </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => setSelectedGroupModal(null)}>
-                Close Inspection View
+              <button type="button" className="btn btn-secondary" onClick={() => setInspectingLog(null)}>
+                Close Audit Inspection
               </button>
             </div>
           </div>

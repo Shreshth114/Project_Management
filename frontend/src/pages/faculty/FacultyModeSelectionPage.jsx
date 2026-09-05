@@ -12,7 +12,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
   // Check if faculty is assigned as coordinator by Admin
   const isAssignedCoordinator = (data.subjects || []).some(
     s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
-  ) || currentUser?.role === 'COORDINATOR';
+  ) || (currentUser?.teacherRoles && currentUser.teacherRoles.includes('COORDINATOR'));
 
   const assignedCoordinatorSubjects = (data.subjects || []).filter(
     s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
@@ -28,12 +28,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
       switchTeacherRole('COORDINATOR');
       if (onSelectMode) onSelectMode('COORDINATOR');
     } else {
-      // Display unassigned notification alert and fallback to Faculty Mode
-      setNotification("You aren't assigned as coordinator, if issues contact admin.");
-      setTimeout(() => {
-        switchTeacherRole('FACULTY');
-        if (onSelectMode) onSelectMode('FACULTY');
-      }, 2500);
+      setNotification("You are not assigned as coordinator, if any issues contact admin.");
     }
   };
 
@@ -159,12 +154,12 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                     Coordinator Mode
                   </h2>
                   <Badge variant={isAssignedCoordinator ? 'magenta' : 'info'}>
-                    {isAssignedCoordinator ? 'Subject Assigned' : 'Faculty Access'}
+                    Coordinator Access
                   </Badge>
                 </div>
 
                 <p className="text-muted" style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
-                  Manage course subjects, create milestone tasks, set group vs individual submission modes, define deadlines, and broadcast department circulars.
+                  Manage course subjects, create milestone tasks, set group vs individual submission modes, define deadlines, and gives updates about tasks.
                 </p>
 
                 {assignedCoordinatorSubjects.length > 0 && (

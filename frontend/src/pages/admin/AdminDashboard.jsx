@@ -10,43 +10,44 @@ export const AdminDashboard = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{
-        backgroundColor: '#243143',
+        backgroundColor: '#3A1F6F',
         color: '#FFFFFF',
         padding: '24px',
-        borderRadius: '4px',
-        borderLeft: '6px solid #B82226'
+        borderRadius: '6px',
+        borderLeft: '6px solid #DE3B0B'
       }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', margin: 0 }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
           System Administrator Control Dashboard
         </h1>
-        <p style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
+        <p style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
           Academic Governance & Institutional Database Administration — MSRIT
         </p>
       </div>
 
       <div className="grid-4">
         <Card title="Registered System Users">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>164 Accounts</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>144 Students, 18 Faculty, 2 Admin</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{(data.users || []).length} Accounts</div>
+          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
         </Card>
 
         <Card title="Active Course Subjects">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{data.subjects.length} Subjects</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Major Project & Seminars</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{(data.subjects || []).length} Subjects</div>
+          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Major Project & Seminars</div>
         </Card>
 
         <Card title="System Health Status">
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#038203' }}>Operational</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Database sync active</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>100% Operational</div>
+          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Database sync active</div>
         </Card>
 
         <Card title="Audit Logs Recorded">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#B82226' }}>{data.auditLogs.length} Events</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Security & Upload logs</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{(data.auditLogs || []).length} Events</div>
+          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Security & Upload logs</div>
         </Card>
       </div>
 
       <div className="grid-2">
+        {/* System User Directory Overview table (Department column removed per section 5 rule) */}
         <Card 
           title="System User Directory Overview"
           action={
@@ -61,17 +62,15 @@ export const AdminDashboard = () => {
                 <tr>
                   <th>Username / USN</th>
                   <th>Full Name</th>
-                  <th>Role</th>
-                  <th>Department</th>
+                  <th>Role Category</th>
                 </tr>
               </thead>
               <tbody>
-                {data.users.map((u) => (
+                {(data.users || []).map((u) => (
                   <tr key={u.id}>
-                    <td style={{ fontWeight: 700, color: '#243143' }}>{u.username}</td>
-                    <td>{u.name}</td>
-                    <td><Badge variant="navy">{u.role}</Badge></td>
-                    <td>{u.department || 'Academic Admin'}</td>
+                    <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.username}</td>
+                    <td style={{ fontWeight: 600 }}>{u.name}</td>
+                    <td><Badge variant="purple">{u.role}</Badge></td>
                   </tr>
                 ))}
               </tbody>
@@ -81,7 +80,7 @@ export const AdminDashboard = () => {
 
         <Card title="Recent System Activity Audit Log">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {data.auditLogs.map((log) => (
+            {(data.auditLogs || []).map((log) => (
               <div 
                 key={log.id}
                 style={{
@@ -93,10 +92,10 @@ export const AdminDashboard = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                  <strong style={{ color: '#B82226' }}>[{log.action}]</strong>
-                  <span style={{ fontSize: '11px', color: '#9F9F9F' }}>{log.timestamp}</span>
+                  <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
+                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
                 </div>
-                <div style={{ color: '#444' }}>{log.details} (User: {log.user})</div>
+                <div style={{ color: '#55636B' }}>{log.details} (User: {log.user})</div>
               </div>
             ))}
           </div>

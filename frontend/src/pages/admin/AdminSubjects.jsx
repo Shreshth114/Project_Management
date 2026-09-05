@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusSquare, BookOpen, Edit } from 'lucide-react';
+import { PlusSquare, BookOpen, UserCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -9,20 +9,26 @@ export const AdminSubjects = () => {
   const [subjectsList, setSubjectsList] = useState(data.subjects);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
-  const [credits, setCredits] = useState(4);
+  const [credits, setCredits] = useState(6);
   const [semester, setSemester] = useState(8);
+  const [assignedCoordinator, setAssignedCoordinator] = useState('Prof. V. Kulkarni');
 
   const handleAddSubject = (e) => {
     e.preventDefault();
     const newSub = {
+      id: `sub-${Date.now()}`,
       code,
       name,
       credits: Number(credits),
       semester: Number(semester),
+      branch: 'CSE',
+      coordinator: assignedCoordinator,
       totalGroups: 0,
       status: "Active"
     };
     setSubjectsList([...subjectsList, newSub]);
+    data.subjects.push(newSub);
+
     setCode('');
     setName('');
   };
@@ -30,15 +36,15 @@ export const AdminSubjects = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Course Subjects & Project Codes Master</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Course Subjects & Coordinator Assignments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Configure project course titles, VTU credit schemes, and semester offerings.
+          Configure project course titles, VTU credit schemes, and assign subject coordinators.
         </p>
       </div>
 
       <div className="grid-3">
         <div style={{ gridColumn: 'span 2' }}>
-          <Card title="Registered Academic Course Subjects">
+          <Card title="Registered Academic Course Subjects & Coordinators">
             <div className="table-container responsive-table-stack">
               <table className="portal-table">
                 <thead>
@@ -46,20 +52,20 @@ export const AdminSubjects = () => {
                     <th>Subject Code</th>
                     <th>Subject Title</th>
                     <th>Credits</th>
-                    <th>Semester</th>
-                    <th>Active Groups</th>
+                    <th>Assigned Coordinator</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {subjectsList.map((s, idx) => (
                     <tr key={idx}>
-                      <td data-label="Subject Code" style={{ fontWeight: 700, color: '#B82226' }}>{s.code}</td>
+                      <td data-label="Subject Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.code}</td>
                       <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.name}</td>
                       <td data-label="Credits">{s.credits} Credits</td>
-                      <td data-label="Semester">Semester {s.semester}</td>
-                      <td data-label="Active Groups">{s.totalGroups} Groups</td>
-                      <td data-label="Status"><Badge variant={s.status === 'Active' ? 'success' : 'navy'}>{s.status}</Badge></td>
+                      <td data-label="Coordinator" style={{ fontWeight: 700, color: '#3A1F6F' }}>
+                        {s.coordinator || 'Prof. V. Kulkarni'}
+                      </td>
+                      <td data-label="Status"><Badge variant={s.status === 'Active' ? 'success' : 'purple'}>{s.status}</Badge></td>
                     </tr>
                   ))}
                 </tbody>
@@ -69,7 +75,7 @@ export const AdminSubjects = () => {
         </div>
 
         <div>
-          <Card title="Add New Subject Code">
+          <Card title="Add Subject & Assign Coordinator">
             <form onSubmit={handleAddSubject}>
               <div className="form-group">
                 <label className="form-label">Subject Code</label>
@@ -93,6 +99,19 @@ export const AdminSubjects = () => {
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Assign Subject Coordinator</label>
+                <select
+                  className="form-select"
+                  value={assignedCoordinator}
+                  onChange={(e) => setAssignedCoordinator(e.target.value)}
+                >
+                  {data.facultyGuides.map(g => (
+                    <option key={g.id} value={g.name}>{g.name} ({g.designation})</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid-2">
@@ -120,7 +139,7 @@ export const AdminSubjects = () => {
 
               <button type="submit" className="btn btn-primary btn-block">
                 <PlusSquare size={16} />
-                <span>ADD SUBJECT CODE</span>
+                <span>ADD SUBJECT & ASSIGN COORDINATOR</span>
               </button>
             </form>
           </Card>

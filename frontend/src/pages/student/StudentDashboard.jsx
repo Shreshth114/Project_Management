@@ -4,7 +4,6 @@ import {
   Clock, 
   FileText, 
   UserCheck, 
-  AlertCircle, 
   Upload, 
   ExternalLink,
   Users
@@ -25,28 +24,28 @@ export const StudentDashboard = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Banner Box */}
       <div style={{
-        backgroundColor: '#243143',
+        backgroundColor: '#3A1F6F',
         color: '#FFFFFF',
         padding: '24px',
-        borderRadius: '4px',
-        borderLeft: '6px solid #B82226',
+        borderRadius: '6px',
+        borderLeft: '6px solid #DE3B0B',
         display: 'flex',
         flexDirection: 'column',
         gap: '8px'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <div style={{ fontSize: '12px', color: '#9F9F9F', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: '#E0D6F5', fontWeight: 700, textTransform: 'uppercase' }}>
               Academic Year 2025–2026 | Course Code: {data.subjectCode || '21CSP81'}
             </div>
-            <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
               {studentGroup.title}
             </h1>
-            <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
-              Group Code: <strong>{studentGroup.groupCode}</strong> | Domain: {studentGroup.domain}
+            <div style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
+              Group Name: <strong>{studentGroup.groupCode}</strong> | Subject: {studentGroup.domain}
             </div>
           </div>
-          <Badge variant="navy">8th Semester Major Project</Badge>
+          <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>8th Semester Major Project</Badge>
         </div>
       </div>
 
@@ -55,8 +54,8 @@ export const StudentDashboard = () => {
         <Card title="Project Overall Progress">
           <ProgressBar progress={studentGroup.overallProgress || 85} height={12} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', fontSize: '13px' }}>
-            <span>Phase 1: <strong style={{ color: '#038203' }}>Approved</strong></span>
-            <span>Phase 2: <strong style={{ color: '#A68E24' }}>In Progress</strong></span>
+            <span>Phase 1: <strong style={{ color: '#728C5E' }}>Approved</strong></span>
+            <span>Phase 2: <strong style={{ color: '#DA8B3E' }}>In Progress</strong></span>
           </div>
         </Card>
 
@@ -66,8 +65,8 @@ export const StudentDashboard = () => {
               width: '42px',
               height: '42px',
               borderRadius: '50%',
-              backgroundColor: '#E8F1FB',
-              color: '#114C94',
+              backgroundColor: '#F2EEFA',
+              color: '#3A1F6F',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -76,9 +75,9 @@ export const StudentDashboard = () => {
               <UserCheck size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, color: '#243143' }}>{studentGroup.guide}</div>
-              <div style={{ fontSize: '12px', color: '#666' }}>Professor, Dept of CSE</div>
-              <div style={{ fontSize: '12px', color: '#114C94', marginTop: '2px' }}>dr.sharma@msrit.edu</div>
+              <div style={{ fontWeight: 700, color: '#3A1F6F' }}>{studentGroup.guide}</div>
+              <div style={{ fontSize: '12px', color: '#55636B' }}>Professor, Dept of CSE</div>
+              <div style={{ fontSize: '12px', color: '#3A1F6F', marginTop: '2px' }}>dr.sharma@msrit.edu</div>
             </div>
           </div>
         </Card>
@@ -92,13 +91,13 @@ export const StudentDashboard = () => {
               href={studentGroup.repoUrl} 
               target="_blank" 
               rel="noreferrer"
-              style={{ color: '#B82226', textDecoration: 'none', wordBreak: 'break-all', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+              style={{ color: '#DE3B0B', textDecoration: 'none', wordBreak: 'break-all', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
             >
               <span>{studentGroup.repoUrl}</span>
               <ExternalLink size={13} />
             </a>
-            <div style={{ marginTop: '12px', fontSize: '12px', color: '#666' }}>
-              Mode: <strong>{studentGroup.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A (Leader Submits All)' : 'Mode B (Distributed)'}</strong>
+            <div style={{ marginTop: '12px', fontSize: '12px', color: '#55636B' }}>
+              Submission Rule: <strong>Anyone can submit, reflects to all</strong>
             </div>
           </div>
         </Card>
@@ -130,9 +129,9 @@ export const StudentDashboard = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    Deadline: <strong style={{ color: '#FD0A0A' }}>{task.deadline}</strong> | Total Marks: {task.totalMarks || task.maxMarks} Marks
+                  <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '14px' }}>{task.title}</div>
+                  <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>
+                    Deadline: <strong style={{ color: '#DE3B0B' }}>{task.deadline}</strong> | Total Marks: {task.totalMarks || task.maxMarks} Marks
                   </div>
                 </div>
                 <button 
@@ -147,7 +146,7 @@ export const StudentDashboard = () => {
           </div>
         </Card>
 
-        {/* Team Members List */}
+        {/* Team Members List (Student roles removed per section 2 rule) */}
         <Card title={`Project Team Members (${studentGroup.groupCode})`}>
           <div className="table-container">
             <table className="portal-table">
@@ -155,15 +154,13 @@ export const StudentDashboard = () => {
                 <tr>
                   <th>USN</th>
                   <th>Student Name</th>
-                  <th>Role</th>
                 </tr>
               </thead>
               <tbody>
                 {studentGroup.members.map((m, idx) => (
                   <tr key={idx}>
-                    <td style={{ fontWeight: 700, color: '#243143' }}>{m.usn}</td>
-                    <td>{m.name}</td>
-                    <td><Badge variant={m.role === 'Team Lead' ? 'navy' : 'info'}>{m.role}</Badge></td>
+                    <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                    <td style={{ fontWeight: 600, color: '#3A1F6F' }}>{m.name}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,30 +1,64 @@
 import React, { useState } from 'react';
-import { PlusSquare, CheckCircle, ArrowLeft } from 'lucide-react';
+import { PlusSquare, CheckCircle, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 
 export const CoordinatorCreateTask = () => {
   const { addTask, setActiveTab } = useAuth();
-  const [title, setTitle] = useState('');
-  const [taskType, setTaskType] = useState('GROUP'); // INDIVIDUAL | GROUP
-  const [phase, setPhase] = useState('Phase 2');
-  const [totalMarks, setTotalMarks] = useState(50);
+  
+  // Row 1 States: Task Name | Category (Dropdown) | Deadline Date
+  const [taskName, setTaskName] = useState('');
+  const [category, setCategory] = useState('GROUP'); // GROUP | INDIVIDUAL
   const [deadline, setDeadline] = useState('2025-10-25');
-  const [submissionMode, setSubmissionMode] = useState('LEADER_SUBMITS_ALL'); // LEADER_SUBMITS_ALL (Mode A) | MEMBERS_SUBMIT_ASSIGNED (Mode B)
-  const [description, setDescription] = useState('');
+
+  // Assessment Box Items List State (matching hand-drawn sketch media_1788544700238.jpg)
+  const [assessmentItems, setAssessmentItems] = useState([
+    { id: 'item-1', description: 'Technical Report & System Architecture', marks: 15 },
+    { id: 'item-2', description: 'Source Code & Prototype Demonstration', marks: 25 },
+    { id: 'item-3', description: 'Viva Voce & Individual Defense', marks: 10 }
+  ]);
+
   const [success, setSuccess] = useState(false);
+
+  const handleAddItem = () => {
+    setAssessmentItems([
+      ...assessmentItems,
+      { id: `item-${Date.now()}`, description: '', marks: 10 }
+    ]);
+  };
+
+  const handleRemoveItem = (id) => {
+    setAssessmentItems(assessmentItems.filter(item => item.id !== id));
+  };
+
+  const handleItemChange = (id, field, value) => {
+    setAssessmentItems(assessmentItems.map(item => {
+      if (item.id === id) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    }));
+  };
+
+  const calculateTotalMarks = () => {
+    return assessmentItems.reduce((acc, item) => acc + (Number(item.marks) || 0), 0);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const totalMarks = calculateTotalMarks();
+    
     addTask({
-      title,
-      taskType,
-      phase,
-      totalMarks: Number(totalMarks),
+      title: taskName,
+      taskType: category,
+      phase: 'Phase 2',
+      totalMarks,
       deadline,
-      submissionMode,
-      description
+      submissionMode: category === 'GROUP' ? 'LEADER_SUBMITS_ALL' : 'MEMBERS_SUBMIT_ASSIGNED',
+      assessmentItems,
+      description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; ')
     });
+
     setSuccess(true);
     setTimeout(() => {
       setSuccess(false);
@@ -44,7 +78,7 @@ export const CoordinatorCreateTask = () => {
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Create & Publish Milestone Task</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-            Coordinator-enforced milestone requirements and group submission modes.
+            Define Task Name, Category, Submission Deadline, and Assessment Components.
           </p>
         </div>
       </div>
@@ -58,61 +92,34 @@ export const CoordinatorCreateTask = () => {
 
       <Card title="Milestone Requirements & Task Configuration">
         <form onSubmit={handleSubmit}>
-          <div className="grid-2">
-            <div className="form-group">
+          {/* ROW 1: Task Name | Category Dropdown | Submission Deadline Date (grid-3) */}
+          <div className="grid-3" style={{ marginBottom: '24px' }}>
+            <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">Task Name</label>
               <input
                 type="text"
                 className="form-input"
                 placeholder="e.g. Final Project Submission & Viva Voce"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
                 required
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Task Category</label>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Category</label>
               <select
                 className="form-select"
-                value={taskType}
-                onChange={(e) => setTaskType(e.target.value)}
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="GROUP">👥 Group Task (Shared Project Deliverable)</option>
                 <option value="INDIVIDUAL">👤 Individual Task (Independent Component)</option>
               </select>
             </div>
-          </div>
 
-          <div className="grid-3">
-            <div className="form-group">
-              <label className="form-label">Project Phase</label>
-              <select
-                className="form-select"
-                value={phase}
-                onChange={(e) => setPhase(e.target.value)}
-              >
-                <option value="Phase 1">Phase 1 — Synopsis & Survey</option>
-                <option value="Phase 2">Phase 2 — Mid-Term & Final Demo</option>
-                <option value="Phase 3">Phase 3 — Dissertation & Viva</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Total Evaluation Marks</label>
-              <input
-                type="number"
-                min={5}
-                max={100}
-                className="form-input"
-                value={totalMarks}
-                onChange={(e) => setTotalMarks(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Submission Deadline Date</label>
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Submission Deadline</label>
               <input
                 type="date"
                 className="form-input"
@@ -123,37 +130,107 @@ export const CoordinatorCreateTask = () => {
             </div>
           </div>
 
-          {/* Submission Mode: Strict Coordinator Choice (No student choice allowed) */}
-          <div className="form-group">
-            <label className="form-label">Submission Mode (Coordinator Decision Only)</label>
-            <select
-              className="form-select"
-              value={submissionMode}
-              onChange={(e) => setSubmissionMode(e.target.value)}
-            >
-              <option value="LEADER_SUBMITS_ALL">
-                Mode A: Group Mode (Anyone in group submits, contents reflect for ALL group members & faculty)
-              </option>
-              <option value="MEMBERS_SUBMIT_ASSIGNED">
-                Mode B: Individual Mode (All individuals of group submit their assigned parts separately)
-              </option>
-            </select>
+          {/* ASSESSMENT BOX (Exact Hand-Drawn Sketch Layout media_1788544700238.jpg) */}
+          <div style={{
+            border: '2px solid #3A1F6F',
+            borderRadius: '6px',
+            padding: '20px',
+            backgroundColor: '#F8F9FA',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                Assessment Components & Rubrics
+              </h3>
+
+              {/* [+] Add item Button */}
+              <button
+                type="button"
+                className="btn btn-purple btn-sm"
+                onClick={handleAddItem}
+              >
+                <Plus size={15} />
+                <span>Add Item</span>
+              </button>
+            </div>
+
+            {/* Assessment Component Items List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {assessmentItems.map((item, index) => (
+                <div 
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    backgroundColor: '#FFFFFF',
+                    padding: '12px 14px',
+                    borderRadius: '4px',
+                    border: '1px solid #E5E5E5'
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#3A1F6F', width: '24px' }}>
+                    #{index + 1}
+                  </span>
+
+                  <div style={{ flex: 1 }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Description / Component Name"
+                      value={item.description}
+                      onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ width: '130px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#55636B' }}>Marks:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      className="form-input"
+                      value={item.marks}
+                      onChange={(e) => handleItemChange(item.id, 'marks', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {assessmentItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(item.id)}
+                      style={{ background: 'none', border: 'none', color: '#DE3B0B', cursor: 'pointer', padding: '4px' }}
+                      title="Remove assessment component"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Assessment Footer Total */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #CCCCCC' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleAddItem}
+              >
+                <Plus size={14} />
+                <span>Add More Assessment Criteria</span>
+              </button>
+
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#DE3B0B' }}>
+                Total Assessment Marks: {calculateTotalMarks()} Marks
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Task Description & Evaluation Criteria</label>
-            <textarea
-              className="form-textarea"
-              rows={4}
-              placeholder="Specify requirements, components (Report, Source Code, Paper, PPT, Video, Link), and evaluation criteria..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-block">
-            <PlusSquare size={16} />
+          {/* FINAL PUBLISH TASK BUTTON */}
+          <button type="submit" className="btn btn-primary btn-block" style={{ padding: '12px', fontSize: '15px' }}>
+            <PlusSquare size={18} />
             <span>PUBLISH MILESTONE TASK</span>
           </button>
         </form>

@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, UserCheck, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserCheck, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Card } from '../../components/common/Card';
-import { RitLogo } from '../../components/common/RitLogo';
 
 export const RegisterStudent = ({ onBackToLogin }) => {
   const { data, registerUser } = useAuth();
@@ -10,11 +8,11 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [usn, setUsn] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [batch, setBatch] = useState('Batch 1 (8th Sem)');
+  const [groupName, setGroupName] = useState('Group G01');
   const [selectedSubject, setSelectedSubject] = useState(data.subjects[0]?.code || '21CSP81');
-  const [batch, setBatch] = useState('2021-2025 (8th Sem CSE)');
-  const [guide, setGuide] = useState(data.facultyGuides[0]?.name || 'Dr. R. Sharma');
-  const [password, setPassword] = useState('student123');
+  const [guide, setGuide] = useState(data.facultyGuides[0]?.name || 'Prof. V. Kulkarni');
+  const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -34,10 +32,10 @@ export const RegisterStudent = ({ onBackToLogin }) => {
       email,
       role: 'STUDENT',
       department: 'CSE',
-      subject: selectedSubject,
       batch,
+      subject: selectedSubject,
+      groupName,
       guide,
-      phone,
       password,
       groupId: 'G01'
     };
@@ -64,7 +62,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '580px',
+        maxWidth: '600px',
         backgroundColor: '#FFFFFF',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -101,7 +99,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               Student Registration Portal
             </h2>
             <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
-              Select System-Managed Subject, Batch & Guide
+              Select System Subject, Academic Batch & Group Name
             </div>
           </div>
         </div>
@@ -148,9 +146,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               </div>
             </div>
 
-            <div className="grid-2">
+            <div className="grid-3">
               <div className="form-group">
-                <label className="form-label">College Email (@msrit.edu)</label>
+                <label className="form-label">College Email</label>
                 <input
                   type="email"
                   className="form-input"
@@ -161,22 +159,36 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 />
               </div>
 
+              {/* Added Academic Batch Option */}
               <div className="form-group">
-                <label className="form-label">Contact Phone</label>
+                <label className="form-label">Academic Batch</label>
+                <select
+                  className="form-select"
+                  value={batch}
+                  onChange={(e) => setBatch(e.target.value)}
+                >
+                  <option value="Batch 1 (8th Sem)">Batch 1 (8th Sem)</option>
+                  <option value="Batch 2 (6th Sem)">Batch 2 (6th Sem)</option>
+                  <option value="Batch 3 (4th Sem)">Batch 3 (4th Sem)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Team / Group Name</label>
                 <input
-                  type="tel"
+                  type="text"
                   className="form-input"
-                  placeholder="+91 98450 00000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. Group G01"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <div className="grid-3">
+            <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">System Subject</label>
+                <label className="form-label">System Subject Code</label>
                 <select 
                   className="form-select"
                   value={selectedSubject}
@@ -191,20 +203,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Academic Batch</label>
-                <select 
-                  className="form-select"
-                  value={batch}
-                  onChange={(e) => setBatch(e.target.value)}
-                >
-                  {data.batches.map(b => (
-                    <option key={b.id} value={b.title}>{b.title}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Allocated Guide</label>
+                <label className="form-label">Subject Coordinator</label>
                 <select 
                   className="form-select"
                   value={guide}
@@ -222,6 +221,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               <input
                 type="password"
                 className="form-input"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

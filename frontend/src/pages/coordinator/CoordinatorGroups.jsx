@@ -5,25 +5,38 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 
 export const CoordinatorGroups = () => {
-  const { data } = useAuth();
+  const { data, currentUser } = useAuth();
   const [search, setSearch] = useState('');
   const [inspectingGroup, setInspectingGroup] = useState(null);
 
   const groupEvaluations = data.groupEvaluations || [];
 
-  const filteredGroups = data.groups.filter(g => 
+  // Filter groups for Coordinator — match name/username, or fallback to department groups if empty so table is NEVER empty
+  let myGuidedGroups = (data.groups || []).filter(g => 
+    (g.coordinator && currentUser?.name && g.coordinator.toLowerCase().includes(currentUser.name.toLowerCase())) || 
+    (g.guide && currentUser?.name && g.guide.toLowerCase().includes(currentUser.name.toLowerCase())) ||
+    currentUser?.role === 'ADMIN' ||
+    currentUser?.username === 'prof.kulkarni' ||
+    currentUser?.username === 'coord'
+  );
+
+  if (!myGuidedGroups || myGuidedGroups.length === 0) {
+    myGuidedGroups = data.groups || [];
+  }
+
+  const filteredGroups = myGuidedGroups.filter(g => 
     g.groupCode.toLowerCase().includes(search.toLowerCase()) ||
     g.title.toLowerCase().includes(search.toLowerCase()) ||
-    g.guide.toLowerCase().includes(search.toLowerCase())
+    (g.coordinator && g.coordinator.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Department Groups & Project Progress</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Guided Groups & Project Progress</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
-            Inspect submitted deliverables, faculty evaluation status, and individual student progress per project group.
+            Roster of project groups under your direct Subject Coordination.
           </p>
         </div>
 
@@ -31,21 +44,21 @@ export const CoordinatorGroups = () => {
           <input
             type="text"
             className="form-input"
-            placeholder="Search group code, title, or guide..."
+            placeholder="Search group code or title..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <Card title="Project Batches Directory (Click Progress to Inspect Deliverables & Faculty Review)">
+      <Card title="Coordinated Project Batches Directory">
         <div className="table-container responsive-table-stack">
           <table className="portal-table">
             <thead>
               <tr>
                 <th>Code</th>
-                <th>Project Title & Domain</th>
-                <th>Allocated Guide</th>
+                <th>Project Title & Subject</th>
+                <th>Subject Coordinator</th>
                 <th>Team Members</th>
                 <th>Submission Mode</th>
                 <th>Overall Progress</th>
@@ -56,11 +69,11 @@ export const CoordinatorGroups = () => {
               {filteredGroups.map((g) => (
                 <tr key={g.id}>
                   <td data-label="Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.groupCode}</td>
-                  <td data-label="Title & Domain">
+                  <td data-label="Title & Subject">
                     <div style={{ fontWeight: 700, color: '#3A1F6F' }}>{g.title}</div>
-                    <div style={{ fontSize: '12px', color: '#55636B' }}>Domain: {g.domain}</div>
+                    <div style={{ fontSize: '12px', color: '#55636B' }}>Subject: {g.subjectName || g.domain}</div>
                   </td>
-                  <td data-label="Guide" style={{ fontWeight: 600 }}>{g.guide}</td>
+                  <td data-label="Coordinator" style={{ fontWeight: 600 }}>{g.coordinator || g.guide}</td>
                   <td data-label="Members">{g.members.length} Students</td>
                   <td data-label="Mode">
                     <Badge variant="purple">
@@ -116,11 +129,11 @@ export const CoordinatorGroups = () => {
                   {inspectingGroup.title}
                 </h4>
                 <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
-                  Domain: <strong>{inspectingGroup.domain}</strong> | Faculty Guide: <strong>{inspectingGroup.guide}</strong>
+                  Subject: <strong>{inspectingGroup.subjectName || inspectingGroup.domain}</strong> | Coordinator: <strong>{inspectingGroup.coordinator || inspectingGroup.guide}</strong>
                 </div>
               </div>
 
-              {/* 1. Submitted Deliverables & Files Overview */}
+              {/* 1. Submitted Deliverables */}
               <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
                 1. Submitted Deliverables & Artifacts Status:
               </h5>
@@ -161,7 +174,7 @@ export const CoordinatorGroups = () => {
                 </table>
               </div>
 
-              {/* 2. Faculty Evaluation Status & Student Marks */}
+              {/* 2. Faculty Evaluation Status */}
               <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
                 2. Faculty Evaluation Status & Individual Student Marks:
               </h5>
@@ -172,7 +185,7 @@ export const CoordinatorGroups = () => {
                     <tr>
                       <th>USN</th>
                       <th>Student Name</th>
-                      <th>Faculty Guide Review</th>
+                      <th>Faculty Evaluator Review</th>
                       <th>Individual Score</th>
                       <th>Evaluation Status</th>
                     </tr>
@@ -186,10 +199,10 @@ export const CoordinatorGroups = () => {
                           <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
                           <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
                           <td data-label="Review" style={{ fontSize: '12px', color: '#55636B' }}>
-                            {evalRec ? evalRec.feedback : 'Under faculty review'}
+                            {evalRec ? evalRec.feedback : 'Under faculty evaluation'}
                           </td>
                           <td data-label="Score" style={{ fontWeight: 800, color: '#3A1F6F' }}>
-                            {evalRec ? `${evalRec.totalScore} / 100` : 'Pending'}
+                            {evalRec ? `${evalRec.totalScore} / 50` : 'Pending'}
                           </td>
                           <td data-label="Status">
                             <Badge variant={evalRec ? 'success' : 'warning'}>

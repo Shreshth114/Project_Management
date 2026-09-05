@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     return initialCollegeData;
   });
   
-  // Current logged in user (null by default so Login screen opens cleanly)
+  // Current logged in user
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem('rit_current_user');
     if (savedUser) {
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('rit_college_data', JSON.stringify(data));
   }, [data]);
 
-  // Login handler with flexible alias matching for student@msrit.edu, faculty@msrit.edu, admin@msrit.edu
+  // Login handler
   const login = (emailOrUsername, password) => {
     const input = emailOrUsername.trim().toLowerCase();
 
@@ -59,12 +59,16 @@ export const AuthProvider = ({ children }) => {
            (u.usn && u.usn.toLowerCase() === input)
     );
 
-    // Fallback preset mappings for student@msrit.edu, faculty@msrit.edu, admin@msrit.edu
+    // Fallback preset mappings for specific alias emails
     if (!found) {
       if (input === 'student@msrit.edu' || input === 'student') {
         found = data.users.find(u => u.role === 'STUDENT') || data.users[0];
       } else if (input === 'faculty@msrit.edu' || input === 'faculty') {
-        found = data.users.find(u => u.role === 'TEACHER') || data.users.find(u => u.email === 'dr.sharma@msrit.edu');
+        // Dr. R. Sharma: JUST FACULTY
+        found = data.users.find(u => u.email === 'faculty@msrit.edu' || u.username === 'dr.sharma');
+      } else if (input === 'coord.faculty@msrit.edu' || input === 'coord' || input === 'prof.kulkarni@msrit.edu') {
+        // Prof. V. Kulkarni: BOTH FACULTY AND COORDINATOR
+        found = data.users.find(u => u.email === 'prof.kulkarni@msrit.edu' || u.username === 'prof.kulkarni');
       } else if (input === 'admin@msrit.edu' || input === 'admin') {
         found = data.users.find(u => u.role === 'ADMIN');
       }
@@ -87,7 +91,9 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('rit_active_tab', 'dashboard');
         setShowModeSelectionLanding(false);
       } else if (found.role === 'TEACHER' || found.role === 'FACULTY' || found.role === 'COORDINATOR') {
-        // Faculty login defaults to Faculty Mode Selection Landing Page
+        const isCoordinator = (data.subjects || []).some(s => s.coordinator === found.name || s.coordinator === found.username) ||
+                              (found.teacherRoles && found.teacherRoles.includes('COORDINATOR'));
+        
         setCurrentRole('FACULTY');
         localStorage.setItem('rit_current_role', 'FACULTY');
         setActiveTab('dashboard');
@@ -96,11 +102,11 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: true };
     } else {
-      return { success: false, message: "Invalid College Credentials. Please check USN / Email." };
+      return { success: false, message: "Invalid Credentials. Please check USN / Email." };
     }
   };
 
-  // Register User (Student or Faculty Account Creation)
+  // Register User
   const registerUser = (newUser) => {
     const existing = data.users.find(
       u => u.email.toLowerCase() === newUser.email.toLowerCase() ||
@@ -108,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     );
 
     if (existing) {
-      return { success: false, message: "An account already exists for this email address or USN. Please return to login." };
+      return { success: false, message: "An account already exists for this email address or USN." };
     }
 
     const createdUser = {
@@ -152,7 +158,7 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
-  // Group Leader: Set Submission Mode (Mode A vs Mode B)
+  // Group Submission Mode Toggle
   const setGroupSubmissionMode = (groupId, newMode) => {
     setData(prev => ({
       ...prev,
@@ -175,7 +181,7 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
-  // Submit/Upload a Group Project Component
+  // Submit/Upload Group Component
   const submitGroupComponent = (groupId, componentKey, payload) => {
     setData(prev => ({
       ...prev,
@@ -218,7 +224,7 @@ export const AuthProvider = ({ children }) => {
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
           user: currentUser?.username || 'user',
           action: "COMPONENT_SUBMITTED",
-          details: `${currentUser?.name || 'Student'} uploaded ${componentKey} for Group ${groupId}`
+          details: `Group ${groupId}: one of grp member submitted all the components`
         },
         ...prev.auditLogs
       ]

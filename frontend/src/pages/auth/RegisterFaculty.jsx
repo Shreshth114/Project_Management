@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
-import { ArrowLeft, UserCheck, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserCheck, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Card } from '../../components/common/Card';
-import { RitLogo } from '../../components/common/RitLogo';
 
 export const RegisterFaculty = ({ onBackToLogin }) => {
   const { data, registerUser } = useAuth();
   
-  const [empCode, setEmpCode] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [dept, setDept] = useState('CSE');
-  const [designation, setDesignation] = useState('Associate Professor');
-  const [selectedSubject, setSelectedSubject] = useState(data.subjects[0]?.code || '21CSP81');
-  const [password, setPassword] = useState('faculty123');
+  const [subjectName, setSubjectName] = useState('Major Project Phase - II');
+  const [subjectCode, setSubjectCode] = useState('21CSP81');
+  const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -28,21 +23,20 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
     }
 
     const newUser = {
-      username: empCode || email.split('@')[0],
+      username: email.split('@')[0],
       name,
       email,
-      role: 'FACULTY',
+      role: 'TEACHER',
       teacherRoles: ['FACULTY'],
-      department: dept,
-      designation,
-      subject: selectedSubject,
-      phone,
+      subjectName,
+      subjectCode,
+      subject: subjectCode,
       password
     };
 
     const res = registerUser(newUser);
     if (res.success) {
-      setSuccess('Faculty Registration completed successfully! Redirecting to login...');
+      setSuccess('Faculty Enrolment completed successfully! Redirecting to login...');
       setTimeout(() => {
         onBackToLogin();
       }, 2000);
@@ -62,7 +56,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '560px',
+        maxWidth: '520px',
         backgroundColor: '#FFFFFF',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -96,10 +90,10 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
           </button>
           <div>
             <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
-              Faculty & Evaluator Enrolment Portal
+              Faculty Enrolment Portal
             </h2>
             <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
-              Select System-Managed Subject, Department & Designation
+              Specify Subject Name & Subject Code Options
             </div>
           </div>
         </div>
@@ -120,101 +114,61 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
           )}
 
           <form onSubmit={handleRegister}>
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Employee / Faculty ID</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. FAC202108"
-                  value={empCode}
-                  onChange={(e) => setEmpCode(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Full Name with Title</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Dr. Ramesh Kumar"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Institutional Email (@msrit.edu)</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  placeholder="faculty@msrit.edu"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Contact Phone</label>
-                <input
-                  type="tel"
-                  className="form-input"
-                  placeholder="+91 98450 00000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Department</label>
-                <select 
-                  className="form-select"
-                  value={dept}
-                  onChange={(e) => setDept(e.target.value)}
-                >
-                  <option value="CSE">Computer Science & Eng (CSE)</option>
-                  <option value="ECE">Electronics & Comm (ECE)</option>
-                  <option value="ISE">Information Science (ISE)</option>
-                  <option value="MECH">Mechanical Eng (MECH)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Designation</label>
-                <select 
-                  className="form-select"
-                  value={designation}
-                  onChange={(e) => setDesignation(e.target.value)}
-                >
-                  <option value="Professor & Head">Professor & Head</option>
-                  <option value="Professor">Professor</option>
-                  <option value="Associate Professor">Associate Professor</option>
-                  <option value="Assistant Professor">Assistant Professor</option>
-                </select>
-              </div>
+            <div className="form-group">
+              <label className="form-label">Full Name with Title</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Dr. Ramesh Kumar"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
 
             <div className="form-group">
-              <label className="form-label">System Subject / Course Code</label>
-              <select 
-                className="form-select"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-              >
-                {data.subjects.map(s => (
-                  <option key={s.id} value={s.code}>
-                    {s.code} - {s.name} ({s.branch})
-                  </option>
-                ))}
-              </select>
+              <label className="form-label">Institutional Email (@msrit.edu)</label>
+              <input
+                type="email"
+                className="form-input"
+                placeholder="faculty@msrit.edu"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">Subject Name Option</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Major Project Phase - II"
+                  value={subjectName}
+                  onChange={(e) => setSubjectName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Subject Code Option</label>
+                <select 
+                  className="form-select"
+                  value={subjectCode}
+                  onChange={(e) => {
+                    setSubjectCode(e.target.value);
+                    const foundSub = data.subjects.find(s => s.code === e.target.value);
+                    if (foundSub) setSubjectName(foundSub.name);
+                  }}
+                >
+                  {data.subjects.map(s => (
+                    <option key={s.id} value={s.code}>
+                      {s.code} ({s.name})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="form-group">
@@ -222,6 +176,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               <input
                 type="password"
                 className="form-input"
+                placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

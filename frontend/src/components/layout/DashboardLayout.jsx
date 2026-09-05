@@ -39,6 +39,7 @@ import { AdminSubjects } from '../../pages/admin/AdminSubjects';
 import { AdminUsers } from '../../pages/admin/AdminUsers';
 import { AdminStatus } from '../../pages/admin/AdminStatus';
 import { AdminLogs } from '../../pages/admin/AdminLogs';
+import { AdminMasterEdit } from '../../pages/admin/AdminMasterEdit';
 import { AdminProfile } from '../../pages/admin/AdminProfile';
 
 export const DashboardLayout = () => {
@@ -98,6 +99,7 @@ export const DashboardLayout = () => {
           case 'users': return <AdminUsers />;
           case 'status': return <AdminStatus />;
           case 'logs': return <AdminLogs />;
+          case 'master-edit': return <AdminMasterEdit />;
           case 'profile': return <AdminProfile />;
           default: return <AdminDashboard />;
         }

@@ -13,19 +13,33 @@ export const FacultySubmissions = () => {
   // 1. Group Deliverable Components
   if (data.groups) {
     data.groups.forEach(g => {
+      const isModeA = g.submissionMode === 'LEADER_SUBMITS_ALL' || g.submissionMode === 'GROUP';
+      const modeLabel = isModeA ? 'Mode A (Group Mode)' : 'Mode B (Individual Mode)';
+      
       if (g.components) {
         Object.keys(g.components).forEach(compKey => {
           const comp = g.components[compKey];
           if (comp.status === 'COMPLETED') {
+            let submittedByLabel = '';
+            if (isModeA) {
+              submittedByLabel = `${g.groupCode} (Group Submission)`;
+            } else {
+              submittedByLabel = comp.submittedByNames && comp.submittedByNames.length > 0 
+                ? `${comp.submittedByNames.join(' + ')} (${comp.submittedByUsns?.join(', ') || '1MS21CS078'})` 
+                : `${g.leaderName} (${g.leaderUsn})`;
+            }
+
             allSubmissions.push({
               id: `${g.id}-${compKey}`,
               groupCode: g.groupCode,
               taskTitle: comp.title,
+              modeOfSubmission: modeLabel,
               fileName: comp.fileName || comp.url || "Live Endpoint URL",
               fileSize: comp.fileSize || "Web Link",
-              submittedBy: comp.submittedByNames && comp.submittedByNames.length > 0 ? comp.submittedByNames.join(' + ') : g.leaderName,
+              submittedBy: submittedByLabel,
               submittedAt: comp.submittedAt || "2025-10-08",
-              status: "COMPLETED"
+              status: "COMPLETED",
+              isModeA
             });
           }
         });
@@ -40,30 +54,23 @@ export const FacultySubmissions = () => {
         id: ind.id,
         groupCode: `Individual (${ind.studentUsn})`,
         taskTitle: ind.taskTitle,
+        modeOfSubmission: "Mode B (Individual Mode)",
         fileName: ind.fileName,
         fileSize: ind.fileSize,
         submittedBy: `${ind.studentName} (${ind.studentUsn})`,
         submittedAt: ind.submittedAt,
-        status: ind.status || "COMPLETED"
+        status: ind.status || "COMPLETED",
+        isModeA: false
       });
-    });
-  }
-
-  // 3. Fallback submissions list if present
-  if (data.submissions && Array.isArray(data.submissions)) {
-    data.submissions.forEach(s => {
-      if (!allSubmissions.some(x => x.id === s.id)) {
-        allSubmissions.push(s);
-      }
     });
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Submitted Student Deliverables</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Submitted Student Deliverables Queue</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Review technical documents, reports, and code repositories uploaded by assigned batches.
+          Review technical documents, reports, and repositories uploaded by assigned project groups.
         </p>
       </div>
 
@@ -72,26 +79,31 @@ export const FacultySubmissions = () => {
           <table className="portal-table">
             <thead>
               <tr>
-                <th>Group / Student</th>
+                <th>Group Name</th>
                 <th>Task Component</th>
+                <th>Mode of Submission</th>
                 <th>Deliverable File</th>
                 <th>Submitted By</th>
                 <th>Submission Time</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {allSubmissions.length > 0 ? (
                 allSubmissions.map((sub) => (
                   <tr key={sub.id}>
-                    <td data-label="Group / Student" style={{ fontWeight: 700, color: '#243143' }}>{sub.groupCode}</td>
-                    <td data-label="Task Component">{sub.taskTitle}</td>
-                    <td data-label="Deliverable File" style={{ color: '#114C94', fontWeight: 600 }}>{sub.fileName} ({sub.fileSize})</td>
-                    <td data-label="Submitted By">{sub.submittedBy}</td>
-                    <td data-label="Submission Time">{sub.submittedAt}</td>
-                    <td data-label="Status"><Badge>{sub.status}</Badge></td>
-                    <td data-label="Actions">
+                    <td data-label="Group Name" style={{ fontWeight: 800, color: '#DE3B0B' }}>{sub.groupCode}</td>
+                    <td data-label="Task Component" style={{ fontWeight: 600 }}>{sub.taskTitle}</td>
+                    {/* Added Mode of Submission column */}
+                    <td data-label="Mode of Submission">
+                      <Badge variant="purple">{sub.modeOfSubmission}</Badge>
+                    </td>
+                    <td data-label="Deliverable File" style={{ color: '#3A1F6F', fontWeight: 600 }}>{sub.fileName} ({sub.fileSize})</td>
+                    <td data-label="Submitted By" style={{ fontWeight: 700, color: '#3A1F6F' }}>{sub.submittedBy}</td>
+                    <td data-label="Submission Time" style={{ fontSize: '12px', color: '#55636B' }}>{sub.submittedAt}</td>
+                    <td data-label="Status"><Badge variant="success">✓ {sub.status}</Badge></td>
+                    <td data-label="Action">
                       <button 
                         className="btn btn-primary btn-sm"
                         onClick={() => setActiveTab('evaluation')}
@@ -103,7 +115,7 @@ export const FacultySubmissions = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: '#8A9198' }}>
                     No student submissions uploaded yet.
                   </td>
                 </tr>
