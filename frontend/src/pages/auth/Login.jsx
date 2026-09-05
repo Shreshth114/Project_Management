@@ -3,6 +3,7 @@ import { LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RitLogo } from '../../components/common/RitLogo';
 
+<<<<<<< HEAD
 export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) => {
   const { login } = useAuth();
   
@@ -11,9 +12,29 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
   const [error, setError] = useState('');
 
   const handleLogin = (e) => {
+=======
+export const Login = ({ onSwitchToRegister }) => {
+  const { login } = useAuth();
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState('');
+
+  const handleSubmit = async (e) => {
+>>>>>>> origin/main
     e.preventDefault();
+    if (!selectedPersona) {
+      setError("Please select a persona before logging in.");
+      return;
+    }
+    await handleLogin(emailOrUsername, password);
+  };
+
+  const handleLogin = async (email, pass) => {
     setError('');
 
+<<<<<<< HEAD
     if (!identifier || !password) {
       setError('Please enter your institutional email / USN and password.');
       return;
@@ -32,6 +53,23 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
   const handleForgotPassword = (e) => {
     e.preventDefault();
     alert("Please contact the System Admin at admin@msrit.edu for password reset.");
+=======
+    try {
+      const res = await login(email, pass, selectedPersona);
+      if (!res.success) {
+        setError(res.message || "Invalid credentials");
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred during authentication.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const selectPersona = (role) => {
+    setSelectedPersona(role);
+    setError('');
+>>>>>>> origin/main
   };
 
   return (
@@ -87,6 +125,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
             </div>
           )}
 
+<<<<<<< HEAD
           {/* Google Sign In Button */}
           <button
             type="button"
@@ -142,16 +181,77 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
+=======
+          {/* Quick Persona Demo Switcher for Evaluation */}
+          <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #E5E5E5' }}>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#243143', marginBottom: '10px' }}>
+              1. Select Your Persona:
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'STUDENT' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('STUDENT')}
+                style={{ fontSize: '12px' }}
+              >
+                🎓 Student
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'FACULTY' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('FACULTY')}
+                style={{ fontSize: '12px' }}
+              >
+                👨‍🏫 Faculty
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'COORDINATOR' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('COORDINATOR')}
+                style={{ fontSize: '12px' }}
+              >
+                📋 Coordinator
+              </button>
+              <button 
+                type="button" 
+                className={`btn btn-sm ${selectedPersona === 'ADMIN' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => selectPersona('ADMIN')}
+                style={{ fontSize: '12px' }}
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">2. College Email / USN / Username</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. 1MS21CS042 or dr.sharma@msrit.edu"
+                  value={emailOrUsername}
+                  onChange={(e) => setEmailOrUsername(e.target.value)}
+                  required
+                />
+              </div>
+>>>>>>> origin/main
             </div>
 
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+<<<<<<< HEAD
                 <label className="form-label">Password</label>
                 <a 
                   href="#forgot" 
                   onClick={handleForgotPassword} 
                   style={{ fontSize: '12px', color: '#B8115B', fontWeight: 600 }}
                 >
+=======
+                <label className="form-label">3. Password</label>
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Password reset link sent to registered email address."); }} style={{ fontSize: '12px', color: '#B82226', textDecoration: 'none' }}>
+>>>>>>> origin/main
                   Forgot Password?
                 </a>
               </div>
@@ -165,6 +265,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
               />
             </div>
 
+<<<<<<< HEAD
             <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '20px', padding: '12px' }}>
               <LogIn size={16} />
               <span>LOGIN TO PORTAL</span>
@@ -196,6 +297,28 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
                 👨‍🏫 Faculty Member? Register Faculty Account
               </button>
             </div>
+=======
+            <button
+              type="submit"
+              className="btn btn-primary btn-block"
+              style={{ marginTop: '12px', padding: '11px' }}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Authenticating Credentials...' : '4. LOGIN TO PORTAL'}
+            </button>
+          </form>
+
+          {/* Student Registration Link */}
+          <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '13px' }}>
+            New Final Year Student?{' '}
+            <button 
+              type="button"
+              onClick={onSwitchToRegister}
+              style={{ background: 'none', border: 'none', color: '#B82226', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+            >
+              Register Account Here
+            </button>
+>>>>>>> origin/main
           </div>
         </div>
       </div>

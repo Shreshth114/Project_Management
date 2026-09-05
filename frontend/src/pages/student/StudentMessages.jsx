@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { Send, CheckCircle } from 'lucide-react';
+=======
+import React, { useState, useEffect } from 'react';
+import { Send, MessageSquare, Bell } from 'lucide-react';
+>>>>>>> origin/main
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const StudentMessages = () => {
+<<<<<<< HEAD
   const { data, currentUser, sendMessage } = useAuth();
   
   const [facultyRecipient, setFacultyRecipient] = useState('Dr. R. Sharma (Faculty Evaluator)');
@@ -19,9 +27,42 @@ export const StudentMessages = () => {
                                 m.recipient?.includes('Dr. R. Sharma') || m.sender?.includes('Dr. R. Sharma');
     return isStudentFacultyMsg;
   });
+=======
+  const { currentUser } = useAuth();
+  const [messages, setMessages] = useState([]);
+  const [studentGroup, setStudentGroup] = useState(null);
+  const [subject, setSubject] = useState('');
+  const [content, setContent] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+>>>>>>> origin/main
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    if (currentUser?.user_id) {
+      fetchMessagesAndGroup(currentUser.user_id, currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const fetchMessagesAndGroup = async (userId, studentId) => {
+    try {
+      setLoading(true);
+      const [msgs, group] = await Promise.all([
+        messageService.getMessagesForUser(userId),
+        academicService.getTeamByStudent(studentId)
+      ]);
+      setMessages(msgs || []);
+      setStudentGroup(group);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     sendMessage({
       recipient: facultyRecipient,
       recipientRole: 'FACULTY',
@@ -35,6 +76,32 @@ export const StudentMessages = () => {
     setContent('');
     setSuccess('Message dispatched directly to Faculty Evaluator!');
     setTimeout(() => setSuccess(''), 3500);
+=======
+    if (!studentGroup?.guide?.user_id) {
+      setError("No guide assigned to send messages to.");
+      return;
+    }
+    
+    try {
+      setError(null);
+      await messageService.sendMessage({
+        sender_id: currentUser.user_id,
+        receiver_id: studentGroup.guide.user_id,
+        message_text: `[${subject}] ${content}`
+      });
+      
+      setSubject('');
+      setContent('');
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+      
+      // Refresh messages
+      const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+      setMessages(msgs || []);
+    } catch (err) {
+      setError(err.message);
+    }
+>>>>>>> origin/main
   };
 
   return (
@@ -45,6 +112,8 @@ export const StudentMessages = () => {
           Communication channel exclusively between student project teams and assigned Faculty Evaluators.
         </p>
       </div>
+      
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
       {success && (
         <div className="alert alert-success">
@@ -54,6 +123,7 @@ export const StudentMessages = () => {
       )}
 
       <div className="grid-2">
+<<<<<<< HEAD
         {/* Direct Messages List */}
         <Card title="Student ↔ Faculty Conversation Inbox">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -108,6 +178,67 @@ export const StudentMessages = () => {
                 <option value="Dr. R. Sharma (Faculty Evaluator)">Dr. R. Sharma (Faculty Evaluator)</option>
                 <option value="Prof. V. Kulkarni (Faculty Evaluator)">Prof. V. Kulkarni (Faculty Evaluator)</option>
               </select>
+=======
+        {/* Inbox / Announcements list */}
+        <Card title="Portal Noticeboard & Messages">
+          {loading ? (
+            <p>Loading messages...</p>
+          ) : messages.length === 0 ? (
+            <p>No messages found.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {messages.map((msg) => {
+                const isReceived = msg.receiver_id === currentUser.user_id;
+                const displayName = isReceived ? (msg.sender?.email || `User ${msg.sender_id}`) : (msg.receiver?.email || `User ${msg.receiver_id}`);
+                const roleBadge = isReceived ? msg.sender?.role : msg.receiver?.role;
+                
+                return (
+                  <div 
+                    key={msg.message_id}
+                    style={{
+                      border: '1px solid #E5E5E5',
+                      borderRadius: '4px',
+                      padding: '14px',
+                      backgroundColor: isReceived && !msg.is_read ? '#FCF8E3' : '#FFFFFF',
+                      borderLeft: isReceived ? '4px solid #114C94' : '4px solid #E5E5E5'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>
+                        {isReceived ? `From: ${displayName}` : `To: ${displayName}`}
+                        <span style={{ marginLeft: '8px', fontSize: '11px', backgroundColor: '#E5E5E5', padding: '2px 6px', borderRadius: '4px' }}>
+                          {roleBadge}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {new Date(msg.sent_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#444', whiteSpace: 'pre-wrap' }}>{msg.message_text}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+
+        {/* Compose Form */}
+        <Card title="Send Message to Guide">
+          {success && (
+            <div className="alert alert-success">
+              Message dispatched to guide successfully.
+            </div>
+          )}
+          <form onSubmit={handleSend}>
+            <div className="form-group">
+              <label className="form-label">Recipient</label>
+              <input
+                type="text"
+                className="form-input"
+                value={studentGroup?.guide ? `${studentGroup.guide.name} (Guide)` : 'Loading guide...'}
+                disabled
+              />
+>>>>>>> origin/main
             </div>
 
             <div className="form-group">
@@ -134,7 +265,11 @@ export const StudentMessages = () => {
               />
             </div>
 
+<<<<<<< HEAD
             <button type="submit" className="btn btn-primary btn-block">
+=======
+            <button type="submit" className="btn btn-primary" disabled={!studentGroup?.guide}>
+>>>>>>> origin/main
               <Send size={15} />
               <span>DISPATCH MESSAGE TO FACULTY</span>
             </button>

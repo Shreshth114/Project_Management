@@ -6,8 +6,21 @@ import { RegisterFaculty } from './pages/auth/RegisterFaculty';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 const MainContent = () => {
+<<<<<<< HEAD
   const { currentUser, activeTab } = useAuth();
   const [authView, setAuthView] = useState('login'); // 'login' | 'register-student' | 'register-faculty'
+=======
+  const { currentUser, activeTab, isAuthLoading } = useAuth();
+  const [authView, setAuthView] = useState('login'); // 'login' | 'register'
+>>>>>>> origin/main
+
+  if (isAuthLoading) {
+    return (
+      <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F8F8' }}>
+        <p style={{ color: '#243143', fontWeight: 600 }}>Loading Academic Project Governance Portal...</p>
+      </div>
+    );
+  }
 
   if (!currentUser || activeTab === 'login') {
     if (authView === 'register-student') {

@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
-import { Upload, FileCheck, CheckCircle, ExternalLink, Shield, Layers, UserCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileCheck, CheckCircle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+<<<<<<< HEAD
+=======
+import { academicService } from '../../services/academicService';
+import { taskService } from '../../services/taskService';
+import { submissionService } from '../../services/submissionService';
+>>>>>>> origin/main
 
 export const StudentSubmissions = () => {
-  const { data, currentUser, submitGroupComponent } = useAuth();
+  const { currentUser } = useAuth();
+  const [team, setTeam] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [selectedTaskId, setSelectedTaskId] = useState('');
   
+<<<<<<< HEAD
   // Find group associated with current student
   const groups = data.groups || [];
   const tasks = data.tasks || [];
@@ -15,38 +26,115 @@ export const StudentSubmissions = () => {
   const isLeader = currentUser?.isGroupLeader || studentGroup?.leaderUsn === currentUser?.usn;
 
   const [activeComponentKey, setActiveComponentKey] = useState('finalReport');
+=======
+>>>>>>> origin/main
   const [file, setFile] = useState(null);
   const [urlInput, setUrlInput] = useState('');
+  const [submissionType, setSubmissionType] = useState('file'); // 'file' or 'link'
+  
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleComponentUpload = (e, compKey) => {
-    e.preventDefault();
-    if (!studentGroup) return;
-    const compObj = studentGroup.components?.[compKey];
-
-    if (compKey === 'deploymentLink') {
-      if (!urlInput) return;
-      submitGroupComponent(studentGroup.id, compKey, { url: urlInput });
-    } else {
-      if (!file) return;
-      submitGroupComponent(studentGroup.id, compKey, {
-        fileName: file.name,
-        fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-      });
+  useEffect(() => {
+    if (currentUser?.student_id) {
+      fetchData(currentUser.student_id);
     }
+  }, [currentUser]);
 
+<<<<<<< HEAD
     setSuccessMsg(`Component "${compObj?.title || compKey}" submitted successfully! Reflected for all Group ${studentGroup.groupCode} members.`);
     setFile(null);
     setUrlInput('');
     setTimeout(() => setSuccessMsg(''), 4000);
+=======
+  const fetchData = async (studentId) => {
+    try {
+      setLoading(true);
+      const studentTeam = await academicService.getTeamByStudent(studentId);
+      setTeam(studentTeam);
+      
+      if (studentTeam) {
+        // Fetch tasks (for now fetching all tasks, ideally filtered by subject)
+        const allTasks = await taskService.getTasks();
+        setTasks(allTasks || []);
+        if (allTasks && allTasks.length > 0) {
+          setSelectedTaskId(allTasks[0].task_id);
+        }
+        
+        // Fetch submissions for this team
+        const teamSubmissions = await submissionService.getSubmissionsByTeam(studentTeam.team_id);
+        setSubmissions(teamSubmissions || []);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+>>>>>>> origin/main
   };
 
-  if (!studentGroup) {
-    return <div>No group allocation found.</div>;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!team || !selectedTaskId) return;
+    
+    if (submissionType === 'file' && !file) {
+      setError('Please select a file.');
+      return;
+    }
+    if (submissionType === 'link' && !urlInput) {
+      setError('Please provide a URL.');
+      return;
+    }
 
+<<<<<<< HEAD
   const componentsObj = studentGroup.components || {};
   const isGroupMode = studentGroup.submissionMode === 'LEADER_SUBMITS_ALL' || studentGroup.submissionMode === 'GROUP';
+=======
+    try {
+      setSubmitting(true);
+      setError(null);
+      
+      let fileInfo = {
+        file_name: 'deployment_link',
+        file_type: 'link',
+        file_url: urlInput
+      };
+      
+      if (submissionType === 'file') {
+        fileInfo = await submissionService.uploadFile(file, currentUser.student_id, selectedTaskId);
+      }
+      
+      const payload = {
+        task_id: selectedTaskId,
+        student_id: currentUser.student_id,
+        team_id: team.team_id,
+        file_name: fileInfo.file_name,
+        file_type: fileInfo.file_type,
+        file_url: fileInfo.file_url
+      };
+      
+      const newSub = await submissionService.submitTask(payload);
+      
+      // Refresh submissions
+      const teamSubmissions = await submissionService.getSubmissionsByTeam(team.team_id);
+      setSubmissions(teamSubmissions || []);
+      
+      setSuccessMsg(`Submission uploaded successfully!`);
+      setFile(null);
+      setUrlInput('');
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <div>Loading Submissions...</div>;
+  if (!team) return <div>No group allocation found for your profile.</div>;
+>>>>>>> origin/main
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -64,6 +152,7 @@ export const StudentSubmissions = () => {
         gap: '12px'
       }}>
         <div>
+<<<<<<< HEAD
           <div style={{ fontSize: '12px', color: '#E0D6F5', fontWeight: 700, textTransform: 'uppercase' }}>
             COORDINATOR-CONFIGURED SUBMISSION GOVERNANCE
           </div>
@@ -78,6 +167,18 @@ export const StudentSubmissions = () => {
         <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
           Mode: {isGroupMode ? 'Group Mode (1 Upload Reflected for All)' : 'Individual Mode (Personal Upload)'}
         </Badge>
+=======
+          <div style={{ fontSize: '12px', color: '#9F9F9F', fontWeight: 700, textTransform: 'uppercase' }}>
+            GROUP PROJECT SUBMISSION
+          </div>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
+            {team.team_code} Team Project
+          </h1>
+          <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
+            Guide: <strong>{team.guideName || 'Unassigned'}</strong>
+          </div>
+        </div>
+>>>>>>> origin/main
       </div>
 
       {successMsg && (
@@ -86,7 +187,10 @@ export const StudentSubmissions = () => {
           <span>{successMsg}</span>
         </div>
       )}
+      
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
+<<<<<<< HEAD
       {/* ONE COMBINED GROUP PROJECT COMPONENTS VIEW */}
       <Card title={`PROJECT DELIVERABLES & COMPONENTS (${studentGroup.groupCode})`}>
         <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
@@ -184,8 +288,93 @@ export const StudentSubmissions = () => {
                   <option key={k} value={k}>{componentsObj[k].title}</option>
                 ))}
               </select>
-            </div>
+=======
+      <Card title="Past Team Submissions">
+        {submissions.length === 0 ? (
+          <p>No submissions have been made for your team yet.</p>
+        ) : (
+          <div className="table-container responsive-table-stack">
+            <table className="portal-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>File / Link</th>
+                  <th>Type</th>
+                  <th>Submitted By</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map(sub => {
+                  const taskName = tasks.find(t => t.task_id === sub.task_id)?.title || 'Task ID: ' + sub.task_id;
+                  return (
+                    <tr key={sub.submission_id}>
+                      <td data-label="Task" style={{ fontWeight: 700, color: '#243143' }}>{taskName}</td>
+                      <td data-label="File/Link">
+                        {sub.file_type === 'link' ? (
+                          <a href={sub.file_url} target="_blank" rel="noreferrer" style={{ color: '#B82226', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <span>{sub.file_url}</span>
+                            <ExternalLink size={13} />
+                          </a>
+                        ) : (
+                          <span style={{ color: '#114C94', fontWeight: 600 }}>{sub.file_name}</span>
+                        )}
+                      </td>
+                      <td data-label="Type"><Badge variant="info">{sub.file_type}</Badge></td>
+                      <td data-label="Submitted By" style={{ fontSize: '13px', color: '#555' }}>
+                        {sub.student?.name || 'Unknown'}
+                      </td>
+                      <td data-label="Date" style={{ fontSize: '12px', color: '#666' }}>
+                        {new Date(sub.submitted_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
+      <Card title="New Upload">
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Select Milestone Task</label>
+            <select 
+              className="form-select"
+              value={selectedTaskId}
+              onChange={(e) => setSelectedTaskId(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select a Task...</option>
+              {tasks.map(t => (
+                <option key={t.task_id} value={t.task_id}>{t.title}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group" style={{ marginBottom: '16px' }}>
+            <label className="form-label">Submission Type</label>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="radio" 
+                  checked={submissionType === 'file'} 
+                  onChange={() => setSubmissionType('file')} 
+                /> File Upload
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  type="radio" 
+                  checked={submissionType === 'link'} 
+                  onChange={() => setSubmissionType('link')} 
+                /> URL Link
+              </label>
+>>>>>>> origin/main
+            </div>
+          </div>
+
+<<<<<<< HEAD
             {activeComponentKey === 'deploymentLink' ? (
               <div className="form-group">
                 <label className="form-label">Live Deployment / Endpoint URL</label>
@@ -221,10 +410,48 @@ export const StudentSubmissions = () => {
                   <label htmlFor="comp-file-input" className="btn btn-secondary btn-sm" style={{ marginTop: '10px' }}>
                     Browse File
                   </label>
+=======
+          {submissionType === 'link' ? (
+            <div className="form-group">
+              <label className="form-label">Live Deployment / Endpoint URL</label>
+              <input
+                type="url"
+                className="form-input"
+                placeholder="https://my-project.msrit-cse.edu"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                required={submissionType === 'link'}
+              />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label className="form-label">Select File</label>
+              <div style={{
+                border: '2px dashed #CCCCCC',
+                borderRadius: '4px',
+                padding: '20px',
+                textAlign: 'center',
+                backgroundColor: '#FAFAFA'
+              }}>
+                <Upload size={28} color="#9F9F9F" style={{ margin: '0 auto 6px' }} />
+                <div style={{ fontSize: '14px', fontWeight: 600 }}>
+                  {file ? file.name : "Click to select deliverable file"}
+>>>>>>> origin/main
                 </div>
+                <input
+                  type="file"
+                  style={{ display: 'none' }}
+                  id="comp-file-input"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
+                <label htmlFor="comp-file-input" className="btn btn-secondary btn-sm" style={{ marginTop: '10px' }}>
+                  Browse File
+                </label>
               </div>
-            )}
+            </div>
+          )}
 
+<<<<<<< HEAD
             <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
               <FileCheck size={16} />
               <span>SUBMIT DELIVERABLE TO PROJECT</span>
@@ -232,6 +459,14 @@ export const StudentSubmissions = () => {
           </form>
         </Card>
       </div>
+=======
+          <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }} disabled={submitting || !selectedTaskId}>
+            <FileCheck size={16} />
+            <span>{submitting ? 'SUBMITTING...' : 'SUBMIT DELIVERABLE'}</span>
+          </button>
+        </form>
+      </Card>
+>>>>>>> origin/main
     </div>
   );
 };

@@ -1,20 +1,46 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { PlusSquare, BookOpen, UserCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+=======
+import React, { useState, useEffect } from 'react';
+import { PlusSquare } from 'lucide-react';
+>>>>>>> origin/main
 import { Card } from '../../components/common/Card';
-import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const AdminSubjects = () => {
-  const { data } = useAuth();
-  const [subjectsList, setSubjectsList] = useState(data.subjects);
+  const [subjectsList, setSubjectsList] = useState([]);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
+<<<<<<< HEAD
   const [credits, setCredits] = useState(6);
   const [semester, setSemester] = useState(8);
   const [assignedCoordinator, setAssignedCoordinator] = useState('Prof. V. Kulkarni');
+=======
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+>>>>>>> origin/main
 
-  const handleAddSubject = (e) => {
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      setLoading(true);
+      const data = await academicService.getSubjects();
+      setSubjectsList(data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddSubject = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     const newSub = {
       id: `sub-${Date.now()}`,
       code,
@@ -31,6 +57,17 @@ export const AdminSubjects = () => {
 
     setCode('');
     setName('');
+=======
+    try {
+      setError(null);
+      const newSub = await academicService.createSubject(code, name);
+      setSubjectsList([...subjectsList, newSub]);
+      setCode('');
+      setName('');
+    } catch (err) {
+      setError("Failed to create subject: " + err.message);
+    }
+>>>>>>> origin/main
   };
 
   return (
@@ -38,12 +75,19 @@ export const AdminSubjects = () => {
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Course Subjects & Coordinator Assignments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
+<<<<<<< HEAD
           Configure project course titles, VTU credit schemes, and assign subject coordinators.
+=======
+          Configure project course titles and offerings.
+>>>>>>> origin/main
         </p>
       </div>
 
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+
       <div className="grid-3">
         <div style={{ gridColumn: 'span 2' }}>
+<<<<<<< HEAD
           <Card title="Registered Academic Course Subjects & Coordinators">
             <div className="table-container responsive-table-stack">
               <table className="portal-table">
@@ -66,11 +110,33 @@ export const AdminSubjects = () => {
                         {s.coordinator || 'Prof. V. Kulkarni'}
                       </td>
                       <td data-label="Status"><Badge variant={s.status === 'Active' ? 'success' : 'purple'}>{s.status}</Badge></td>
+=======
+          <Card title="Registered Academic Course Subjects">
+            {loading ? (
+              <p>Loading subjects...</p>
+            ) : subjectsList.length === 0 ? (
+              <p>No subjects found. Add one below.</p>
+            ) : (
+              <div className="table-container responsive-table-stack">
+                <table className="portal-table">
+                  <thead>
+                    <tr>
+                      <th>Subject Code</th>
+                      <th>Subject Title</th>
+>>>>>>> origin/main
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {subjectsList.map((s) => (
+                      <tr key={s.subject_id}>
+                        <td data-label="Subject Code" style={{ fontWeight: 700, color: '#B82226' }}>{s.subject_code}</td>
+                        <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.subject_name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -101,6 +167,7 @@ export const AdminSubjects = () => {
                 />
               </div>
 
+<<<<<<< HEAD
               <div className="form-group">
                 <label className="form-label">Assign Subject Coordinator</label>
                 <select
@@ -137,6 +204,8 @@ export const AdminSubjects = () => {
                 </div>
               </div>
 
+=======
+>>>>>>> origin/main
               <button type="submit" className="btn btn-primary btn-block">
                 <PlusSquare size={16} />
                 <span>ADD SUBJECT & ASSIGN COORDINATOR</span>

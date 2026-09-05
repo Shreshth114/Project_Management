@@ -1,0 +1,568 @@
+Final Year Project Management System
+Database Design – Tables, Relationships & Business Rules
+Purpose. This document records the current agreed database design for the FYP Management System. It is intended as a shared reference for the backend, database and frontend team members.
+Status. This is the current V1 design. A few implementation details are deliberately left as decisions to confirm before the PostgreSQL schema is finalized.
+1. System Overview
+Students register/login individually and belong to an existing project team (for example, B1, B2, B3).
+Admin maintains subjects, existing teams and guide assignments, manages users, views logs/status and has master-edit capability.
+Faculty members belong to a subject and may be designated as coordinators by the admin. A coordinator can create tasks and define evaluation criteria.
+A faculty member can guide multiple teams. Only the assigned guide evaluates a team's submissions.
+Tasks are either individual or group tasks. Individual tasks are submitted by students; group tasks are submitted once by the team.
+Even for a group submission, evaluation is performed separately for every student in the team.
+Students receive in-app notifications and can communicate with faculty through messaging.
+2. Entity List
+Entities
+Entity
+Purpose
+USER
+Authentication and common user identity
+STUDENT
+Student-specific information and team membership
+FACULTY
+Faculty information, subject and coordinator privilege
+ADMIN
+Admin profile
+SUBJECT
+Subject master data
+TEAM
+Existing project teams and assigned guides
+TASK
+Coordinator-created individual/group tasks and deadlines
+EVALUATION_CRITERIA
+Marks/rubric criteria for a task
+SUBMISSION
+Uploaded files for tasks
+EVALUATION
+Individual student marks/feedback for a submission
+NOTIFICATION
+In-app user notifications
+MESSAGE
+User-to-user communication
+AUDIT_LOG
+Usage/admin action logging
+
+3. Table Definitions
+USER
+Attribute
+Key
+References
+Meaning
+user_id
+PK
+—
+Unique user record identifier
+email
+—
+—
+University email used for login
+password_hash
+—
+—
+Stored password hash; exact authentication mechanism to be finalized
+role
+—
+—
+Student / Faculty / Admin
+
+STUDENT
+Attribute
+Key
+References
+Meaning
+student_id
+PK
+—
+Student-specific identifier
+user_id
+FK
+USER.user_id
+Links student profile to login identity
+team_id
+FK
+TEAM.team_id
+Existing project team
+usn
+—
+—
+University Seat Number
+name
+—
+—
+Student name
+
+FACULTY
+Attribute
+Key
+References
+Meaning
+faculty_id
+PK
+—
+Faculty-specific identifier
+user_id
+FK
+USER.user_id
+Links faculty profile to login identity
+subject_id
+FK
+SUBJECT.subject_id
+Faculty's subject
+name
+—
+—
+Faculty name
+is_coordinator
+—
+—
+Whether admin has granted coordinator privileges
+
+ADMIN
+Attribute
+Key
+References
+Meaning
+admin_id
+PK
+—
+Admin-specific identifier
+user_id
+FK
+USER.user_id
+Links admin profile to login identity
+
+SUBJECT
+Attribute
+Key
+References
+Meaning
+subject_id
+PK
+—
+Unique subject identifier
+subject_code
+—
+—
+Subject code
+subject_name
+—
+—
+Subject name
+
+TEAM
+Attribute
+Key
+References
+Meaning
+team_id
+PK
+—
+Unique team identifier
+team_code
+—
+—
+Project team code such as B1/B2/B3
+subject_id
+FK
+SUBJECT.subject_id
+Subject associated with the team
+guide_id
+FK
+FACULTY.faculty_id
+Assigned guide; a faculty member can guide multiple teams
+
+TASK
+Attribute
+Key
+References
+Meaning
+task_id
+PK
+—
+Unique task identifier
+faculty_id
+FK
+FACULTY.faculty_id
+Faculty/coordinator who created the task
+title
+—
+—
+Task title
+description
+—
+—
+Task details
+task_type
+—
+—
+INDIVIDUAL or GROUP
+deadline
+—
+—
+Submission deadline
+created_at
+—
+—
+Task creation timestamp
+
+EVALUATION_CRITERIA
+Attribute
+Key
+References
+Meaning
+criteria_id
+PK
+—
+Unique criterion identifier
+task_id
+FK
+TASK.task_id
+Task for which this criterion is defined
+criteria_name
+—
+—
+Criterion/item such as literature study or presentation
+max_marks
+—
+—
+Maximum marks for the criterion
+
+SUBMISSION
+Attribute
+Key
+References
+Meaning
+submission_id
+PK
+—
+Unique submission identifier
+task_id
+FK
+TASK.task_id
+Task being submitted
+submitted_by_student_id
+FK
+STUDENT.student_id
+Student who actually uploaded the file
+team_id
+FK
+TEAM.team_id
+Team associated with the submission
+file_name
+—
+—
+Original/display file name
+file_type
+—
+—
+DOCX/PPT/PDF/image/video etc.
+file_url
+—
+—
+Storage location/reference
+submitted_at
+—
+—
+Submission timestamp
+
+EVALUATION
+Attribute
+Key
+References
+Meaning
+evaluation_id
+PK
+—
+Unique evaluation identifier
+submission_id
+FK
+SUBMISSION.submission_id
+Submission being evaluated
+student_id
+FK
+STUDENT.student_id
+Student receiving the individual evaluation
+criteria_id
+FK
+EVALUATION_CRITERIA.criteria_id
+Criterion being scored
+evaluator_id
+FK
+FACULTY.faculty_id
+Faculty member who evaluates
+awarded_marks
+—
+—
+Marks awarded to this student for this criterion
+feedback
+—
+—
+Faculty feedback
+evaluated_at
+—
+—
+Evaluation timestamp
+
+NOTIFICATION
+Attribute
+Key
+References
+Meaning
+notification_id
+PK
+—
+Unique notification identifier
+user_id
+FK
+USER.user_id
+User receiving the notification
+title
+—
+—
+Notification title
+message
+—
+—
+Notification content
+is_read
+—
+—
+Read/unread state
+created_at
+—
+—
+Creation timestamp
+
+MESSAGE
+Attribute
+Key
+References
+Meaning
+message_id
+PK
+—
+Unique message identifier
+sender_id
+FK
+USER.user_id
+User sending the message
+receiver_id
+FK
+USER.user_id
+User receiving the message
+message_text
+—
+—
+Message content
+sent_at
+—
+—
+Message timestamp
+is_read
+—
+—
+Read/unread state
+
+AUDIT_LOG
+Attribute
+Key
+References
+Meaning
+log_id
+PK
+—
+Unique log identifier
+user_id
+FK
+USER.user_id
+User responsible for the action
+action
+—
+—
+Action performed
+entity_type
+—
+—
+Type of affected entity
+entity_id
+—
+—
+Identifier of affected record
+details
+—
+—
+Additional information
+timestamp
+—
+—
+Action timestamp
+
+4. Relationships
+Relationship Map
+From
+To
+Cardinality
+Meaning
+USER
+STUDENT
+1 : 1
+A user can have one student profile
+USER
+FACULTY
+1 : 1
+A user can have one faculty profile
+USER
+ADMIN
+1 : 1
+A user can have one admin profile
+SUBJECT
+FACULTY
+1 : N
+A subject can have multiple faculty members; each faculty currently belongs to one subject
+SUBJECT
+TEAM
+1 : N
+A subject can have multiple teams
+FACULTY
+TEAM
+1 : N
+One faculty member can guide multiple teams; each team has an assigned guide
+TEAM
+STUDENT
+1 : N
+A team contains multiple students
+FACULTY
+TASK
+1 : N
+A coordinator/faculty member creates multiple tasks
+TASK
+EVALUATION_CRITERIA
+1 : N
+A task can have multiple evaluation criteria
+TASK
+SUBMISSION
+1 : N
+A task can receive multiple submissions across students/teams
+STUDENT
+SUBMISSION
+1 : N
+A student can upload multiple submissions; in SUBMISSION this means the uploader
+TEAM
+SUBMISSION
+1 : N
+A team can have submissions for its group tasks
+SUBMISSION
+EVALUATION
+1 : N
+One submission can generate multiple individual/criterion evaluations
+STUDENT
+EVALUATION
+1 : N
+A student can receive multiple evaluations
+EVALUATION_CRITERIA
+EVALUATION
+1 : N
+A criterion can be used in many evaluations
+FACULTY
+EVALUATION
+1 : N
+A faculty member can perform multiple evaluations
+USER
+NOTIFICATION
+1 : N
+A user can receive multiple notifications
+USER
+MESSAGE
+1 : N
+A user can send messages
+USER
+MESSAGE
+1 : N
+A user can receive messages
+USER
+AUDIT_LOG
+1 : N
+A user can generate multiple audit log entries
+
+5. Important Business Rules
+Coordinator is not a separate entity. A FACULTY member gets coordinator privileges through is_coordinator = true, with admin determining who is a coordinator.
+Guide is not a separate entity. TEAM.guide_id references FACULTY.faculty_id.
+Students register individually. Team membership is represented through STUDENT.team_id.
+Teams already exist and are entered/maintained by admin.
+A faculty member can guide multiple teams.
+Tasks have two types: INDIVIDUAL and GROUP.
+Individual tasks apply to the relevant students; group tasks apply to the relevant teams. The current design treats this as application/business logic rather than a separate ASSIGNMENT table.
+For a group task, the team submits one file, but every student in that team must be evaluated individually.
+submitted_by_student_id identifies who uploaded the submission; it is not the student receiving the evaluation.
+Only the faculty member assigned as the team's guide evaluates that team's submissions.
+Evaluation criteria define maximum marks. Awarded marks are stored separately for each student/criterion evaluation.
+Total marks should be derived from the evaluation criteria rather than duplicated as a stored field.
+Students need in-app deadline/status notifications.
+Students communicate with faculty through the messaging feature; student-to-coordinator messaging is not a stated requirement.
+Admin needs usage logs and master-edit capability, including correcting deadlines/submission-related records when authorized.
+6. Recommended Database Constraints to Implement Later
+Constraint Checklist
+Field/Area
+Constraint
+Reason
+USER.email
+UNIQUE
+A university email should map to one login identity.
+STUDENT.user_id
+UNIQUE
+One login identity should not have multiple student profiles.
+FACULTY.user_id
+UNIQUE
+One login identity should not have multiple faculty profiles.
+ADMIN.user_id
+UNIQUE
+One login identity should not have multiple admin profiles.
+STUDENT.USN
+UNIQUE
+A USN should identify one student.
+SUBJECT.subject_code
+UNIQUE
+Subject codes should not be duplicated.
+TEAM.team_code
+UNIQUE within the relevant scope
+Exact scope should be confirmed if codes repeat across subjects.
+EVALUATION
+UNIQUE(submission_id, student_id, criteria_id)
+Prevents duplicate scoring of the same student for the same criterion of the same submission.
+EVALUATION.awarded_marks
+CHECK
+Should be >= 0 and <= EVALUATION_CRITERIA.max_marks.
+TASK.task_type
+CHECK/ENUM
+Should be INDIVIDUAL or GROUP.
+
+7. Important Implementation Notes
+Group vs individual submission rules should be enforced by the backend and, where practical, by database constraints/indexes so the UI cannot be the only protection against duplicate submissions.
+For a group submission, submitted_by_student_id records the uploader and team_id records the team. The EVALUATION rows then identify each student individually.
+Authentication details are not fully finalized yet. Current requirements indicate university email and password, with USN also identifying the student.
+File uploads may include DOCX, PPT, PDF, images and video. file_url should point to the eventual storage mechanism rather than storing large binary files directly in the relational table unless the team deliberately chooses that approach.
+Admin master edits should be auditable. AUDIT_LOG should record who performed the action and what record was affected.
+Notification delivery is currently assumed to be in-app/browser-based; no external push/email notification requirement has been finalized.
+8. Decisions Still to Confirm
+Open Decisions
+Question
+Current Position
+Are tasks subject-specific?
+Current design: NO direct TASK.subject_id. Confirm with faculty before final PostgreSQL implementation.
+Exact authentication flow
+University email + password are expected; confirm whether the college provides SSO, email verification, or another mechanism.
+Team code uniqueness
+Confirm whether B1/B2/etc. can repeat for different subjects/batches.
+Whether a faculty can belong to more than one subject
+Current design assumes one subject per faculty, based on the current requirement.
+Whether a coordinator is global or subject-scoped
+Current design assumes coordinator privileges are global, as currently described.
+Exact master-edit permissions
+Confirm which records admin can edit and whether edits to deadlines/submissions require a reason.
+
+9. Current Schema at a Glance
+Identity: USER → STUDENT / FACULTY / ADMIN
+Academic structure: SUBJECT → FACULTY, TEAM → STUDENT, FACULTY → TEAM
+Project workflow: FACULTY → TASK → EVALUATION_CRITERIA; TASK → SUBMISSION → EVALUATION
+Communication/admin: USER → NOTIFICATION, USER ↔ MESSAGE, USER → AUDIT_LOG
+
+V1 database design — review with the team before PostgreSQL implementation.
