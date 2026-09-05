@@ -40,6 +40,18 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleProfileResolution = async (session) => {
       if (!session) {
+        const savedProfile = localStorage.getItem('rit_current_user_profile');
+        if (savedProfile) {
+          try {
+            const profile = JSON.parse(savedProfile);
+            setCurrentUser(profile);
+            setCurrentRole(profile.role === 'TEACHER' ? (profile.teacherRoles?.[0] || 'FACULTY') : profile.role);
+            setIsAuthLoading(false);
+            return;
+          } catch (e) {
+            localStorage.removeItem('rit_current_user_profile');
+          }
+        }
         setCurrentUser(null);
         setCurrentRole(null);
         setActiveTab('login');
@@ -59,6 +71,7 @@ export const AuthProvider = ({ children }) => {
 
           if (!isValid) {
             await authService.logout();
+            localStorage.removeItem('rit_current_user_profile');
             setCurrentUser(null);
             setCurrentRole(null);
             setActiveTab('login');
@@ -69,6 +82,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         setCurrentUser(profile);
+        localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
         
         if (profile.role === 'STUDENT') {
           setCurrentRole('STUDENT');
@@ -114,10 +128,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, expectedRole) => {
     try {
       setPendingRole(expectedRole);
-      await authService.login(email, password);
+      const loginRes = await authService.login(email, password);
       
-      const session = await supabase.auth.getSession();
-      const user = session.data?.session?.user;
+      let user = loginRes?.user;
+      if (!user) {
+        const session = await supabase.auth.getSession();
+        user = session.data?.session?.user;
+      }
       if (!user) throw new Error("No user session returned after login.");
       
       const profile = await authService.getUserProfile(user);
@@ -130,9 +147,28 @@ export const AuthProvider = ({ children }) => {
 
         if (!isValid) {
           await authService.logout();
+          localStorage.removeItem('rit_current_user_profile');
           setPendingRole(null);
           return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
         }
+      }
+
+      setCurrentUser(profile);
+      localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
+
+      if (profile.role === 'STUDENT') {
+        setCurrentRole('STUDENT');
+        setActiveTab('dashboard');
+      } else if (profile.role === 'ADMIN') {
+        setCurrentRole('ADMIN');
+        setActiveTab('dashboard');
+      } else if (profile.role === 'TEACHER') {
+        if (expectedRole === 'COORDINATOR' || expectedRole === 'FACULTY') {
+          setCurrentRole(expectedRole);
+        } else {
+          setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
+        }
+        setActiveTab('dashboard');
       }
 
       return { success: true };
@@ -142,8 +178,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const registerUser = (newUser) => {
-    return { success: true };
+  const registerUser = async (newUser) => {
+    try {
+      const res = await authService.registerUser(newUser);
+      if (res.success) {
+        setData(prev => ({
+          ...prev,
+          users: [newUser, ...(prev.users || [])]
+        }));
+      }
+      return res;
+    } catch (err) {
+      return { success: false, message: err.message || 'Registration failed.' };
+    }
   };
 
   const switchTeacherRole = (newRole) => {
@@ -155,6 +202,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('rit_current_user_profile');
       localStorage.removeItem('activeTab');
       setCurrentUser(null);
       setCurrentRole(null);

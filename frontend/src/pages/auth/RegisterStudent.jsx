@@ -10,13 +10,14 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [email, setEmail] = useState('');
   const [batch, setBatch] = useState('Batch 1 (8th Sem)');
   const [groupName, setGroupName] = useState('Group G01');
-  const [selectedSubject, setSelectedSubject] = useState(data.subjects[0]?.code || '21CSP81');
-  const [guide, setGuide] = useState(data.facultyGuides[0]?.name || 'Prof. V. Kulkarni');
+  const [selectedSubject, setSelectedSubject] = useState(data?.subjects?.[0]?.code || '21CSP81');
+  const [guide, setGuide] = useState(data?.facultyGuides?.[0]?.name || 'Prof. V. Kulkarni');
   const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -25,29 +26,36 @@ export const RegisterStudent = ({ onBackToLogin }) => {
       return;
     }
 
-    const newUser = {
-      username: usn.toUpperCase(),
-      usn: usn.toUpperCase(),
-      name,
-      email,
-      role: 'STUDENT',
-      department: 'CSE',
-      batch,
-      subject: selectedSubject,
-      groupName,
-      guide,
-      password,
-      groupId: 'G01'
-    };
+    setIsSubmitting(true);
+    try {
+      const newUser = {
+        username: usn.toUpperCase(),
+        usn: usn.toUpperCase(),
+        name,
+        email,
+        role: 'STUDENT',
+        department: 'CSE',
+        batch,
+        subject: selectedSubject,
+        groupName,
+        guide,
+        password,
+        groupId: 'G01'
+      };
 
-    const res = registerUser(newUser);
-    if (res.success) {
-      setSuccess('Student Enrolment completed successfully! Redirecting to login...');
-      setTimeout(() => {
-        onBackToLogin();
-      }, 2000);
-    } else {
-      setError(res.message || 'Registration failed.');
+      const res = await registerUser(newUser);
+      if (res.success) {
+        setSuccess('Student Enrolment completed successfully! Redirecting to login...');
+        setTimeout(() => {
+          onBackToLogin();
+        }, 1500);
+      } else {
+        setError(res.message || 'Registration failed.');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during registration.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -194,8 +202,8 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
                 >
-                  {data.subjects.map(s => (
-                    <option key={s.id} value={s.code}>
+                  {(data?.subjects || []).map(s => (
+                    <option key={s.id || s.code} value={s.code}>
                       {s.code} - {s.name}
                     </option>
                   ))}
@@ -209,8 +217,8 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   value={guide}
                   onChange={(e) => setGuide(e.target.value)}
                 >
-                  {data.facultyGuides.map(g => (
-                    <option key={g.id} value={g.name}>{g.name}</option>
+                  {(data?.facultyGuides || []).map(g => (
+                    <option key={g.id || g.name} value={g.name}>{g.name}</option>
                   ))}
                 </select>
               </div>
@@ -228,9 +236,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '16px', padding: '12px' }}>
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '16px', padding: '12px' }} disabled={isSubmitting}>
               <UserCheck size={16} />
-              <span>SUBMIT STUDENT ENROLMENT</span>
+              <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT STUDENT ENROLMENT'}</span>
             </button>
           </form>
         </div>
