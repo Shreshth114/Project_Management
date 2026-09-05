@@ -7,13 +7,14 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [subjectName, setSubjectName] = useState('Major Project Phase - II');
-  const [subjectCode, setSubjectCode] = useState('21CSP81');
+  const [subjectName, setSubjectName] = useState('');
+  const [subjectCode, setSubjectCode] = useState('');
   const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -22,26 +23,33 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
       return;
     }
 
-    const newUser = {
-      username: email.split('@')[0],
-      name,
-      email,
-      role: 'TEACHER',
-      teacherRoles: ['FACULTY'],
-      subjectName,
-      subjectCode,
-      subject: subjectCode,
-      password
-    };
+    setIsSubmitting(true);
+    try {
+      const newUser = {
+        username: email.split('@')[0],
+        name,
+        email,
+        role: 'TEACHER',
+        teacherRoles: ['FACULTY'],
+        subjectName,
+        subjectCode,
+        subject: subjectCode,
+        password
+      };
 
-    const res = registerUser(newUser);
-    if (res.success) {
-      setSuccess('Faculty Enrolment completed successfully! Redirecting to login...');
-      setTimeout(() => {
-        onBackToLogin();
-      }, 2000);
-    } else {
-      setError(res.message || 'Registration failed.');
+      const res = await registerUser(newUser);
+      if (res.success) {
+        setSuccess('Faculty Enrolment completed successfully! Redirecting to login...');
+        setTimeout(() => {
+          onBackToLogin();
+        }, 1500);
+      } else {
+        setError(res.message || 'Registration failed.');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during registration.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -134,6 +142,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                 placeholder="faculty@msrit.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -152,18 +161,20 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Code Option</label>
+                <label className="form-label">Subject Code</label>
                 <select 
                   className="form-select"
                   value={subjectCode}
                   onChange={(e) => {
                     setSubjectCode(e.target.value);
-                    const foundSub = data.subjects.find(s => s.code === e.target.value);
+                    const foundSub = (data?.subjects || []).find(s => s.code === e.target.value);
                     if (foundSub) setSubjectName(foundSub.name);
                   }}
+                  required
                 >
-                  {data.subjects.map(s => (
-                    <option key={s.id} value={s.code}>
+                  <option value="">Select a subject</option>
+                  {(data?.subjects || []).map(s => (
+                    <option key={s.id || s.code} value={s.code}>
                       {s.code} ({s.name})
                     </option>
                   ))}
@@ -179,13 +190,14 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </div>
 
-            <button type="submit" className="btn btn-magenta btn-block" style={{ marginTop: '16px', padding: '12px' }}>
+            <button type="submit" className="btn btn-magenta btn-block" style={{ marginTop: '16px', padding: '12px' }} disabled={isSubmitting}>
               <UserCheck size={16} />
-              <span>SUBMIT FACULTY ENROLMENT</span>
+              <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT FACULTY ENROLMENT'}</span>
             </button>
           </form>
         </div>

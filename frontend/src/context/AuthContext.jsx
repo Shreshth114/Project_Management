@@ -38,8 +38,20 @@ export const AuthProvider = ({ children }) => {
   const [showModeSelectionLanding, setShowModeSelectionLanding] = useState(false);
 
   useEffect(() => {
-    const handleProfileResolution = async (session) => {
+    const handleProfileResolution = async (session, event = null) => {
       if (!session) {
+        const savedProfile = localStorage.getItem('rit_current_user_profile');
+        if (savedProfile) {
+          try {
+            const profile = JSON.parse(savedProfile);
+            setCurrentUser(profile);
+            setCurrentRole(profile.role === 'TEACHER' ? (profile.teacherRoles?.[0] || 'FACULTY') : profile.role);
+            setIsAuthLoading(false);
+            return;
+          } catch (e) {
+            localStorage.removeItem('rit_current_user_profile');
+          }
+        }
         setCurrentUser(null);
         setCurrentRole(null);
         setActiveTab('login');
@@ -59,6 +71,7 @@ export const AuthProvider = ({ children }) => {
 
           if (!isValid) {
             await authService.logout();
+            localStorage.removeItem('rit_current_user_profile');
             setCurrentUser(null);
             setCurrentRole(null);
             setActiveTab('login');
@@ -69,23 +82,32 @@ export const AuthProvider = ({ children }) => {
         }
 
         setCurrentUser(profile);
+        localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
         
-        if (profile.role === 'STUDENT') {
-          setCurrentRole('STUDENT');
-          setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
-        } else if (profile.role === 'ADMIN') {
-          setCurrentRole('ADMIN');
-          setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
-        } else if (profile.role === 'TEACHER') {
-          if (pendingRole === 'COORDINATOR' || pendingRole === 'FACULTY') {
-            setCurrentRole(pendingRole);
+        if (event === 'PASSWORD_RECOVERY') {
+          setActiveTab('login');
+        } else {
+          if (profile.role === 'STUDENT') {
+            setCurrentRole('STUDENT');
             setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
-          } else if (profile.teacherRoles && profile.teacherRoles.length > 1) {
-            setShowRoleSelectionModal(true);
+          } else if (profile.role === 'ADMIN') {
+            setCurrentRole('ADMIN');
             setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
-          } else {
-            setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
-            setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+          } else if (profile.role === 'TEACHER') {
+            const isAssignedCoord = (data.subjects || []).some(
+              s => s.coordinator === profile.name || s.coordinator === profile.username
+            ) || (profile.teacherRoles && profile.teacherRoles.includes('COORDINATOR'));
+
+            if (pendingRole === 'COORDINATOR' || pendingRole === 'FACULTY') {
+              setCurrentRole(pendingRole);
+              setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+            } else if (isAssignedCoord) {
+              setShowModeSelectionLanding(true);
+              setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+            } else {
+              setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
+              setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+            }
           }
         }
         setPendingRole(null);
@@ -99,11 +121,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      handleProfileResolution(session);
+      // Check url hash directly for recovery in case session is already established
+      const hash = window.location.hash || window.location.search;
+      const isRecovery = hash.includes('type=recovery') || hash.includes('reset-password');
+      handleProfileResolution(session, isRecovery ? 'PASSWORD_RECOVERY' : null);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      handleProfileResolution(session);
+      handleProfileResolution(session, _event);
     });
 
     return () => {
@@ -114,10 +139,13 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, expectedRole) => {
     try {
       setPendingRole(expectedRole);
-      await authService.login(email, password);
+      const loginRes = await authService.login(email, password);
       
-      const session = await supabase.auth.getSession();
-      const user = session.data?.session?.user;
+      let user = loginRes?.user;
+      if (!user) {
+        const session = await supabase.auth.getSession();
+        user = session.data?.session?.user;
+      }
       if (!user) throw new Error("No user session returned after login.");
       
       const profile = await authService.getUserProfile(user);
@@ -130,8 +158,36 @@ export const AuthProvider = ({ children }) => {
 
         if (!isValid) {
           await authService.logout();
+          localStorage.removeItem('rit_current_user_profile');
           setPendingRole(null);
           return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
+        }
+      }
+
+      setCurrentUser(profile);
+      localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
+
+      if (profile.role === 'STUDENT') {
+        setCurrentRole('STUDENT');
+        setActiveTab('dashboard');
+      } else if (profile.role === 'ADMIN') {
+        setCurrentRole('ADMIN');
+        setActiveTab('dashboard');
+      } else if (profile.role === 'TEACHER') {
+        // Evaluate if they are assigned as coordinator in local data
+        const isAssignedCoord = (data.subjects || []).some(
+          s => s.coordinator === profile.name || s.coordinator === profile.username
+        ) || (profile.teacherRoles && profile.teacherRoles.includes('COORDINATOR'));
+
+        if (expectedRole === 'COORDINATOR' || expectedRole === 'FACULTY') {
+          setCurrentRole(expectedRole);
+          setActiveTab('dashboard');
+        } else if (isAssignedCoord) {
+          setShowModeSelectionLanding(true);
+          setActiveTab('dashboard');
+        } else {
+          setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
+          setActiveTab('dashboard');
         }
       }
 
@@ -142,19 +198,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const registerUser = (newUser) => {
-    return { success: true };
+  const registerUser = async (newUser) => {
+    try {
+      const res = await authService.registerUser(newUser);
+      if (res.success) {
+        setData(prev => ({
+          ...prev,
+          users: [newUser, ...(prev.users || [])]
+        }));
+      }
+      return res;
+    } catch (err) {
+      return { success: false, message: err.message || 'Registration failed.' };
+    }
   };
 
   const switchTeacherRole = (newRole) => {
     setCurrentRole(newRole);
     localStorage.setItem('activeTab', 'dashboard');
     setShowRoleSelectionModal(false);
+    setShowModeSelectionLanding(false);
   };
 
   const logout = async () => {
     try {
       await authService.logout();
+      localStorage.removeItem('rit_current_user_profile');
       localStorage.removeItem('activeTab');
       setCurrentUser(null);
       setCurrentRole(null);
@@ -288,6 +357,22 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const resetPassword = async (identifier) => {
+    try {
+      return await authService.resetPasswordForEmail(identifier);
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  const updatePassword = async (newPassword) => {
+    try {
+      return await authService.updateUserPassword(newPassword);
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -299,6 +384,8 @@ export const AuthProvider = ({ children }) => {
         setActiveTab,
         login,
         registerUser,
+        resetPassword,
+        updatePassword,
         logout,
         switchTeacherRole,
         showRoleSelectionModal,

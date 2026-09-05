@@ -3,7 +3,7 @@ import { LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RitLogo } from '../../components/common/RitLogo';
 
-export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) => {
+export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, onNavigateForgotPassword }) => {
   const { login } = useAuth();
   
   const [identifier, setIdentifier] = useState('');
@@ -15,10 +15,8 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
     e.preventDefault();
     setError('');
 
-    setError('');
-
     if (!identifier || !password) {
-      setError('Please enter your institutional email / USN and password.');
+      setError('Please enter your institutional email and password.');
       return;
     }
 
@@ -41,7 +39,11 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
 
   const handleForgotPassword = (e) => {
     e.preventDefault();
-    alert("Please contact the System Admin at admin@msrit.edu for password reset.");
+    if (onNavigateForgotPassword) {
+      onNavigateForgotPassword();
+    } else {
+      alert("Please contact the System Admin at admin@msrit.edu for password reset.");
+    }
   };
 
   return (
@@ -87,7 +89,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
             Portal Sign In
           </h3>
           <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
-            Please authenticate using your official college email or USN.
+            Please authenticate using your official college email.
           </p>
 
           {error && (
@@ -99,13 +101,14 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
 
           <form onSubmit={handleLogin}>
             <div className="form-group">
-              <label className="form-label">College Email / USN / Username</label>
+              <label className="form-label">College Email</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. 1MS21CS042 or dr.sharma@msrit.edu"
+                placeholder="e.g. student@msrit.edu"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -127,6 +130,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty }) 
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </div>
