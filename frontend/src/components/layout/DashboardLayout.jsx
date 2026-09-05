@@ -4,6 +4,7 @@ import { Header } from '../common/Header';
 import { Sidebar } from '../common/Sidebar';
 import { MobileDrawer } from '../common/MobileDrawer';
 import { RoleSelectionModal } from '../common/RoleSelectionModal';
+import { FacultyModeSelectionPage } from '../../pages/faculty/FacultyModeSelectionPage';
 
 // Student Pages
 import { StudentDashboard } from '../../pages/student/StudentDashboard';
@@ -27,6 +28,7 @@ import { CoordinatorDashboard } from '../../pages/coordinator/CoordinatorDashboa
 import { CoordinatorTasks } from '../../pages/coordinator/CoordinatorTasks';
 import { CoordinatorCreateTask } from '../../pages/coordinator/CoordinatorCreateTask';
 import { CoordinatorGroups } from '../../pages/coordinator/CoordinatorGroups';
+import { CoordinatorStudents } from '../../pages/coordinator/CoordinatorStudents';
 import { CoordinatorStatus } from '../../pages/coordinator/CoordinatorStatus';
 import { CoordinatorMessages } from '../../pages/coordinator/CoordinatorMessages';
 import { CoordinatorProfile } from '../../pages/coordinator/CoordinatorProfile';
@@ -41,11 +43,18 @@ import { AdminMasterEdit } from '../../pages/admin/AdminMasterEdit';
 import { AdminProfile } from '../../pages/admin/AdminProfile';
 
 export const DashboardLayout = () => {
-  const { currentRole, activeTab } = useAuth();
+  const { currentRole, activeRole, activeTab, showModeSelectionLanding } = useAuth();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
+  const effectiveRole = activeRole || currentRole;
+
+  // Render Full-Screen Faculty Mode Landing Page if mode is not chosen yet
+  if (showModeSelectionLanding && (effectiveRole === 'FACULTY' || effectiveRole === 'TEACHER' || effectiveRole === 'COORDINATOR')) {
+    return <FacultyModeSelectionPage />;
+  }
+
   const renderActivePage = () => {
-    switch (currentRole) {
+    switch (effectiveRole) {
       case 'STUDENT':
         switch (activeTab) {
           case 'dashboard': return <StudentDashboard />;
@@ -61,7 +70,7 @@ export const DashboardLayout = () => {
         switch (activeTab) {
           case 'dashboard': return <FacultyDashboard />;
           case 'groups': return <FacultyGroups />;
-          case 'submissions': return <FacultySubmissions />;
+          case 'submissions': return <FacultySubmissions readOnly={false} />;
           case 'evaluation': return <FacultyEvaluation />;
           case 'status': return <FacultyStatus />;
           case 'messages': return <FacultyMessages />;
@@ -75,6 +84,8 @@ export const DashboardLayout = () => {
           case 'tasks': return <CoordinatorTasks />;
           case 'create-task': return <CoordinatorCreateTask />;
           case 'groups': return <CoordinatorGroups />;
+          case 'students': return <CoordinatorStudents />;
+          case 'submissions': return <FacultySubmissions readOnly={true} />;
           case 'status': return <CoordinatorStatus />;
           case 'messages': return <CoordinatorMessages />;
           case 'profile': return <CoordinatorProfile />;
@@ -94,9 +105,6 @@ export const DashboardLayout = () => {
         }
 
       default:
-        if (currentRole === null) {
-          return <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Please select your role...</div>;
-        }
         return <StudentDashboard />;
     }
   };

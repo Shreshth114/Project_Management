@@ -5,29 +5,115 @@ export const initialCollegeData = {
   department: "Department of Computer Science & Engineering",
   academicYear: "2025–2026",
 
-  // 1. System Managed Subjects
+  // 1. System Managed Subjects with Assigned Coordinators
   subjects: [
-    { code: "21CSP81", name: "Major Project Phase - II", credits: 6, semester: 8, totalGroups: 36, status: "Active" },
-    { code: "21CSP71", name: "Major Project Phase - I", credits: 2, semester: 7, totalGroups: 36, status: "Completed" },
-    { code: "21CSS82", name: "Technical Seminar & Paper", credits: 1, semester: 8, totalGroups: 144, status: "Active" }
+    { id: "sub-1", code: "21CSP81", name: "Major Project Phase - II", credits: 6, semester: 8, branch: "CSE", coordinator: "Prof. V. Kulkarni", totalGroups: 36, status: "Active" },
+    { id: "sub-2", code: "21CSP71", name: "Major Project Phase - I", credits: 2, semester: 7, branch: "CSE", coordinator: "Dr. Anita M.", totalGroups: 36, status: "Completed" },
+    { id: "sub-3", code: "21CSS82", name: "Technical Seminar & Paper", credits: 1, semester: 8, branch: "CSE", coordinator: "Dr. Anita M.", totalGroups: 144, status: "Active" }
   ],
 
   // 2. System Managed Batches
   batches: [
-    { id: "batch-2025", title: "2021–2025 (8th Sem)", status: "Active" },
-    { id: "batch-2026", title: "2022–2026 (6th Sem)", status: "Upcoming" }
+    { id: "batch-1", title: "Batch 1 (8th Sem)", status: "Active" },
+    { id: "batch-2", title: "Batch 2 (6th Sem)", status: "Upcoming" },
+    { id: "batch-3", title: "Batch 3 (4th Sem)", status: "Upcoming" }
   ],
 
-  // 3. System Managed Guides (Faculty)
+  // 3. System Managed Coordinators & Evaluators (Faculty)
   facultyGuides: [
-    { id: "g-sharma", name: "Dr. R. Sharma", email: "dr.sharma@msrit.edu", designation: "Professor", department: "CSE" },
-    { id: "g-kulkarni", name: "Prof. V. Kulkarni", email: "prof.kulkarni@msrit.edu", designation: "Associate Professor", department: "CSE" },
-    { id: "g-anita", name: "Dr. Anita M.", email: "anita.m@msrit.edu", designation: "Professor", department: "CSE" }
+    { id: "g-kulkarni", name: "Prof. V. Kulkarni", email: "prof.kulkarni@msrit.edu", designation: "Associate Professor & Subject Coordinator", department: "CSE" },
+    { id: "g-sharma", name: "Dr. R. Sharma", email: "dr.sharma@msrit.edu", designation: "Professor & Evaluator", department: "CSE" },
+    { id: "g-anita", name: "Dr. Anita M.", email: "anita.m@msrit.edu", designation: "Professor & Subject Coordinator", department: "CSE" }
   ],
 
   // 4. System Users Roster
   users: [
-    // Group G01 Members (Mode A: Leader Submits All)
+    // Generic Student Preset Alias
+    {
+      id: "u-student-generic",
+      username: "student",
+      email: "student@msrit.edu",
+      name: "Rahul Sharma (Student)",
+      role: "STUDENT",
+      usn: "1MS21CS042",
+      subject: "21CSP81",
+      batch: "Batch 1 (8th Sem)",
+      guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Dr. R. Sharma",
+      groupId: "G01",
+      groupName: "Group G01",
+      isGroupLeader: true,
+      password: "student123"
+    },
+
+    // Dr. R. Sharma: JUST FACULTY (Evaluator ONLY, NOT Coordinator)
+    {
+      id: "u-teacher-1",
+      username: "dr.sharma",
+      email: "dr.sharma@msrit.edu",
+      name: "Dr. R. Sharma",
+      role: "TEACHER",
+      teacherRoles: ["FACULTY"], // JUST FACULTY
+      designation: "Professor & Faculty Evaluator",
+      department: "CSE",
+      assignedSubjects: ["21CSP81 - Major Project Phase - II"],
+      password: "faculty123"
+    },
+
+    // Alias for faculty@msrit.edu: JUST FACULTY
+    {
+      id: "u-faculty-alias",
+      username: "faculty",
+      email: "faculty@msrit.edu",
+      name: "Dr. R. Sharma (Faculty)",
+      role: "TEACHER",
+      teacherRoles: ["FACULTY"], // JUST FACULTY
+      designation: "Professor & Faculty Evaluator",
+      department: "CSE",
+      assignedSubjects: ["21CSP81 - Major Project Phase - II"],
+      password: "faculty123"
+    },
+
+    // Prof. V. Kulkarni: BOTH FACULTY AND COORDINATOR
+    {
+      id: "u-teacher-2",
+      username: "prof.kulkarni",
+      email: "prof.kulkarni@msrit.edu",
+      name: "Prof. V. Kulkarni",
+      role: "TEACHER",
+      teacherRoles: ["FACULTY", "COORDINATOR"], // BOTH FACULTY AND COORDINATOR
+      designation: "Associate Professor & Subject Coordinator",
+      department: "CSE",
+      assignedSubjects: ["21CSP81 - Major Project Phase - II"],
+      password: "coord123"
+    },
+
+    // Alias for coord.faculty@msrit.edu: BOTH FACULTY AND COORDINATOR
+    {
+      id: "u-coord-alias",
+      username: "coord",
+      email: "coord.faculty@msrit.edu",
+      name: "Prof. V. Kulkarni (Coordinator & Faculty)",
+      role: "TEACHER",
+      teacherRoles: ["FACULTY", "COORDINATOR"], // BOTH FACULTY AND COORDINATOR
+      designation: "Associate Professor & Subject Coordinator",
+      department: "CSE",
+      assignedSubjects: ["21CSP81 - Major Project Phase - II"],
+      password: "coord123"
+    },
+
+    // Generic Admin Preset
+    {
+      id: "u-admin-1",
+      username: "admin",
+      email: "admin@msrit.edu",
+      name: "Academic Admin Office",
+      role: "ADMIN",
+      designation: "Head of Academic Governance",
+      password: "admin123"
+    },
+
+    // Group G01 Members
     {
       id: "u-student-1",
       username: "1MS21CS042",
@@ -36,11 +122,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS042",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
-      guideName: "Dr. R. Sharma",
+      batch: "Batch 1 (8th Sem)",
+      guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Dr. R. Sharma",
       groupId: "G01",
+      groupName: "Group G01",
       isGroupLeader: true,
-      phone: "+91 98450 12345"
+      password: "student123"
     },
     {
       id: "u-student-2",
@@ -50,11 +138,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS015",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
-      guideName: "Dr. R. Sharma",
+      batch: "Batch 1 (8th Sem)",
+      guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Dr. R. Sharma",
       groupId: "G01",
+      groupName: "Group G01",
       isGroupLeader: false,
-      phone: "+91 98450 54321"
+      password: "student123"
     },
     {
       id: "u-student-3",
@@ -64,11 +154,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS062",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
-      guideName: "Dr. R. Sharma",
+      batch: "Batch 1 (8th Sem)",
+      guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Dr. R. Sharma",
       groupId: "G01",
+      groupName: "Group G01",
       isGroupLeader: false,
-      phone: "+91 98450 67890"
+      password: "student123"
     },
     {
       id: "u-student-4",
@@ -78,14 +170,16 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS099",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
-      guideName: "Dr. R. Sharma",
+      batch: "Batch 1 (8th Sem)",
+      guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Dr. R. Sharma",
       groupId: "G01",
+      groupName: "Group G01",
       isGroupLeader: false,
-      phone: "+91 98450 99999"
+      password: "student123"
     },
 
-    // Group G02 Members (Mode B: Distributed Group Submission)
+    // Group G02 Members
     {
       id: "u-student-5",
       username: "1MS21CS134",
@@ -94,11 +188,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS134",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
+      batch: "Batch 1 (8th Sem)",
       guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Prof. V. Kulkarni",
       groupId: "G02",
+      groupName: "Group G02",
       isGroupLeader: true,
-      phone: "+91 98450 11111"
+      password: "student123"
     },
     {
       id: "u-student-6",
@@ -108,11 +204,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS078",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
+      batch: "Batch 1 (8th Sem)",
       guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Prof. V. Kulkarni",
       groupId: "G02",
+      groupName: "Group G02",
       isGroupLeader: false,
-      phone: "+91 98450 22222"
+      password: "student123"
     },
     {
       id: "u-student-7",
@@ -122,41 +220,13 @@ export const initialCollegeData = {
       role: "STUDENT",
       usn: "1MS21CS112",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
+      batch: "Batch 1 (8th Sem)",
       guideName: "Prof. V. Kulkarni",
+      evaluatorName: "Prof. V. Kulkarni",
       groupId: "G02",
+      groupName: "Group G02",
       isGroupLeader: false,
-      phone: "+91 98450 33333"
-    },
-
-    // Faculty & Coordinator Users
-    {
-      id: "u-teacher-1",
-      username: "dr.sharma",
-      email: "dr.sharma@msrit.edu",
-      name: "Dr. R. Sharma",
-      role: "TEACHER",
-      teacherRoles: ["FACULTY", "COORDINATOR"],
-      designation: "Professor & Project Coordinator",
-      department: "CSE"
-    },
-    {
-      id: "u-teacher-2",
-      username: "prof.kulkarni",
-      email: "prof.kulkarni@msrit.edu",
-      name: "Prof. V. Kulkarni",
-      role: "TEACHER",
-      teacherRoles: ["FACULTY"],
-      designation: "Associate Professor",
-      department: "CSE"
-    },
-    {
-      id: "u-admin-1",
-      username: "admin.academic",
-      email: "admin@msrit.edu",
-      name: "Academic Admin Office",
-      role: "ADMIN",
-      designation: "Head of Academic Governance"
+      password: "student123"
     }
   ],
 
@@ -165,30 +235,32 @@ export const initialCollegeData = {
     {
       id: "G01",
       groupCode: "Group G01",
+      groupName: "Group G01",
       title: "Smart Campus Management System & Edge AI Cardiac Detection",
-      domain: "Artificial Intelligence & Embedded Systems",
+      domain: "Major Project Phase - II",
+      subjectName: "Major Project Phase - II",
       leaderUsn: "1MS21CS042",
       leaderName: "Rahul Sharma",
-      guide: "Dr. R. Sharma",
+      coordinator: "Prof. V. Kulkarni",
+      evaluator: "Dr. R. Sharma",
+      guide: "Prof. V. Kulkarni",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
+      batch: "Batch 1 (8th Sem)",
       members: [
-        { usn: "1MS21CS042", name: "Rahul Sharma", email: "rahul.sharma@msrit.edu", role: "Team Lead" },
-        { usn: "1MS21CS015", name: "Ananya Hegde", email: "ananya.h@msrit.edu", role: "ML Engineer" },
-        { usn: "1MS21CS062", name: "Karthik Raja", email: "karthik.r@msrit.edu", role: "Embedded Specialist" },
-        { usn: "1MS21CS099", name: "Priya V", email: "priya.v@msrit.edu", role: "Documentation Lead" }
+        { usn: "1MS21CS042", name: "Rahul Sharma", email: "rahul.sharma@msrit.edu" },
+        { usn: "1MS21CS015", name: "Ananya Hegde", email: "ananya.h@msrit.edu" },
+        { usn: "1MS21CS062", name: "Karthik Raja", email: "karthik.r@msrit.edu" },
+        { usn: "1MS21CS099", name: "Priya V", email: "priya.v@msrit.edu" }
       ],
-      // Submission Mode A: Leader Submits All
       submissionMode: "LEADER_SUBMITS_ALL",
       overallProgress: 90,
       repoUrl: "https://github.com/msrit-cse-g01/smart-campus-edge-ai",
       
-      // Components of ONE Combined Group Project
       components: {
         finalReport: {
           key: "finalReport",
           title: "Final Project Report (PDF)",
-          status: "COMPLETED", // COMPLETED | PENDING
+          status: "COMPLETED",
           submittedByNames: ["Rahul Sharma"],
           submittedByUsns: ["1MS21CS042"],
           fileName: "G01_Final_Report_IEEE.pdf",
@@ -249,29 +321,31 @@ export const initialCollegeData = {
     {
       id: "G02",
       groupCode: "Group G02",
+      groupName: "Group G02",
       title: "Blockchain-Based Decentralized Land Registry Verification System",
-      domain: "Cybersecurity & Blockchain",
+      domain: "Major Project Phase - II",
+      subjectName: "Major Project Phase - II",
       leaderUsn: "1MS21CS134",
       leaderName: "Vikram R",
+      coordinator: "Prof. V. Kulkarni",
+      evaluator: "Prof. V. Kulkarni",
       guide: "Prof. V. Kulkarni",
       subject: "21CSP81",
-      batch: "2021–2025 (8th Sem)",
+      batch: "Batch 1 (8th Sem)",
       members: [
-        { usn: "1MS21CS134", name: "Vikram R", email: "vikram.r@msrit.edu", role: "Team Lead" },
-        { usn: "1MS21CS078", name: "Neha Patil", email: "neha.p@msrit.edu", role: "Smart Contract Dev" },
-        { usn: "1MS21CS112", name: "Suresh B", email: "suresh.b@msrit.edu", role: "Backend Architect" }
+        { usn: "1MS21CS134", name: "Vikram R", email: "vikram.r@msrit.edu" },
+        { usn: "1MS21CS078", name: "Neha Patil", email: "neha.p@msrit.edu" },
+        { usn: "1MS21CS112", name: "Suresh B", email: "suresh.b@msrit.edu" }
       ],
-      // Submission Mode B: Distributed Member Submissions
       submissionMode: "MEMBERS_SUBMIT_ASSIGNED",
       overallProgress: 65,
       repoUrl: "https://github.com/msrit-cse-g02/land-registry",
 
-      // Distributed Components of ONE Combined Group Project
       components: {
         finalReport: {
           key: "finalReport",
           title: "Final Project Report (PDF)",
-          assignedUsns: ["1MS21CS134"], // Vikram R
+          assignedUsns: ["1MS21CS134"],
           assignedNames: ["Vikram R"],
           status: "COMPLETED",
           submittedByNames: ["Vikram R"],
@@ -283,7 +357,7 @@ export const initialCollegeData = {
         sourceCode: {
           key: "sourceCode",
           title: "Source Code & Smart Contracts (ZIP)",
-          assignedUsns: ["1MS21CS078", "1MS21CS112"], // Neha Patil + Suresh B (Multi-responsible students)
+          assignedUsns: ["1MS21CS078", "1MS21CS112"],
           assignedNames: ["Neha Patil", "Suresh B"],
           status: "COMPLETED",
           submittedByNames: ["Neha Patil", "Suresh B"],
@@ -295,7 +369,7 @@ export const initialCollegeData = {
         researchPaper: {
           key: "researchPaper",
           title: "Research Paper Draft",
-          assignedUsns: ["1MS21CS112"], // Suresh B
+          assignedUsns: ["1MS21CS112"],
           assignedNames: ["Suresh B"],
           status: "PENDING",
           submittedByNames: [],
@@ -304,7 +378,7 @@ export const initialCollegeData = {
         ppt: {
           key: "ppt",
           title: "Defense Presentation (PPT)",
-          assignedUsns: ["1MS21CS134"], // Vikram R
+          assignedUsns: ["1MS21CS134"],
           assignedNames: ["Vikram R"],
           status: "COMPLETED",
           submittedByNames: ["Vikram R"],
@@ -316,7 +390,7 @@ export const initialCollegeData = {
         demoVideo: {
           key: "demoVideo",
           title: "Demo Video / Prototype",
-          assignedUsns: ["1MS21CS078", "1MS21CS134"], // Neha Patil + Vikram R
+          assignedUsns: ["1MS21CS078", "1MS21CS134"],
           assignedNames: ["Neha Patil", "Vikram R"],
           status: "PENDING",
           submittedByNames: [],
@@ -325,7 +399,7 @@ export const initialCollegeData = {
         deploymentLink: {
           key: "deploymentLink",
           title: "Live Polygon Testnet Link",
-          assignedUsns: ["1MS21CS078"], // Neha Patil
+          assignedUsns: ["1MS21CS078"],
           assignedNames: ["Neha Patil"],
           status: "COMPLETED",
           submittedByNames: ["Neha Patil"],
@@ -342,11 +416,12 @@ export const initialCollegeData = {
     {
       id: "tsk-ind-01",
       title: "Individual Task: Literature Review & Paper Synthesis",
-      taskType: "INDIVIDUAL", // INDIVIDUAL task
+      taskType: "INDIVIDUAL",
       phase: "Phase 1",
       totalMarks: 20,
       deadline: "2025-09-20",
       status: "COMPLETED",
+      submissionMode: "MEMBERS_SUBMIT_ASSIGNED",
       description: "Each student independently submits their survey of 5 IEEE papers related to their project domain.",
       rubricCriteria: [
         { title: "Literature Coverage", max: 10 },
@@ -356,12 +431,12 @@ export const initialCollegeData = {
     {
       id: "tsk-grp-01",
       title: "Group Task: Final Project Submission & Viva Voce",
-      taskType: "GROUP", // GROUP task
+      taskType: "GROUP",
       phase: "Phase 2",
       totalMarks: 50,
       deadline: "2025-10-15",
       status: "IN_PROGRESS",
-      allowedMode: "BOTH",
+      submissionMode: "LEADER_SUBMITS_ALL",
       description: "Complete submission of Group Project components (Report, Source Code, Paper, PPT, Video, Link). Faculty evaluates every student individually.",
       rubricCriteria: [
         { title: "Technical Implementation", max: 15 },
@@ -374,7 +449,7 @@ export const initialCollegeData = {
     }
   ],
 
-  // 7. Individual Student Submissions for Individual Tasks
+  // 7. Individual Student Submissions
   individualSubmissions: [
     {
       id: "ind-sub-01",
@@ -389,25 +464,10 @@ export const initialCollegeData = {
       marksAwarded: 18,
       totalMarks: 20,
       feedback: "Thorough analysis of cardiac ECG signal processing models."
-    },
-    {
-      id: "ind-sub-02",
-      taskId: "tsk-ind-01",
-      taskTitle: "Individual Task: Literature Review & Paper Synthesis",
-      studentUsn: "1MS21CS015",
-      studentName: "Ananya Hegde",
-      fileName: "Ananya_Literature_Review.pdf",
-      fileSize: "1.9 MB",
-      submittedAt: "2025-09-19 14:15",
-      status: "COMPLETED",
-      marksAwarded: 15,
-      totalMarks: 20,
-      feedback: "Good coverage of baseline models. Add more recent 2024 references."
     }
   ],
 
-  // 8. CRITICAL RULE: Individual Evaluations for Group Tasks (Demonstrates Scenarios 2, 5 & 6)
-  // Same rubric form used for every student in Group G01, but each student gets separate individual marks!
+  // 8. Individual Evaluations for Group Tasks
   groupEvaluations: [
     {
       id: "eval-G01-1MS21CS042",
@@ -418,83 +478,17 @@ export const initialCollegeData = {
       studentName: "Rahul Sharma",
       evaluator: "Dr. R. Sharma",
       scores: {
-        technicalImplementation: 14, // out of 15
-        projectUnderstanding: 9,     // out of 10
-        individualContribution: 9,   // out of 10
-        documentation: 5,            // out of 5
-        presentation: 5,             // out of 5
-        viva: 4                      // out of 5
+        technicalImplementation: 14,
+        projectUnderstanding: 9,
+        individualContribution: 9,
+        documentation: 5,
+        presentation: 5,
+        viva: 4
       },
       totalScore: 46,
       maxScore: 50,
       feedback: "Outstanding leadership, model quantization, and real-time edge integration.",
       evaluatedAt: "2025-10-09 11:00",
-      status: "COMPLETED"
-    },
-    {
-      id: "eval-G01-1MS21CS015",
-      groupId: "G01",
-      groupCode: "Group G01",
-      taskId: "tsk-grp-01",
-      studentUsn: "1MS21CS015",
-      studentName: "Ananya Hegde",
-      evaluator: "Dr. R. Sharma",
-      scores: {
-        technicalImplementation: 13,
-        projectUnderstanding: 8,
-        individualContribution: 8,
-        documentation: 4,
-        presentation: 4,
-        viva: 4
-      },
-      totalScore: 41,
-      maxScore: 50,
-      feedback: "Strong data pipeline contribution. Solid grasp of confusion matrix metrics.",
-      evaluatedAt: "2025-10-09 11:15",
-      status: "COMPLETED"
-    },
-    {
-      id: "eval-G01-1MS21CS062",
-      groupId: "G01",
-      groupCode: "Group G01",
-      taskId: "tsk-grp-01",
-      studentUsn: "1MS21CS062",
-      studentName: "Karthik Raja",
-      evaluator: "Dr. R. Sharma",
-      scores: {
-        technicalImplementation: 15,
-        projectUnderstanding: 9,
-        individualContribution: 10,
-        documentation: 4,
-        presentation: 4,
-        viva: 5
-      },
-      totalScore: 47,
-      maxScore: 50,
-      feedback: "Exemplary hardware integration on Raspberry Pi and latency benchmarking.",
-      evaluatedAt: "2025-10-09 11:30",
-      status: "COMPLETED"
-    },
-    {
-      id: "eval-G01-1MS21CS099",
-      groupId: "G01",
-      groupCode: "Group G01",
-      taskId: "tsk-grp-01",
-      studentUsn: "1MS21CS099",
-      studentName: "Priya V",
-      evaluator: "Dr. R. Sharma",
-      scores: {
-        technicalImplementation: 11,
-        projectUnderstanding: 7,
-        individualContribution: 7,
-        documentation: 5,
-        presentation: 4,
-        viva: 4
-      },
-      totalScore: 38,
-      maxScore: 50,
-      feedback: "Meticulous documentation work. Needs deeper understanding of model optimization.",
-      evaluatedAt: "2025-10-09 11:45",
       status: "COMPLETED"
     }
   ],
@@ -503,9 +497,10 @@ export const initialCollegeData = {
   messages: [
     {
       id: "msg-1",
-      sender: "Prof. V. Kulkarni (Coordinator)",
+      sender: "Prof. V. Kulkarni (Subject Coordinator)",
       senderRole: "COORDINATOR",
       recipient: "All Groups (CSE 8th Sem)",
+      category: "CIRCULAR",
       subject: "IMPORTANT: Mode A & Mode B Final Project Submission Guidelines",
       content: "Group Leaders can either submit all components or distribute component uploads to members in Mode B. All members will see ONE combined project.",
       timestamp: "2025-10-06 14:30",
@@ -513,19 +508,20 @@ export const initialCollegeData = {
     },
     {
       id: "msg-2",
-      sender: "Dr. R. Sharma (Guide)",
+      sender: "Dr. R. Sharma (Faculty Evaluator)",
       senderRole: "FACULTY",
-      recipient: "Group G01",
+      recipient: "rahul.sharma@msrit.edu",
+      category: "DIRECT",
       subject: "Individual Evaluation Rubric Prepared",
-      content: "All 4 members of Group G01 will be evaluated individually during Friday's Viva Voce.",
+      content: "All members of Group G01 will be evaluated individually during Friday's Viva Voce.",
       timestamp: "2025-10-08 18:10",
       isUnread: false
     }
   ],
 
   auditLogs: [
-    { id: "log-1", timestamp: "2025-10-08 14:42:00", user: "1MS21CS042", action: "GROUP_SUBMISSION", details: "Group G01 Leader uploaded all components under Mode A" },
+    { id: "log-1", timestamp: "2025-10-08 14:42:00", user: "1MS21CS042", action: "GROUP_SUBMISSION", details: "Group G01: one of grp member submitted all the components" },
     { id: "log-2", timestamp: "2025-10-07 11:30:00", user: "1MS21CS078", action: "COMPONENT_SUBMISSION", details: "Neha Patil uploaded Source Code for Group G02 (Mode B)" },
-    { id: "log-3", timestamp: "2025-10-09 11:45:00", user: "dr.sharma", action: "INDIVIDUAL_EVALUATION", details: "Completed individual evaluations for all 4 members of Group G01" }
+    { id: "log-3", timestamp: "2025-10-09 11:45:00", user: "dr.sharma", action: "INDIVIDUAL_EVALUATION", details: "Completed individual evaluations for members of Group G01" }
   ]
 };

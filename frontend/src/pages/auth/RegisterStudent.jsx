@@ -1,183 +1,238 @@
 import React, { useState } from 'react';
-import { UserPlus, ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, UserCheck, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const RegisterStudent = ({ onSwitchToLogin }) => {
-  const { data } = useAuth();
+export const RegisterStudent = ({ onBackToLogin }) => {
+  const { data, registerUser } = useAuth();
   
   const [usn, setUsn] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [subject, setSubject] = useState(data.subjects[0]?.code || '21CSP81');
-  const [batch, setBatch] = useState(data.batches[0]?.title || '2021–2025 (8th Sem)');
-  const [guideName, setGuideName] = useState(data.facultyGuides[0]?.name || 'Dr. R. Sharma');
-  const [success, setSuccess] = useState(false);
+  const [batch, setBatch] = useState('Batch 1 (8th Sem)');
+  const [groupName, setGroupName] = useState('Group G01');
+  const [selectedSubject, setSelectedSubject] = useState(data.subjects[0]?.code || '21CSP81');
+  const [guide, setGuide] = useState(data.facultyGuides[0]?.name || 'Prof. V. Kulkarni');
+  const [password, setPassword] = useState(''); // Strictly empty until typed
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
   const handleRegister = (e) => {
     e.preventDefault();
-    setSuccess(true);
+    setError('');
+
+    if (!email.toLowerCase().includes('@msrit.edu')) {
+      setError('Please provide an official college email (@msrit.edu).');
+      return;
+    }
+
+    const newUser = {
+      username: usn.toUpperCase(),
+      usn: usn.toUpperCase(),
+      name,
+      email,
+      role: 'STUDENT',
+      department: 'CSE',
+      batch,
+      subject: selectedSubject,
+      groupName,
+      guide,
+      password,
+      groupId: 'G01'
+    };
+
+    const res = registerUser(newUser);
+    if (res.success) {
+      setSuccess('Student Enrolment completed successfully! Redirecting to login...');
+      setTimeout(() => {
+        onBackToLogin();
+      }, 2000);
+    } else {
+      setError(res.message || 'Registration failed.');
+    }
   };
 
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#F8F8F8',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
       padding: '20px'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '560px',
+        maxWidth: '600px',
         backgroundColor: '#FFFFFF',
-        border: '1px solid #E5E5E5',
-        borderRadius: '6px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        borderRadius: '8px',
+        boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
         overflow: 'hidden'
       }}>
+        {/* Header */}
         <div style={{
-          backgroundColor: '#243143',
-          borderBottom: '4px solid #B82226',
-          padding: '20px 24px',
+          backgroundColor: '#242044',
           color: '#FFFFFF',
+          padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          gap: '14px',
+          borderBottom: '4px solid #E63B00'
         }}>
           <button 
-            onClick={onSwitchToLogin}
-            className="btn btn-secondary btn-sm"
-            style={{ padding: '6px', color: '#243143' }}
+            type="button" 
+            onClick={onBackToLogin}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: 'none',
+              color: '#FFF',
+              padding: '8px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center'
+            }}
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#FFFFFF', margin: 0 }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
               Student Registration Portal
-            </h1>
-            <p style={{ fontSize: '12px', color: '#D1D5DB', margin: 0 }}>
-              Select System-Managed Subject, Batch & Guide
-            </p>
+            </h2>
+            <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
+              Select System Subject, Academic Batch & Group Name
+            </div>
           </div>
         </div>
 
+        {/* Body */}
         <div style={{ padding: '24px' }}>
-          {success ? (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <CheckCircle size={48} color="#038203" style={{ margin: '0 auto 12px' }} />
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#243143', marginBottom: '8px' }}>
-                Registration Submitted Successfully!
-              </h2>
-              <p className="text-muted" style={{ fontSize: '14px', marginBottom: '20px' }}>
-                USN ({usn}) registered under Subject {subject}, Batch {batch}, and Guide {guideName}.
-              </p>
-              <button className="btn btn-primary btn-block" onClick={onSwitchToLogin}>
-                Proceed to Portal Login
-              </button>
+          {success && (
+            <div className="alert alert-success">
+              <CheckCircle size={18} />
+              <span>{success}</span>
             </div>
-          ) : (
-            <form onSubmit={handleRegister}>
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">University Seat Number (USN)</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. 1MS21CS042"
-                    value={usn}
-                    onChange={(e) => setUsn(e.target.value.toUpperCase())}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Full name per VTU record"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">College Email</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    placeholder="student@msrit.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Contact Phone</label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    placeholder="+91 98450 00000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* SYSTEM-MANAGED SELECTABLE DROPDOWNS */}
-              <div className="grid-3">
-                <div className="form-group">
-                  <label className="form-label">System Subject</label>
-                  <select
-                    className="form-select"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                  >
-                    {data.subjects.map(s => (
-                      <option key={s.code} value={s.code}>{s.code} - {s.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Academic Batch</label>
-                  <select
-                    className="form-select"
-                    value={batch}
-                    onChange={(e) => setBatch(e.target.value)}
-                  >
-                    {data.batches.map(b => (
-                      <option key={b.id} value={b.title}>{b.title}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Allocated Guide</label>
-                  <select
-                    className="form-select"
-                    value={guideName}
-                    onChange={(e) => setGuideName(e.target.value)}
-                  >
-                    {data.facultyGuides.map(g => (
-                      <option key={g.id} value={g.name}>{g.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '12px', padding: '11px' }}>
-                SUBMIT STUDENT ENROLMENT
-              </button>
-            </form>
           )}
+
+          {error && (
+            <div className="alert alert-danger">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleRegister}>
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">University Seat Number (USN)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. 1MS21CS042"
+                  value={usn}
+                  onChange={(e) => setUsn(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Full name per VTU record"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid-3">
+              <div className="form-group">
+                <label className="form-label">College Email</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder="student@msrit.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Added Academic Batch Option */}
+              <div className="form-group">
+                <label className="form-label">Academic Batch</label>
+                <select
+                  className="form-select"
+                  value={batch}
+                  onChange={(e) => setBatch(e.target.value)}
+                >
+                  <option value="Batch 1 (8th Sem)">Batch 1 (8th Sem)</option>
+                  <option value="Batch 2 (6th Sem)">Batch 2 (6th Sem)</option>
+                  <option value="Batch 3 (4th Sem)">Batch 3 (4th Sem)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Team / Group Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Group G01"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid-2">
+              <div className="form-group">
+                <label className="form-label">System Subject Code</label>
+                <select 
+                  className="form-select"
+                  value={selectedSubject}
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                >
+                  {data.subjects.map(s => (
+                    <option key={s.id} value={s.code}>
+                      {s.code} - {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Subject Coordinator</label>
+                <select 
+                  className="form-select"
+                  value={guide}
+                  onChange={(e) => setGuide(e.target.value)}
+                >
+                  {data.facultyGuides.map(g => (
+                    <option key={g.id} value={g.name}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Account Password</label>
+              <input
+                type="password"
+                className="form-input"
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '16px', padding: '12px' }}>
+              <UserCheck size={16} />
+              <span>SUBMIT STUDENT ENROLMENT</span>
+            </button>
+          </form>
         </div>
       </div>
     </div>
