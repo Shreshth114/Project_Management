@@ -1,43 +1,105 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  PlusSquare, 
-  Calendar, 
-  Send, 
-  CheckCircle, 
-  Trash2, 
-  UserCheck, 
-  MessageSquare, 
-  Settings,
-  Edit
+  PlusSquare, Calendar, Send, CheckCircle, Trash2, 
+  UserCheck, MessageSquare, Settings, Edit, ShieldAlert, RefreshCw 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
+import { taskService } from '../../services/taskService';
+
 
 export const AdminMasterEdit = () => {
-  const { data, sendMessage, deleteMessage } = useAuth();
+  const { data, sendMessage, deleteMessage, currentUser } = useAuth();
+  
+  // MAIN state
+  const [teams, setTeams] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [faculties, setFaculties] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [newGuide, setNewGuide] = useState('');
+  const [extensionHours, setExtensionHours] = useState(48);
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Deadlines State
-  const [selectedTask, setSelectedTask] = useState(data.tasks[0]?.id || 'tsk-grp-01');
+  // HEAD state
+  const [selectedTask, setSelectedTask] = useState(data?.tasks?.[0]?.id || 'tsk-grp-01');
   const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('2025-11-15');
   const [newEvalDeadline, setNewEvalDeadline] = useState('2025-11-20');
   const [deadlineSuccess, setDeadlineSuccess] = useState('');
 
-  // Circular State
   const [circularSubject, setCircularSubject] = useState('');
   const [circularContent, setCircularContent] = useState('');
   const [circularSuccess, setCircularSuccess] = useState('');
 
-  // Assign Coordinator State
-  const [subjectToAssign, setSubjectToAssign] = useState(data.subjects[0]?.code || '21CSP81');
+  const [subjectToAssign, setSubjectToAssign] = useState(data?.subjects?.[0]?.code || '21CSP81');
   const [newCoordinatorName, setNewCoordinatorName] = useState('Prof. V. Kulkarni');
   const [assignSuccess, setAssignSuccess] = useState('');
 
-  // Master Message Deletion Notice State
   const [msgNotice, setMsgNotice] = useState('');
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [fetchedTeams, fetchedTasks, fetchedFaculties] = await Promise.all([
+        academicService.getTeams(),
+        taskService.getTasks(),
+        academicService.getFaculty()
+      ]);
+      setTeams(fetchedTeams || []);
+      setTasks(fetchedTasks || []);
+      setFaculties(fetchedFaculties || []);
+      
+      if (fetchedTeams?.length > 0) setSelectedGroup(fetchedTeams[0].team_id);
+      if (fetchedTasks?.length > 0) setSelectedTask(fetchedTasks[0].task_id);
+      if (fetchedFaculties?.length > 0) setNewGuide(fetchedFaculties[0].faculty_id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuideOverride = async (e) => {
+    e.preventDefault();
+    try {
+      await academicService.updateTeamGuide(selectedGroup, newGuide);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to override guide: ' + err.message);
+    }
+  };
+
+  const handleDeadlineOverride = async (e) => {
+    e.preventDefault();
+    try {
+      const task = tasks.find(t => t.task_id === selectedTask);
+      if (!task) return;
+      const currentDeadline = new Date(task.deadline);
+      currentDeadline.setHours(currentDeadline.getHours() + parseInt(extensionHours, 10));
+      
+      await taskService.updateTaskDeadline(selectedTask, currentDeadline.toISOString());
+      
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to extend deadline: ' + err.message);
+    }
+  };
 
   const handleExtendDeadlines = (e) => {
     e.preventDefault();
+    if (!data?.tasks) return;
     const taskObj = data.tasks.find(t => t.id === selectedTask);
     if (taskObj) {
       taskObj.deadline = newSubmissionDeadline;
@@ -65,6 +127,7 @@ export const AdminMasterEdit = () => {
 
   const handleAssignCoordinator = (e) => {
     e.preventDefault();
+    if (!data?.subjects) return;
     const subObj = data.subjects.find(s => s.code === subjectToAssign);
     if (subObj) {
       subObj.coordinator = newCoordinatorName;
@@ -113,9 +176,15 @@ export const AdminMasterEdit = () => {
                 value={selectedTask}
                 onChange={(e) => setSelectedTask(e.target.value)}
               >
-                {data.tasks.map(t => (
-                  <option key={t.id} value={t.id}>{t.title} ({t.deadline})</option>
-                ))}
+                {tasks && tasks.length > 0 ? (
+                  tasks.map(t => (
+                    <option key={t.task_id || t.id} value={t.task_id || t.id}>{t.title} ({t.deadline})</option>
+                  ))
+                ) : (
+                  data?.tasks?.map(t => (
+                    <option key={t.id} value={t.id}>{t.title} ({t.deadline})</option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -145,6 +214,78 @@ export const AdminMasterEdit = () => {
           <button type="submit" className="btn btn-purple">
             <Calendar size={16} />
             <span>APPLY DEADLINE EXTENSION</span>
+          </button>
+        </form>
+      </Card>
+
+      {/* EMERGENCY DEADLINE OVERRIDE (MAIN) */}
+      <Card title="Emergency Milestone Deadline Extension (System)">
+        <form onSubmit={handleDeadlineOverride}>
+          <div className="grid-3">
+            <div className="form-group">
+              <label className="form-label">Select Milestone Phase</label>
+              <select 
+                className="form-select"
+                value={selectedTask}
+                onChange={(e) => setSelectedTask(e.target.value)}
+              >
+                {tasks.map(t => (
+                  <option key={t.task_id} value={t.task_id}>{t.title}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Extension (Hours)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={extensionHours}
+                onChange={(e) => setExtensionHours(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary">
+            <Settings size={16} />
+            <span>EXTEND DEADLINE HOURS</span>
+          </button>
+        </form>
+      </Card>
+
+      {/* REASSIGN FACULTY GUIDE (MAIN) */}
+      <Card title="Reassign Project Group Faculty Guide">
+        <form onSubmit={handleGuideOverride}>
+          <div className="grid-2">
+            <div className="form-group">
+              <label className="form-label">Select Project Group</label>
+              <select
+                className="form-select"
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+              >
+                {teams.map(g => (
+                  <option key={g.team_id} value={g.team_id}>{g.team_code} - {g.subject?.subject_name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Reassign Faculty Guide</label>
+              <select
+                className="form-select"
+                value={newGuide}
+                onChange={(e) => setNewGuide(e.target.value)}
+              >
+                {faculties.map(f => (
+                  <option key={f.faculty_id} value={f.faculty_id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" className="btn btn-primary">
+            <UserCheck size={16} />
+            <span>REASSIGN FACULTY GUIDE</span>
           </button>
         </form>
       </Card>

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Search, Filter, CheckCircle, Clock, Eye, X, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, CheckCircle, Clock, Eye, X, Award, BarChart2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const FacultyStatus = () => {
   const { data } = useAuth();
@@ -56,7 +58,34 @@ export const FacultyStatus = () => {
 
     return matchesSearch && matchesStatus;
   });
+  const { currentUser } = useAuth();
+  const [teams, setTeams] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      loadData(currentUser.faculty_id);
+    }
+  }, [currentUser]);
+
+  const loadData = async (facultyId) => {
+    try {
+      setLoading(true);
+      const [fetchedTeams, fetchedEvals] = await Promise.all([
+        academicService.getTeams({ guide_id: facultyId }),
+        evaluationService.getAllEvaluations()
+      ]);
+      setTeams(fetchedTeams || []);
+      setEvaluations(fetchedEvals || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div>Loading compliance matrix...</div>;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>

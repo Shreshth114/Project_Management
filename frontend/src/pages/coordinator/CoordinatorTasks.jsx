@@ -1,11 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusSquare, Calendar, Award, Edit, X, Save, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { taskService } from '../../services/taskService';
 
 export const CoordinatorTasks = () => {
-  const { data, setActiveTab } = useAuth();
+  const { currentUser, setActiveTab } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      fetchTasks(currentUser.faculty_id);
+    }
+  }, [currentUser]);
+
+  const fetchTasks = async (facultyId) => {
+    try {
+      setLoading(true);
+      const data = await taskService.getTasks({ faculty_id: facultyId });
+      setTasks(data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [editingTask, setEditingTask] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
@@ -52,7 +74,7 @@ export const CoordinatorTasks = () => {
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Master Department Tasks & Milestones</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Milestones and submission modes defined for all final year project batches.
-          </p>
+            Milestones defined for all final year project batches.          </p>
         </div>
         <button className="btn btn-primary" onClick={() => setActiveTab('create-task')}>
           <PlusSquare size={16} />

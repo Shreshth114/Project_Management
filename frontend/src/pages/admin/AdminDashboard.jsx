@@ -1,11 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shield, BookOpen, Users, History, Settings, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const AdminDashboard = () => {
-  const { data, setActiveTab } = useAuth();
+  const { setActiveTab } = useAuth();
+  const [stats, setStats] = useState({ subjectsCount: 0, teamsCount: 0, usersCount: 0 });
+  const [users, setUsers] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const [adminStats, directory, logs] = await Promise.all([
+          academicService.getAdminStats(),
+          academicService.getAdminUserDirectory(),
+          academicService.getAdminAuditLogs()
+        ]);
+
+        setStats(adminStats);
+        setUsers(directory.users || []);
+        setAuditLogs(logs);
+      } catch (error) {
+        console.error('Admin dashboard load failed:', error);
+      }
+    };
+
+    loadDashboard();
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -26,22 +50,22 @@ export const AdminDashboard = () => {
 
       <div className="grid-4">
         <Card title="Registered System Users">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{(data.users || []).length} Accounts</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{stats.usersCount} Accounts</div>
           <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
         </Card>
 
         <Card title="Active Course Subjects">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{(data.subjects || []).length} Subjects</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{stats.subjectsCount} Subjects</div>
           <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Major Project & Seminars</div>
         </Card>
 
         <Card title="System Health Status">
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>100% Operational</div>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>{stats.teamsCount} Teams</div>
           <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Database sync active</div>
         </Card>
 
         <Card title="Audit Logs Recorded">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{(data.auditLogs || []).length} Events</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{auditLogs.length} Events</div>
           <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Security & Upload logs</div>
         </Card>
       </div>
@@ -66,7 +90,7 @@ export const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {(data.users || []).map((u) => (
+                {users.map((u) => (
                   <tr key={u.id}>
                     <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.username}</td>
                     <td style={{ fontWeight: 600 }}>{u.name}</td>
@@ -80,9 +104,12 @@ export const AdminDashboard = () => {
 
         <Card title="Recent System Activity Audit Log">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {(data.auditLogs || []).map((log) => (
+            {auditLogs.length === 0 && (
+              <div style={{ color: '#666', fontSize: '13px' }}>No audit activity recorded.</div>
+            )}
+            {auditLogs.map((log) => (
               <div 
-                key={log.id}
+                key={log.log_id}
                 style={{
                   border: '1px solid #E5E5E5',
                   borderRadius: '4px',
@@ -95,7 +122,7 @@ export const AdminDashboard = () => {
                   <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
                   <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
                 </div>
-                <div style={{ color: '#55636B' }}>{log.details} (User: {log.user})</div>
+                <div style={{ color: '#55636B' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
               </div>
             ))}
           </div>

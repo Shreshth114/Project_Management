@@ -1,90 +1,187 @@
-import React, { useState } from 'react';
-import { Award, CheckCircle, Save, ExternalLink, FileText, UserCheck, Layers, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Award, CheckCircle, Save, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
+import { taskService } from '../../services/taskService';
+import { submissionService } from '../../services/submissionService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const FacultyEvaluation = () => {
-  const { data, saveIndividualStudentEvaluation, currentUser } = useAuth();
+  const { currentUser, data } = useAuth();
   
-  const groups = data.groups || [];
-  const tasks = data.tasks || [];
-  const groupEvaluations = data.groupEvaluations || [];
-
-  const [selectedGroupId, setSelectedGroupId] = useState(groups[0]?.id || 'G01');
-  const [selectedTaskId, setSelectedTaskId] = useState(tasks[1]?.id || tasks[0]?.id || 'tsk-grp-01');
+  const [groups, setGroups] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
+  const [selectedTaskId, setSelectedTaskId] = useState('');
   
-  const selectedGroup = groups.find(g => g.id === selectedGroupId) || groups[0];
-  const selectedTask = tasks.find(t => t.id === selectedTaskId) || tasks[0];
-
-  // Active student being evaluated in modal/form
-  const [activeStudentUsn, setActiveStudentUsn] = useState(selectedGroup?.members[0]?.usn || '');
+  const [criteria, setCriteria] = useState([]);
+  const [submissions, setSubmissions] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
   
-  // Rubric Scores State (Max 50)
-  const [techImpl, setTechImpl] = useState(14); // /15
-  const [projUnderstand, setProjUnderstand] = useState(9); // /10
-  const [indivContrib, setIndivContrib] = useState(9); // /10
-  const [docs, setDocs] = useState(5); // /5
-  const [presentation, setPresentation] = useState(5); // /5
-  const [viva, setViva] = useState(4); // /5
-  const [feedback, setFeedback] = useState('Outstanding team leadership and model quantization.');
+  const [activeStudentUsn, setActiveStudentUsn] = useState('');
+  
+  // Dynamic form state for scores: { criteria_id: score }
+  const [scores, setScores] = useState({});
+  const [feedback, setFeedback] = useState('');
+  
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
   const [savedSuccess, setSavedSuccess] = useState('');
 
-  const totalScore = Number(techImpl) + Number(projUnderstand) + Number(indivContrib) + Number(docs) + Number(presentation) + Number(viva);
-
-  const activeStudentObj = selectedGroup?.members.find(m => m.usn === activeStudentUsn) || selectedGroup?.members[0];
-
-  // Load existing evaluation if available for active student
-  const openEvaluationForStudent = (usn) => {
-    setActiveStudentUsn(usn);
-    const existing = groupEvaluations.find(e => e.groupId === selectedGroupId && e.studentUsn === usn && e.taskId === selectedTaskId);
-    if (existing && existing.scores) {
-      setTechImpl(existing.scores.technicalImplementation || 10);
-      setProjUnderstand(existing.scores.projectUnderstanding || 8);
-      setIndivContrib(existing.scores.individualContribution || 8);
-      setDocs(existing.scores.documentation || 4);
-      setPresentation(existing.scores.presentation || 4);
-      setViva(existing.scores.viva || 4);
-      setFeedback(existing.feedback || '');
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      fetchInitialData(currentUser.faculty_id);
     } else {
-      setTechImpl(12);
-      setProjUnderstand(8);
-      setIndivContrib(8);
-      setDocs(4);
-      setPresentation(4);
-      setViva(4);
-      setFeedback('Good performance in individual defense.');
+      const mockGroups = data?.groups || [];
+      const mockTasks = data?.tasks || [];
+      setGroups(mockGroups);
+      setTasks(mockTasks);
+      if (mockGroups.length > 0) setSelectedGroupId(mockGroups[0].id || mockGroups[0].team_id);
+      if (mockTasks.length > 0) setSelectedTaskId(mockTasks[0].id || mockTasks[0].task_id);
+      setLoading(false);
+    }
+  }, [currentUser, data]);
+
+  const fetchInitialData = async (facultyId) => {
+    try {
+      setLoading(true);
+      const [fetchedGroups, fetchedTasks] = await Promise.all([
+        academicService.getTeams({ guide_id: facultyId }),
+        taskService.getTasks()
+      ]);
+      const teamList = fetchedGroups || data?.groups || [];
+      const taskList = fetchedTasks || data?.tasks || [];
+      setGroups(teamList);
+      setTasks(taskList);
+      
+      if (teamList.length > 0) setSelectedGroupId(teamList[0].team_id || teamList[0].id);
+      if (taskList.length > 0) setSelectedTaskId(taskList[0].task_id || taskList[0].id);
+    } catch (err) {
+      setError(err.message);
+      setGroups(data?.groups || []);
+      setTasks(data?.tasks || []);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSaveEvaluation = (e) => {
+  useEffect(() => {
+    if (selectedGroupId && selectedTaskId) {
+      fetchEvaluationData(selectedGroupId, selectedTaskId);
+    }
+  }, [selectedGroupId, selectedTaskId]);
+
+  const fetchEvaluationData = async (groupId, taskId) => {
+    try {
+      setLoading(true);
+      const [fetchedCriteria, fetchedSubmissions, fetchedEvaluations] = await Promise.all([
+        evaluationService.getCriteriaForTask(taskId),
+        submissionService.getSubmissionsByTeam(groupId),
+        evaluationService.getEvaluationsForTeamTask(groupId, taskId)
+      ]);
+      const critList = fetchedCriteria && fetchedCriteria.length > 0 ? fetchedCriteria : [
+        { criteria_id: 1, criteria_name: 'SRS & Architecture', max_marks: 10 },
+        { criteria_id: 2, criteria_name: 'Project Understanding', max_marks: 10 },
+        { criteria_id: 3, criteria_name: 'Individual Contribution', max_marks: 10 },
+        { criteria_id: 4, criteria_name: 'Documentation', max_marks: 5 },
+        { criteria_id: 5, criteria_name: 'Presentation', max_marks: 5 },
+        { criteria_id: 6, criteria_name: 'Viva Voce & Defense', max_marks: 10 }
+      ];
+      setCriteria(critList);
+      
+      const taskSubmissions = (fetchedSubmissions || []).filter(s => String(s.task_id) === String(taskId));
+      setSubmissions(taskSubmissions);
+      setEvaluations(fetchedEvaluations || []);
+      
+      const group = groups.find(g => String(g.team_id || g.id) === String(groupId));
+      if (group && group.members && group.members.length > 0) {
+        openEvaluationForStudent(group.members[0].usn, group.members, fetchedEvaluations, critList);
+      }
+    } catch (err) {
+      console.warn("Evaluation fetch info:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedGroup = groups.find(g => String(g.team_id || g.id) === String(selectedGroupId)) || groups[0];
+  const activeStudentObj = selectedGroup?.members?.find(m => m.usn === activeStudentUsn);
+
+  const openEvaluationForStudent = (usn, membersList = selectedGroup?.members, evals = evaluations, critList = criteria) => {
+    setActiveStudentUsn(usn);
+    const studentObj = (membersList || []).find(m => m.usn === usn);
+    if (!studentObj) return;
+
+    const studentEvals = (evals || []).filter(e => e.student_id === studentObj.student_id);
+    
+    let initialScores = {};
+    let initialFeedback = '';
+    
+    if (studentEvals.length > 0) {
+      studentEvals.forEach(e => {
+        initialScores[e.criteria_id] = e.awarded_marks;
+        if (e.feedback) initialFeedback = e.feedback;
+      });
+    } else {
+      (critList || []).forEach(c => {
+        initialScores[c.criteria_id] = '';
+      });
+    }
+    
+    setScores(initialScores);
+    setFeedback(initialFeedback);
+  };
+
+  const handleScoreChange = (criteriaId, value) => {
+    setScores(prev => ({
+      ...prev,
+      [criteriaId]: value
+    }));
+  };
+
+  const calculateTotal = () => {
+    return Object.values(scores).reduce((sum, val) => sum + (Number(val) || 0), 0);
+  };
+
+  const handleSaveEvaluation = async (e) => {
     e.preventDefault();
     if (!activeStudentObj) return;
+    
+    try {
+      setSubmitting(true);
+      setError(null);
+      
+      const submission = submissions[0];
+      if (submission && currentUser?.faculty_id) {
+        const payloadArray = criteria.map(c => ({
+          submission_id: submission.submission_id,
+          student_id: activeStudentObj.student_id,
+          criteria_id: c.criteria_id,
+          evaluator_id: currentUser.faculty_id,
+          awarded_marks: Number(scores[c.criteria_id] || 0),
+          feedback: feedback
+        }));
 
-    saveIndividualStudentEvaluation({
-      groupId: selectedGroupId,
-      groupCode: selectedGroup.groupCode,
-      taskId: selectedTaskId,
-      studentUsn: activeStudentUsn,
-      studentName: activeStudentObj.name,
-      evaluator: currentUser?.name || 'Faculty Advisor',
-      scores: {
-        technicalImplementation: Number(techImpl),
-        projectUnderstanding: Number(projUnderstand),
-        individualContribution: Number(indivContrib),
-        documentation: Number(docs),
-        presentation: Number(presentation),
-        viva: Number(viva)
-      },
-      totalScore,
-      feedback
-    });
-
-    setSavedSuccess(`Individual marks (${totalScore}/50) saved for ${activeStudentObj.name} (${activeStudentUsn})!`);
-    setTimeout(() => setSavedSuccess(''), 4000);
+        await evaluationService.saveEvaluations(payloadArray);
+        const updatedEvals = await evaluationService.getEvaluationsForTeamTask(selectedGroupId, selectedTaskId);
+        setEvaluations(updatedEvals || []);
+      }
+      
+      const totalScore = calculateTotal();
+      setSavedSuccess(`Individual marks (${totalScore}) saved for ${activeStudentObj.name}!`);
+      setTimeout(() => setSavedSuccess(''), 4000);
+    } catch (err) {
+      setError(err.message || "Failed to save evaluation");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const isGroupMode = selectedGroup?.submissionMode === 'LEADER_SUBMITS_ALL' || selectedGroup?.submissionMode === 'GROUP';
+  const groupCode = selectedGroup?.groupCode || selectedGroup?.team_code || 'Group G01';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -101,8 +198,9 @@ export const FacultyEvaluation = () => {
           <span>{savedSuccess}</span>
         </div>
       )}
+      
+      {error && <div style={{ color: 'red', padding: '10px', backgroundColor: '#FEE', borderRadius: '4px' }}>{error}</div>}
 
-      {/* Group & Task Selection Bar */}
       <Card>
         <div className="grid-2">
           <div className="form-group" style={{ margin: 0 }}>
@@ -110,15 +208,12 @@ export const FacultyEvaluation = () => {
             <select
               className="form-select"
               value={selectedGroupId}
-              onChange={(e) => {
-                const gid = e.target.value;
-                setSelectedGroupId(gid);
-                const g = groups.find(x => x.id === gid);
-                if (g && g.members.length > 0) openEvaluationForStudent(g.members[0].usn);
-              }}
+              onChange={(e) => setSelectedGroupId(e.target.value)}
             >
               {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.groupCode} — {g.title}</option>
+                <option key={g.team_id || g.id} value={g.team_id || g.id}>
+                  {g.groupCode || g.team_code} - {g.title || g.subject?.subject_name || 'Project'}
+                </option>
               ))}
             </select>
           </div>
@@ -131,7 +226,9 @@ export const FacultyEvaluation = () => {
               onChange={(e) => setSelectedTaskId(e.target.value)}
             >
               {tasks.map(t => (
-                <option key={t.id} value={t.id}>{t.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED' ? '👤' : '👥'} {t.title}</option>
+                <option key={t.task_id || t.id} value={t.task_id || t.id}>
+                  {t.title}
+                </option>
               ))}
             </select>
           </div>
@@ -140,12 +237,14 @@ export const FacultyEvaluation = () => {
 
       {/* TOP SECTION: COMBINED GROUP PROJECT SUBMISSIONS */}
       {selectedGroup && (
-        <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${selectedGroup.groupCode})`}>
+        <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${groupCode})`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{selectedGroup.title}</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                {selectedGroup.title || selectedGroup.subject?.subject_name || 'Project'}
+              </h2>
               <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
-                Domain: <strong>{selectedGroup.domain}</strong> | Faculty Guide: <strong>{selectedGroup.guide}</strong>
+                Domain: <strong>{selectedGroup.domain || 'Cloud & Distributed Systems'}</strong> | Faculty Guide: <strong>{selectedGroup.guide?.name || selectedGroup.guide || 'Faculty Guide'}</strong>
               </div>
             </div>
             <Badge variant="purple">
@@ -183,23 +282,22 @@ export const FacultyEvaluation = () => {
                       </td>
                       <td data-label="File/Link">
                         {isCompleted ? (
-                          compKey === 'deploymentLink' ? (
-                            <a href={comp.url} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600 }}>
-                              {comp.url}
+                          compKey === 'deploymentLink' || comp.url ? (
+                            <a href={comp.url || '#'} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600 }}>
+                              {comp.url || 'Deployment Link'}
                             </a>
                           ) : (
-                            <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize})</span>
+                            <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize || '3.2 MB'})</span>
                           )
                         ) : (
                           <span style={{ color: '#8A9198' }}>Pending Upload</span>
                         )}
                       </td>
 
-                      {/* Display Submission Origin: Mode A displays Group Code, Mode B displays Student Name + Group Code */}
                       <td data-label="Submission Origin" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
                         {isGroupMode 
-                          ? `${selectedGroup.groupCode} (Group Submission)`
-                          : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${selectedGroup.groupCode}]` : `${selectedGroup.leaderName} [${selectedGroup.groupCode}]`)
+                          ? `${groupCode} (Group Submission)`
+                          : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${groupCode}]` : `${selectedGroup.leaderName || 'Leader'} [${groupCode}]`)
                         }
                       </td>
 
@@ -215,7 +313,6 @@ export const FacultyEvaluation = () => {
         </Card>
       )}
 
-      {/* BOTTOM SECTION: INDIVIDUAL EVALUATION ROSTER & RUBRIC FORM */}
       {selectedGroup && (
         <Card title="2. INDIVIDUAL STUDENT EVALUATIONS (SEPARATE MARKS PER MEMBER)">
           <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
@@ -229,36 +326,33 @@ export const FacultyEvaluation = () => {
                 <tr>
                   <th>USN</th>
                   <th>Student Name</th>
-                  <th>Team Role</th>
-                  <th>Submissions Reflected</th>
                   <th>Individual Marks Awarded</th>
                   <th>Evaluation Status</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {selectedGroup.members.map((m) => {
-                  const evalRec = groupEvaluations.find(e => e.groupId === selectedGroupId && e.studentUsn === m.usn && e.taskId === selectedTaskId);
+                {(selectedGroup.members || []).map((m) => {
+                  const studentEvals = evaluations.filter(e => e.student_id === m.student_id);
+                  const isEvaluated = studentEvals.length > 0;
+                  const totalMarksAwarded = studentEvals.reduce((sum, e) => sum + (e.awarded_marks || 0), 0);
                   const isSelected = m.usn === activeStudentUsn;
 
                   return (
                     <tr key={m.usn} style={{ backgroundColor: isSelected ? '#FDF0F2' : 'transparent' }}>
                       <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
                       <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                      <td data-label="Team Role"><Badge variant={m.role === 'Team Lead' ? 'purple' : 'navy'}>{m.role}</Badge></td>
-                      <td data-label="Submissions" style={{ fontSize: '12px', color: '#55636B' }}>
-                        {isGroupMode ? '✓ Group Deliverables Reflected' : m.assignedModule}
-                      </td>
-                      <td data-label="Marks Awarded" style={{ fontWeight: 800, fontSize: '15px', color: '#DE3B0B' }}>
-                        {evalRec ? `${evalRec.totalScore} / 50` : 'Not Evaluated'}
+                      <td data-label="Marks Awarded" style={{ fontWeight: 700, fontSize: '15px', color: '#DE3B0B' }}>
+                        {isEvaluated ? `${totalMarksAwarded} Marks` : 'Not Evaluated'}
                       </td>
                       <td data-label="Status">
-                        <Badge variant={evalRec ? 'success' : 'warning'}>
-                          {evalRec ? '✓ Evaluated' : '○ Pending'}
+                        <Badge variant={isEvaluated ? 'success' : 'warning'}>
+                          {isEvaluated ? '✓ Evaluated' : '○ Pending'}
                         </Badge>
                       </td>
                       <td data-label="Action">
                         <button 
+                          type="button"
                           className={`btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm`}
                           onClick={() => openEvaluationForStudent(m.usn)}
                         >
@@ -272,8 +366,7 @@ export const FacultyEvaluation = () => {
             </table>
           </div>
 
-          {/* Individual Student Rubric Form */}
-          {activeStudentObj && (
+          {activeStudentObj && criteria.length > 0 && (
             <div style={{
               border: '2px solid #DE3B0B',
               borderRadius: '6px',
@@ -286,13 +379,13 @@ export const FacultyEvaluation = () => {
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})
                   </h3>
                   <div style={{ fontSize: '12px', color: '#55636B', marginTop: '2px' }}>
-                    Group: {selectedGroup.groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
+                    Group: {groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
                   </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '24px', fontWeight: 800, color: '#DE3B0B' }}>
-                    {totalScore} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ 50</span>
+                    {calculateTotal()} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ {criteria.reduce((s, c) => s + (c.max_marks || 0), 0) || 50}</span>
                   </div>
                   <Badge variant="success">Rubric Total</Badge>
                 </div>
@@ -300,103 +393,45 @@ export const FacultyEvaluation = () => {
 
               <form onSubmit={handleSaveEvaluation}>
                 <div className="grid-3">
-                  <div className="form-group">
-                    <label className="form-label">1. Technical Implementation (Max: 15)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={15}
-                      className="form-input"
-                      value={techImpl}
-                      onChange={(e) => setTechImpl(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">2. Project Understanding (Max: 10)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={10}
-                      className="form-input"
-                      value={projUnderstand}
-                      onChange={(e) => setProjUnderstand(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">3. Individual Contribution (Max: 10)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={10}
-                      className="form-input"
-                      value={indivContrib}
-                      onChange={(e) => setIndivContrib(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">4. Documentation (Max: 5)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={5}
-                      className="form-input"
-                      value={docs}
-                      onChange={(e) => setDocs(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">5. Presentation (Max: 5)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={5}
-                      className="form-input"
-                      value={presentation}
-                      onChange={(e) => setPresentation(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">6. Viva Voce & Defense (Max: 5)</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={5}
-                      className="form-input"
-                      value={viva}
-                      onChange={(e) => setViva(e.target.value)}
-                      required
-                    />
-                  </div>
+                  {criteria.map((c, idx) => (
+                    <div className="form-group" key={c.criteria_id}>
+                      <label className="form-label">{idx + 1}. {c.criteria_name} (Max: {c.max_marks})</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={c.max_marks}
+                        className="form-input"
+                        value={scores[c.criteria_id] !== undefined ? scores[c.criteria_id] : ''}
+                        onChange={(e) => handleScoreChange(c.criteria_id, e.target.value)}
+                        required
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Individual Feedback & Faculty Remarks for {activeStudentObj.name}</label>
+                  <label className="form-label">Individual Feedback & Faculty Remarks</label>
                   <textarea
                     className="form-textarea"
                     rows={3}
-                    placeholder="Enter feedback specific to this student's viva defense and contribution..."
+                    placeholder="Enter feedback specific to this student's performance..."
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     required
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary btn-block" style={{ padding: '11px' }}>
+                <button type="submit" className="btn btn-primary btn-block" style={{ padding: '11px' }} disabled={submitting}>
                   <Save size={16} />
-                  <span>SAVE INDIVIDUAL EVALUATION ({totalScore} / 50 FOR {activeStudentObj.name.toUpperCase()})</span>
+                  <span>{submitting ? 'SAVING...' : `SAVE INDIVIDUAL EVALUATION (${calculateTotal()} FOR ${activeStudentObj.name.toUpperCase()})`}</span>
                 </button>
               </form>
             </div>
+          )}
+          {activeStudentObj && criteria.length === 0 && (
+             <div style={{ padding: '20px', backgroundColor: '#FAFAFA', borderRadius: '4px' }}>
+                No evaluation criteria defined for this task.
+             </div>
           )}
         </Card>
       )}

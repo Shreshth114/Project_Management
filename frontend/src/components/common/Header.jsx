@@ -14,7 +14,8 @@ import { Badge } from './Badge';
 export const Header = ({ onToggleMobileDrawer }) => {
   const { 
     currentUser, 
-    activeRole, 
+    activeRole,
+    currentRole,
     switchTeacherRole, 
     logout,
     activeTab,
@@ -25,9 +26,11 @@ export const Header = ({ onToggleMobileDrawer }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Check if faculty is assigned as coordinator by Admin
-  const isAssignedCoordinator = (data.subjects || []).some(
-    s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
-  ) || currentUser?.role === 'COORDINATOR';
+  const isAssignedCoordinator = currentUser?.is_coordinator ||
+    currentUser?.teacherRoles?.includes('COORDINATOR') ||
+    (data?.subjects || []).some(
+      s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
+    ) || currentUser?.role === 'COORDINATOR';
 
   const isTeacher = currentUser?.role === 'TEACHER' || 
                     currentUser?.role === 'FACULTY' || 
@@ -46,7 +49,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
     }
   };
 
-  const circularsList = (data.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
+  const circularsList = (data?.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
 
   const formatTitle = (tab) => {
     switch (tab) {
@@ -139,7 +142,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {circularsList.length || 1}
+              {circularsList.length || 0}
             </span>
           </button>
 

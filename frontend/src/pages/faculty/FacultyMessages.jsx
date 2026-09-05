@@ -1,47 +1,114 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const FacultyMessages = () => {
   const { data, currentUser, sendMessage } = useAuth();
   
-  const [recipientStudent, setRecipientStudent] = useState('Rahul Sharma (1MS21CS042)');
+  const [recipient, setRecipient] = useState('Rahul Sharma (1MS21CS042)');
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [groups, setGroups] = useState([]);
 
-  // Outbox displays Circulars and direct messages between Faculty and Students ONLY (no coordinator or admin direct messages)
-  const messagesList = (data.messages || []).filter(m => {
+  useEffect(() => {
+    if (currentUser?.user_id && currentUser?.faculty_id) {
+      fetchMessagesAndGroups(currentUser.user_id, currentUser.faculty_id);
+    }
+  }, [currentUser]);
+
+  const fetchMessagesAndGroups = async (userId, facultyId) => {
+    try {
+      const [fetchedMessages, fetchedGroups] = await Promise.all([
+        messageService.getMessagesForUser(userId),
+        academicService.getTeams({ guide_id: facultyId })
+      ]);
+      setMessages(fetchedMessages || []);
+      setGroups(fetchedGroups || []);
+    } catch (err) {
+      console.warn("Messages & groups fetch notice:", err);
+    }
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (sendMessage) {
+      sendMessage({
+        recipient,
+        category: 'DIRECT',
+        senderRole: 'FACULTY',
+        recipientRole: 'STUDENT',
+        subject,
+        content
+      });
+    }
+
+    if (currentUser?.user_id) {
+      try {
+        setSending(true);
+        const selectedGrp = groups.find(g => String(g.team_id) === String(recipient) || g.team_code === recipient);
+        if (selectedGrp && selectedGrp.members && selectedGrp.members.length > 0) {
+          await Promise.all(
+            selectedGrp.members.map(member => 
+              messageService.sendMessage({
+                sender_id: currentUser.user_id,
+                receiver_id: member.user_id,
+                message_text: `[${subject}] ${content}`
+              })
+            )
+          );
+        }
+        const updated = await messageService.getMessagesForUser(currentUser.user_id);
+        setMessages(updated || []);
+      } catch (err) {
+        console.warn('Direct messaging notice:', err);
+      } finally {
+        setSending(false);
+      }
+    }
+
+    setSubject('');
+    setContent('');
+    setSuccess('Direct message sent to student / group!');
+    setTimeout(() => setSuccess(''), 3500);
+  };
+
+  // Outbox displays Circulars and direct messages between Faculty and Students ONLY
+  const localList = (data?.messages || []).filter(m => {
     if (m.category === 'CIRCULAR') return true;
-    // Filter Student <-> Faculty ONLY
     const isStudentMessage = m.senderRole === 'STUDENT' || m.recipientRole === 'STUDENT' || m.recipient?.includes('Student') || m.recipient?.includes('Rahul');
     return isStudentMessage;
   });
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    sendMessage({
-      recipient: recipientStudent,
-      category: 'DIRECT',
-      senderRole: 'FACULTY',
-      recipientRole: 'STUDENT',
-      subject,
-      content
-    });
+  const dbList = (messages || []).map(m => ({
+    id: m.message_id || m.id,
+    sender: m.sender?.full_name || 'Faculty Member',
+    senderRole: m.sender?.role || 'FACULTY',
+    recipient: m.receiver?.full_name || 'Student / Group',
+    category: 'DIRECT',
+    subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
+      ? m.message_text.slice(1, m.message_text.indexOf(']'))
+      : 'Direct Message',
+    content: m.message_text?.startsWith('[') && m.message_text.includes(']')
+      ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim()
+      : m.message_text,
+    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Just now'
+  }));
 
-    setSubject('');
-    setContent('');
-    setSuccess('Direct message sent to student!');
-    setTimeout(() => setSuccess(''), 3500);
-  };
+  const messagesList = [...dbList, ...localList];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Communication Portal</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Communication Hub</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Official channel for direct messaging between Faculty Guides and assigned Students.
+          Official Circulars and direct correspondence with assigned student project teams.
         </p>
       </div>
 
@@ -52,9 +119,11 @@ export const FacultyMessages = () => {
         </div>
       )}
 
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+
       <div className="grid-2">
-        {/* Outbox & Messages List (No Delete Button) */}
-        <Card title="Messages & Official Circulars Outbox">
+        {/* Messages & Circulars List */}
+        <Card title="Correspondence & Circulars Inbox">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {messagesList.map((msg) => (
               <div 
@@ -68,10 +137,7 @@ export const FacultyMessages = () => {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
-                    {msg.sender}
-                    <span style={{ fontSize: '11px', color: '#8A9198', marginLeft: '6px' }}>
-                      ({msg.category || 'DIRECT'})
-                    </span>
+                    {msg.category === 'CIRCULAR' ? '📢 OFFICIAL CIRCULAR' : msg.sender}
                   </div>
                   <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
                 </div>
@@ -95,19 +161,30 @@ export const FacultyMessages = () => {
         </Card>
 
         {/* Send Direct Message to Student */}
-        <Card title="Compose Direct Message to Assigned Student">
+        <Card title="Compose Direct Message to Assigned Student / Group">
           <form onSubmit={handleSend}>
             <div className="form-group">
-              <label className="form-label">Select Student Recipient</label>
+              <label className="form-label">Select Recipient</label>
               <select
                 className="form-select"
-                value={recipientStudent}
-                onChange={(e) => setRecipientStudent(e.target.value)}
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
               >
-                <option value="Rahul Sharma (1MS21CS042)">Rahul Sharma (1MS21CS042) - Group G01</option>
-                <option value="Ananya Hegde (1MS21CS015)">Ananya Hegde (1MS21CS015) - Group G01</option>
-                <option value="Karthik Raja (1MS21CS062)">Karthik Raja (1MS21CS062) - Group G01</option>
-                <option value="Priya V (1MS21CS099)">Priya V (1MS21CS099) - Group G01</option>
+                {groups.length > 0 && (
+                  <optgroup label="Assigned Project Groups">
+                    {groups.map(g => (
+                      <option key={g.team_id} value={g.team_id}>
+                        {g.team_code} ({g.subject?.subject_name || 'Group Project'})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Assigned Students">
+                  <option value="Rahul Sharma (1MS21CS042)">Rahul Sharma (1MS21CS042) - Group G01</option>
+                  <option value="Ananya Hegde (1MS21CS015)">Ananya Hegde (1MS21CS015) - Group G01</option>
+                  <option value="Karthik Raja (1MS21CS062)">Karthik Raja (1MS21CS062) - Group G01</option>
+                  <option value="Priya V (1MS21CS099)">Priya V (1MS21CS099) - Group G01</option>
+                </optgroup>
               </select>
             </div>
 
@@ -128,16 +205,16 @@ export const FacultyMessages = () => {
               <textarea
                 className="form-textarea"
                 rows={5}
-                placeholder="Type your message to the student..."
+                placeholder="Type your message directly to the student or group..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block">
+            <button type="submit" className="btn btn-primary btn-block" disabled={sending}>
               <Send size={15} />
-              <span>SEND DIRECT MESSAGE TO STUDENT</span>
+              <span>{sending ? 'SENDING...' : 'SEND DIRECT MESSAGE'}</span>
             </button>
           </form>
         </Card>

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle, MessageSquare, Megaphone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const CoordinatorMessages = () => {
   const { data, currentUser, sendMessage } = useAuth();
@@ -9,19 +11,61 @@ export const CoordinatorMessages = () => {
   const [taskUpdateSubject, setTaskUpdateSubject] = useState('');
   const [taskUpdateContent, setTaskUpdateContent] = useState('');
   const [success, setSuccess] = useState('');
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.user_id) {
+      loadData();
+    }
+  }, [currentUser]);
+
+  const loadData = async () => {
+    try {
+      const fetchedTeams = await academicService.getTeams();
+      setTeams(fetchedTeams || []);
+    } catch (err) {
+      console.warn("Error loading teams for messaging:", err);
+    }
+  };
 
   // Coordinator can ONLY see Official System Circulars
-  const circularsList = (data.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
+  const circularsList = (data?.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
 
-  const handleSendTaskUpdate = (e) => {
+  const handleSendTaskUpdate = async (e) => {
     e.preventDefault();
-    sendMessage({
-      recipient: 'Enrolled Students (CSE 8th Sem)',
-      category: 'TASK_UPDATE',
-      senderRole: 'COORDINATOR',
-      subject: taskUpdateSubject,
-      content: taskUpdateContent
-    });
+    if (sendMessage) {
+      sendMessage({
+        recipient: 'Enrolled Students (CSE 8th Sem)',
+        category: 'TASK_UPDATE',
+        senderRole: 'COORDINATOR',
+        subject: taskUpdateSubject,
+        content: taskUpdateContent
+      });
+    }
+
+    if (currentUser?.user_id && teams.length > 0) {
+      try {
+        const fullMessage = `[${taskUpdateSubject}]\n${taskUpdateContent}`;
+        const promises = [];
+        teams.forEach(team => {
+          if (team.members) {
+            team.members.forEach(member => {
+              if (member.user_id) {
+                promises.push(messageService.sendMessage({
+                  sender_id: currentUser.user_id,
+                  receiver_id: member.user_id,
+                  message_text: fullMessage
+                }));
+              }
+            });
+          }
+        });
+        await Promise.all(promises);
+      } catch (err) {
+        console.warn('Backend message sending failed:', err);
+      }
+    }
 
     setTaskUpdateSubject('');
     setTaskUpdateContent('');
@@ -51,7 +95,7 @@ export const CoordinatorMessages = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {circularsList.map((msg) => (
               <div 
-                key={msg.id}
+                key={msg.id || msg.message_id}
                 style={{
                   border: '1px solid #E5E5E5',
                   borderRadius: '4px',
@@ -63,7 +107,7 @@ export const CoordinatorMessages = () => {
                   <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
                     📢 OFFICIAL CIRCULAR
                   </span>
-                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
+                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp || 'Recent'}</span>
                 </div>
 
                 <div style={{ fontWeight: 700, fontSize: '14px', color: '#3A1F6F', marginBottom: '6px' }}>
@@ -73,6 +117,9 @@ export const CoordinatorMessages = () => {
                 <div style={{ fontSize: '11px', color: '#8A9198', marginTop: '6px' }}>From: Admin Office</div>
               </div>
             ))}
+            {circularsList.length === 0 && (
+              <p style={{ fontSize: '13px', color: '#666' }}>No circulars published yet.</p>
+            )}
           </div>
         </Card>
 

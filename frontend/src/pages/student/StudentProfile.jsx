@@ -1,23 +1,51 @@
-import React, { useState } from 'react';
-import { User, Plus, CheckCircle, FolderPlus, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Plus, CheckCircle, FolderPlus, BookOpen, Mail, Phone, Shield, Award } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const StudentProfile = () => {
   const { data, currentUser } = useAuth();
-  
-  const studentGroup = (data.groups || []).find(g => g.id === currentUser?.groupId) || data.groups[0];
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.student_id) {
+      loadTeam(currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const loadTeam = async (studentId) => {
+    try {
+      setLoading(true);
+      const teamData = await academicService.getTeamByStudent(studentId);
+      setTeam(teamData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const studentGroup = (data?.groups || []).find(g => g.id === currentUser?.groupId) || data?.groups?.[0] || {
+    title: team?.subject?.subject_name || 'Major Project Phase - II',
+    groupCode: team?.team_code || 'Group G01',
+    subject: team?.subject?.subject_name || 'Major Project Phase - II',
+    subjectCode: team?.subject?.subject_code || '21CSP81',
+    guide: team?.guide?.name || 'Dr. Anita M.',
+    status: 'Active'
+  };
 
   // Projects list state (stored in local component state)
   const [extraProjects, setExtraProjects] = useState([
     {
       id: 'proj-1',
-      title: studentGroup.title,
-      groupName: studentGroup.groupCode,
+      title: studentGroup.title || 'Major Project Phase - II',
+      groupName: studentGroup.groupCode || 'Group G01',
       subject: 'Major Project Phase - II',
-      subjectCode: studentGroup.subject || '21CSP81',
-      guide: studentGroup.guide,
+      subjectCode: studentGroup.subjectCode || studentGroup.subject || '21CSP81',
+      guide: studentGroup.guide || 'Dr. Anita M.',
       status: 'Active'
     }
   ]);
@@ -49,6 +77,8 @@ export const StudentProfile = () => {
     setTimeout(() => setSuccess(''), 3500);
   };
 
+  if (loading) return <div>Loading profile...</div>;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
@@ -63,6 +93,69 @@ export const StudentProfile = () => {
           <CheckCircle size={18} />
           <span>{success}</span>
         </div>
+      )}
+
+      {currentUser && (
+        <>
+          <div className="grid-3">
+            <Card title="Student Credentials">
+              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  backgroundColor: '#243143',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '24px',
+                  margin: '0 auto 12px'
+                }}>
+                  {currentUser.name?.charAt(0) || 'S'}
+                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#243143' }}>{currentUser.name || 'Student'}</h2>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#B82226', margin: '4px 0' }}>
+                  USN: {currentUser.usn || currentUser.student_id || 'N/A'}
+                </div>
+                <Badge variant="navy">{currentUser.batch || '2021–2025 (8th Sem)'}</Badge>
+              </div>
+            </Card>
+
+            <Card title="System Managed Enrolment">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+                <div><strong>Subject Code:</strong> {team?.subject?.subject_code || '21CSP81'}</div>
+                <div><strong>Academic Batch:</strong> {currentUser.batch || '2021–2025 (8th Sem)'}</div>
+                <div><strong>Allocated Guide:</strong> {team?.guide?.name || 'Dr. Anita M.'}</div>
+                <div><strong>Group Association:</strong> {team?.team_code || studentGroup.groupCode || 'Group G01'}</div>
+                <div><strong>Leader Status:</strong> Group Member</div>
+              </div>
+            </Card>
+
+            <Card title="Project Group Overview">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+                <div><strong>Group Title:</strong> {team?.subject?.subject_name || studentGroup.title || 'Major Project Phase - II'}</div>
+                <div><strong>Domain:</strong> Cloud Computing & Distributed Systems</div>
+                <div><strong>Submission Mode:</strong> <Badge variant="navy">Digital</Badge></div>
+                <div><strong>Overall Status:</strong> <Badge variant="success">Active</Badge></div>
+              </div>
+            </Card>
+          </div>
+
+          <Card title="Contact & Institutional Credentials">
+            <div className="grid-2">
+              <div>
+                <label className="form-label">Official College Email</label>
+                <input type="text" className="form-input" value={currentUser.email || ''} disabled />
+              </div>
+              <div>
+                <label className="form-label">Registered Contact Phone</label>
+                <input type="text" className="form-input" value={currentUser.phone || '+91 98450 12345'} disabled />
+              </div>
+            </div>
+          </Card>
+        </>
       )}
 
       {/* Box 1: Current Working Projects */}
@@ -146,7 +239,10 @@ export const StudentProfile = () => {
                 value={newSubjectCode}
                 onChange={(e) => setNewSubjectCode(e.target.value)}
               >
-                {data.subjects.map(s => (
+                {(data?.subjects || [
+                  { id: 'sub-1', code: '21CSP81', name: 'Major Project Phase - II' },
+                  { id: 'sub-2', code: '21CSS82', name: 'Technical Seminar & Paper' }
+                ]).map(s => (
                   <option key={s.id} value={s.code}>{s.code} - {s.name}</option>
                 ))}
               </select>
@@ -159,7 +255,10 @@ export const StudentProfile = () => {
                 value={newGuide}
                 onChange={(e) => setNewGuide(e.target.value)}
               >
-                {data.facultyGuides.map(g => (
+                {(data?.facultyGuides || [
+                  { id: 'fg-1', name: 'Dr. Anita M.' },
+                  { id: 'fg-2', name: 'Prof. Rajesh K.' }
+                ]).map(g => (
                   <option key={g.id} value={g.name}>{g.name}</option>
                 ))}
               </select>

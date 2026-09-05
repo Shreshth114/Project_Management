@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle, MessageSquare, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
+import { messageService } from '../../services/messageService';
+import { academicService } from '../../services/academicService';
 
 export const StudentMessages = () => {
   const { data, currentUser, sendMessage } = useAuth();
@@ -10,9 +12,69 @@ export const StudentMessages = () => {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [studentGroup, setStudentGroup] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentUser?.user_id) {
+      fetchMessagesAndGroup(currentUser.user_id, currentUser.student_id);
+    }
+  }, [currentUser]);
+
+  const fetchMessagesAndGroup = async (userId, studentId) => {
+    try {
+      setLoading(true);
+      const [msgs, group] = await Promise.all([
+        messageService.getMessagesForUser(userId),
+        studentId ? academicService.getTeamByStudent(studentId) : Promise.resolve(null)
+      ]);
+      setMessages(msgs || []);
+      setStudentGroup(group);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (sendMessage) {
+      sendMessage({
+        recipient: facultyRecipient,
+        recipientRole: 'FACULTY',
+        senderRole: 'STUDENT',
+        category: 'DIRECT',
+        subject,
+        content
+      });
+    }
+
+    if (currentUser?.user_id && studentGroup?.guide?.user_id) {
+      try {
+        setError(null);
+        await messageService.sendMessage({
+          sender_id: currentUser.user_id,
+          receiver_id: studentGroup.guide.user_id,
+          message_text: `[${subject}] ${content}`
+        });
+        const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+        setMessages(msgs || []);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    setSubject('');
+    setContent('');
+    setSuccess('Message dispatched directly to Faculty Evaluator!');
+    setTimeout(() => setSuccess(''), 3500);
+  };
 
   // Filter direct messages between Student and Faculty ONLY
-  const messagesList = (data.messages || []).filter(m => {
+  const localMsgs = (data?.messages || []).filter(m => {
     if (m.category === 'CIRCULAR') return false;
     const isStudentFacultyMsg = m.senderRole === 'FACULTY' || m.recipientRole === 'FACULTY' || 
                                 m.senderRole === 'STUDENT' || m.recipientRole === 'STUDENT' ||
@@ -20,22 +82,22 @@ export const StudentMessages = () => {
     return isStudentFacultyMsg;
   });
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    sendMessage({
-      recipient: facultyRecipient,
-      recipientRole: 'FACULTY',
-      senderRole: 'STUDENT',
-      category: 'DIRECT',
-      subject,
-      content
-    });
+  const dbMsgs = (messages || []).map(m => ({
+    id: m.message_id || m.id,
+    sender: m.sender?.full_name || 'Faculty / Student',
+    senderRole: m.sender?.role || 'FACULTY',
+    recipient: m.receiver?.full_name || facultyRecipient,
+    subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
+      ? m.message_text.slice(1, m.message_text.indexOf(']')) 
+      : 'Direct Message',
+    content: m.message_text?.startsWith('[') && m.message_text.includes(']')
+      ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim() 
+      : m.message_text,
+    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Just now',
+    isUnread: !m.read_status
+  }));
 
-    setSubject('');
-    setContent('');
-    setSuccess('Message dispatched directly to Faculty Evaluator!');
-    setTimeout(() => setSuccess(''), 3500);
-  };
+  const messagesList = [...dbMsgs, ...localMsgs];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -45,6 +107,8 @@ export const StudentMessages = () => {
           Communication channel exclusively between student project teams and assigned Faculty Evaluators.
         </p>
       </div>
+      
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
       {success && (
         <div className="alert alert-success">

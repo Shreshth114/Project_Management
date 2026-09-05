@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { submissionService } from '../../services/submissionService';
+import { taskService } from '../../services/taskService';
 
 export const FacultySubmissions = () => {
-  const { data, setActiveTab } = useAuth();
+  const { currentUser, setActiveTab } = useAuth();
+  const [submissions, setSubmissions] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Dynamically collect all group component submissions & individual submissions
-  const allSubmissions = [];
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      loadData(currentUser.faculty_id);
+    }
+  }, [currentUser]);
 
   // 1. Group Deliverable Components
   if (data.groups) {
@@ -64,7 +72,23 @@ export const FacultySubmissions = () => {
       });
     });
   }
+  const loadData = async (facultyId) => {
+    try {
+      setLoading(true);
+      const [fetchedSubmissions, fetchedTasks] = await Promise.all([
+        submissionService.getAllSubmissionsForFaculty(facultyId),
+        taskService.getTasks()
+      ]);
+      setSubmissions(fetchedSubmissions || []);
+      setTasks(fetchedTasks || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  if (loading) return <div>Loading submissions...</div>;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>

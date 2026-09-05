@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusSquare, CheckSquare, Users, BarChart2, Calendar, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { taskService } from '../../services/taskService';
+import { academicService } from '../../services/academicService';
 
 export const CoordinatorDashboard = () => {
-  const { data, setActiveTab } = useAuth();
+  const { data, currentUser, setActiveTab } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [teamsCount, setTeamsCount] = useState(0);
+
+  useEffect(() => {
+    if (currentUser?.faculty_id) {
+      taskService.getTasks({ faculty_id: currentUser.faculty_id }).then(setTasks).catch(console.error);
+    }
+    academicService.getAdminStats().then(stats => setTeamsCount(stats.teamsCount)).catch(console.error);
+  }, [currentUser]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -30,7 +41,7 @@ export const CoordinatorDashboard = () => {
             Project Coordinator Control Panel
           </h1>
           <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
-            CSE 8th Semester Major Project (Subject Code: {data.subjectCode})
+            CSE 8th Semester Major Project
           </div>
         </div>
 
@@ -43,23 +54,23 @@ export const CoordinatorDashboard = () => {
       {/* Metrics Grid */}
       <div className="grid-4">
         <Card title="Department Groups">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>36 Batches</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>144 Final Year Students</div>
+          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{teamsCount} Batches</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Registered in Database</div>
         </Card>
 
         <Card title="Tasks Published">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{data.tasks.length} Milestones</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Phase I, II & III</div>
+          <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasks.length} Milestones</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>By you</div>
         </Card>
 
         <Card title="Submissions Rate">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>78%</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>28 of 36 batches uploaded</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mock data (28/36 uploaded)</div>
         </Card>
 
         <Card title="Evaluation Deadlines">
           <div style={{ fontSize: '20px', fontWeight: 700, color: '#FD0A0A' }}>Oct 10, 2025</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mid-Term Presentation</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mock data</div>
         </Card>
       </div>
 
@@ -74,28 +85,31 @@ export const CoordinatorDashboard = () => {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {data.tasks.map((task) => (
-              <div 
-                key={task.id}
-                style={{
-                  border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
-                  padding: '14px',
-                  backgroundColor: '#FFFFFF',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
-                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                    Phase: {task.phase} | Weightage: {task.maxMarks} Marks | Deadline: {task.deadline}
+            {tasks.map((task) => {
+              const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
+              return (
+                <div 
+                  key={task.task_id}
+                  style={{
+                    border: '1px solid #E5E5E5',
+                    borderRadius: '4px',
+                    padding: '14px',
+                    backgroundColor: '#FFFFFF',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                      Weightage: {totalMarks} Marks | Deadline: {new Date(task.deadline).toLocaleDateString()}
+                    </div>
                   </div>
+                  <Badge>{task.task_type}</Badge>
                 </div>
-                <Badge>{task.status}</Badge>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 
