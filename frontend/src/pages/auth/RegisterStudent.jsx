@@ -8,10 +8,10 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [usn, setUsn] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [batch, setBatch] = useState('Batch 1 (8th Sem)');
-  const [groupName, setGroupName] = useState('Group G01');
-  const [selectedSubject, setSelectedSubject] = useState(data?.subjects?.[0]?.code || '21CSP81');
-  const [guide, setGuide] = useState(data?.facultyGuides?.[0]?.name || 'Prof. V. Kulkarni');
+  const [batch, setBatch] = useState('');
+  const [groupName, setGroupName] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [guide, setGuide] = useState('');
   const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -163,6 +163,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   placeholder="student@msrit.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -174,7 +175,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   className="form-select"
                   value={batch}
                   onChange={(e) => setBatch(e.target.value)}
+                  required
                 >
+                  <option value="">Select a batch</option>
                   <option value="Batch 1 (8th Sem)">Batch 1 (8th Sem)</option>
                   <option value="Batch 2 (6th Sem)">Batch 2 (6th Sem)</option>
                   <option value="Batch 3 (4th Sem)">Batch 3 (4th Sem)</option>
@@ -201,7 +204,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   className="form-select"
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
+                  required
                 >
+                  <option value="">Select a subject</option>
                   {(data?.subjects || []).map(s => (
                     <option key={s.id || s.code} value={s.code}>
                       {s.code} - {s.name}
@@ -216,7 +221,9 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                   className="form-select"
                   value={guide}
                   onChange={(e) => setGuide(e.target.value)}
+                  required
                 >
+                  <option value="">Select a guide</option>
                   {(data?.facultyGuides || []).map(g => (
                     <option key={g.id || g.name} value={g.name}>{g.name}</option>
                   ))}
@@ -232,6 +239,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </div>

@@ -7,8 +7,8 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [subjectName, setSubjectName] = useState('Major Project Phase - II');
-  const [subjectCode, setSubjectCode] = useState('21CSP81');
+  const [subjectName, setSubjectName] = useState('');
+  const [subjectCode, setSubjectCode] = useState('');
   const [password, setPassword] = useState(''); // Strictly empty until typed
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -142,6 +142,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                 placeholder="faculty@msrit.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -160,7 +161,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Code Option</label>
+                <label className="form-label">Subject Code</label>
                 <select 
                   className="form-select"
                   value={subjectCode}
@@ -169,7 +170,9 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                     const foundSub = (data?.subjects || []).find(s => s.code === e.target.value);
                     if (foundSub) setSubjectName(foundSub.name);
                   }}
+                  required
                 >
+                  <option value="">Select a subject</option>
                   {(data?.subjects || []).map(s => (
                     <option key={s.id || s.code} value={s.code}>
                       {s.code} ({s.name})
@@ -187,6 +190,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
             </div>

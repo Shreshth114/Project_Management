@@ -19,7 +19,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
     switchTeacherRole, 
     logout,
     activeTab,
-    data
+    data,
+    setShowModeSelectionLanding
   } = useAuth();
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -38,15 +39,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
                     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   const handleModeToggle = () => {
-    if (activeRole === 'COORDINATOR') {
-      switchTeacherRole('FACULTY');
-    } else {
-      if (isAssignedCoordinator) {
-        switchTeacherRole('COORDINATOR');
-      } else {
-        alert("You are not assigned as coordinator, if any issues contact admin");
-      }
-    }
+    setShowModeSelectionLanding(true);
   };
 
   const circularsList = (data?.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');

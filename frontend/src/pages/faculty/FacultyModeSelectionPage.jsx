@@ -65,10 +65,10 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
             FACULTY & COORDINATOR PORTAL
           </Badge>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
-            Welcome, {currentUser?.name || 'Faculty Member'}!
+            How would you like to continue?
           </h1>
           <p style={{ fontSize: '14px', color: '#FFFFFF', opacity: 0.9, marginTop: '6px' }}>
-            Select your active workspace mode for this academic session:
+            Welcome back, {currentUser?.name || 'Faculty Member'}. Please select an interface.
           </p>
         </div>
 
@@ -106,10 +106,10 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 </div>
 
                 <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
-                  Faculty / Evaluator Mode
+                  Faculty
                 </h2>
                 <p className="text-muted" style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
-                  Access assigned project batches, review submitted student deliverables, grade individual rubric criteria, award marks, and provide student feedback.
+                  Continue to the normal Faculty interface/dashboard.
                 </p>
               </div>
 
@@ -119,7 +119,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 style={{ padding: '12px', fontSize: '14px' }}
                 onClick={handleSelectFacultyMode}
               >
-                <span>ENTER FACULTY EVALUATOR MODE</span>
+                <span>ENTER FACULTY INTERFACE</span>
                 <ArrowRight size={16} />
               </button>
             </div>
@@ -151,7 +151,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#242044', margin: 0 }}>
-                    Coordinator Mode
+                    Coordinator
                   </h2>
                   <Badge variant={isAssignedCoordinator ? 'magenta' : 'info'}>
                     Coordinator Access
@@ -159,7 +159,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 </div>
 
                 <p className="text-muted" style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
-                  Manage course subjects, create milestone tasks, set group vs individual submission modes, define deadlines, and gives updates about tasks.
+                  Continue to the Coordinator interface/dashboard.
                 </p>
 
                 {assignedCoordinatorSubjects.length > 0 && (
@@ -175,7 +175,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 style={{ padding: '12px', fontSize: '14px' }}
                 onClick={handleSelectCoordinatorMode}
               >
-                <span>ENTER COORDINATOR GOVERNANCE MODE</span>
+                <span>ENTER COORDINATOR INTERFACE</span>
                 <ArrowRight size={16} />
               </button>
             </div>

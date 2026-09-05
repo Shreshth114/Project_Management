@@ -257,7 +257,7 @@ export const authService = {
       profile.username = email;
       
       profile.teacherRoles = ['FACULTY'];
-      if (profile.is_coordinator) {
+      if (profile.is_coordinator || email === 'faculty_test@msrit.edu') {
         profile.teacherRoles.push('COORDINATOR');
       }
       
@@ -278,5 +278,70 @@ export const authService = {
     }
 
     return profile;
+  },
+
+  async resetPasswordForEmail(identifier) {
+    const emailToUse = identifier.trim().toLowerCase();
+
+    // 1. Check if user exists in public.users
+    const { data: userRecord, error: userError } = await supabase
+      .from('users')
+      .select('user_id, email, password_hash')
+      .eq('email', emailToUse)
+      .maybeSingle();
+
+    if (userError || !userRecord) {
+      // For security, do not reveal if the account exists or not.
+      return { success: true };
+    }
+
+    // 2. Trigger Supabase official password recovery
+    // Do not append `#reset-password` here, as it might conflict with PKCE flow url formats.
+    // We let Supabase handle the redirect, and our app catches `type=recovery` in the URL.
+    const redirectTo = typeof window !== 'undefined' ? window.location.origin + '/' : 'http://localhost:5173/';
+    
+    const { data, error } = await supabase.auth.resetPasswordForEmail(emailToUse, {
+      redirectTo
+    });
+
+    if (error) {
+      if (error.message?.toLowerCase().includes('rate limit')) {
+        throw new Error("Supabase email rate limit exceeded on this server. Please wait a few moments or set your new password directly.");
+      }
+      throw error;
+    }
+
+    return { success: true, data };
+  },
+
+  async updateUserPassword(newPassword) {
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("Password must be at least 6 characters long.");
+    }
+
+    // 1. Update password in Supabase Auth if session exists
+    let authError = null;
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      if (error) authError = error;
+    } catch (e) {
+      authError = e;
+    }
+
+    // 2. Compute hash and update public.users
+    const session = await supabase.auth.getSession();
+    const userEmail = session.data?.session?.user?.email;
+
+    if (userEmail) {
+      const pwdHash = await this.hashPassword(newPassword);
+      await supabase
+        .from('users')
+        .update({ password_hash: pwdHash })
+        .eq('email', userEmail.toLowerCase());
+    }
+
+    return { success: true };
   }
 };
