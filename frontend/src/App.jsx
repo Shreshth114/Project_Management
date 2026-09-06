@@ -8,7 +8,7 @@ import { ResetPassword } from './pages/auth/ResetPassword';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 const MainContent = () => {
-  const { currentUser, activeTab, isAuthLoading } = useAuth();
+  const { currentUser, activeTab, isAuthLoading, clearRecoveryState } = useAuth();
   const [authView, setAuthView] = useState('login'); // 'login' | 'register-student' | 'register-faculty' | 'forgot-password' | 'reset-password'
 
   const [resetError, setResetError] = useState(null);
@@ -63,6 +63,7 @@ const MainContent = () => {
             if (window.location.hash || window.location.search) {
               window.history.replaceState(null, '', window.location.pathname);
             }
+            if (clearRecoveryState) clearRecoveryState();
             setAuthView('login');
           }} 
         />

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { RitLogo } from '../../components/common/RitLogo';
 
 export const ResetPassword = ({ onBackToLogin, initialError }) => {
-  const { updatePassword } = useAuth();
+  const { updatePassword, logout } = useAuth();
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,9 +32,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
       const res = await updatePassword(newPassword);
       if (res.success) {
         setSuccess('Your password has been reset successfully.');
-        setTimeout(() => {
-          onBackToLogin();
-        }, 2000);
+        await logout(); // Explicitly clear the recovery session
       } else {
         setError(res.message || 'Failed to update password.');
       }
@@ -142,6 +140,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -155,6 +154,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
               onClick={onBackToLogin}
               style={{ background: 'none', border: 'none', color: '#8E00A8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
             >
-              ← Cancel and Return to Sign In
+              ← {success ? 'Return to Sign In' : 'Cancel and Return to Sign In'}
             </button>
           </div>
         </div>

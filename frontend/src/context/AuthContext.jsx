@@ -36,6 +36,20 @@ export const AuthProvider = ({ children }) => {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [pendingRole, setPendingRole] = useState(null);
   const [showModeSelectionLanding, setShowModeSelectionLanding] = useState(false);
+  
+  const [isRecoveryFlow, setIsRecoveryFlow] = useState(() => {
+    const hash = window.location.hash || window.location.search;
+    const isRec = hash.includes('type=recovery') || hash.includes('reset-password') || hash.includes('error_code=otp_expired');
+    if (isRec) {
+      localStorage.setItem('rit_recovery_in_progress', 'true');
+    }
+    return isRec || localStorage.getItem('rit_recovery_in_progress') === 'true';
+  });
+
+  const clearRecoveryState = () => {
+    setIsRecoveryFlow(false);
+    localStorage.removeItem('rit_recovery_in_progress');
+  };
 
   useEffect(() => {
     const handleProfileResolution = async (session, event = null) => {
@@ -84,8 +98,10 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(profile);
         localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
         
-        if (event === 'PASSWORD_RECOVERY') {
+        const isRecFlow = isRecoveryFlow || localStorage.getItem('rit_recovery_in_progress') === 'true';
+        if (event === 'PASSWORD_RECOVERY' || isRecFlow) {
           setActiveTab('login');
+          if (!isRecoveryFlow) setIsRecoveryFlow(true);
         } else {
           if (profile.role === 'STUDENT') {
             setCurrentRole('STUDENT');
@@ -122,9 +138,8 @@ export const AuthProvider = ({ children }) => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       // Check url hash directly for recovery in case session is already established
-      const hash = window.location.hash || window.location.search;
-      const isRecovery = hash.includes('type=recovery') || hash.includes('reset-password');
-      handleProfileResolution(session, isRecovery ? 'PASSWORD_RECOVERY' : null);
+      const isRec = isRecoveryFlow || localStorage.getItem('rit_recovery_in_progress') === 'true';
+      handleProfileResolution(session, isRec ? 'PASSWORD_RECOVERY' : null);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -134,7 +149,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [pendingRole]);
+  }, [pendingRole, isRecoveryFlow]);
 
   const login = async (email, password, expectedRole) => {
     try {
@@ -225,6 +240,7 @@ export const AuthProvider = ({ children }) => {
       await authService.logout();
       localStorage.removeItem('rit_current_user_profile');
       localStorage.removeItem('activeTab');
+      clearRecoveryState();
       setCurrentUser(null);
       setCurrentRole(null);
       setActiveTab('login');
@@ -399,7 +415,8 @@ export const AuthProvider = ({ children }) => {
         deleteMessage,
         setGroupSubmissionMode,
         submitGroupComponent,
-        saveIndividualStudentEvaluation
+        saveIndividualStudentEvaluation,
+        clearRecoveryState
       }}
     >
       {children}
