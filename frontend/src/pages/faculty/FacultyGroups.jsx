@@ -3,9 +3,10 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
+import { ExternalLink, AlertCircle } from 'lucide-react';
 
 export const FacultyGroups = () => {
-  const { data, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const [myGroups, setMyGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,10 +15,9 @@ export const FacultyGroups = () => {
     if (currentUser?.faculty_id) {
       fetchMyGroups(currentUser.faculty_id);
     } else {
-      setMyGroups(data?.groups || []);
       setLoading(false);
     }
-  }, [currentUser, data]);
+  }, [currentUser]);
 
   const fetchMyGroups = async (facultyId) => {
     try {
@@ -27,9 +27,9 @@ export const FacultyGroups = () => {
         const mapped = teams.map(t => ({
           id: t.team_id,
           groupCode: t.team_code,
-          title: t.subject?.subject_name || "Project",
-          subjectName: t.subject?.subject_name || 'Major Project Phase - II',
-          repoUrl: 'https://github.com/mock-repo',
+          title: t.subject?.subject_name || "Academic Project",
+          subjectName: t.subject?.subject_name || t.subject?.subject_code || 'Course Project',
+          repoUrl: t.repo_url,
           members: (t.members || []).map(m => ({
             student_id: m.student_id,
             usn: m.usn,
@@ -39,17 +39,17 @@ export const FacultyGroups = () => {
         }));
         setMyGroups(mapped);
       } else {
-        setMyGroups(data?.groups || []);
+        setMyGroups([]);
       }
     } catch (err) {
       setError(err.message);
-      setMyGroups(data?.groups || []);
+      setMyGroups([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const displayGroups = myGroups.length > 0 ? myGroups : (data?.groups || []);
+  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Assigned Groups...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -60,59 +60,70 @@ export const FacultyGroups = () => {
         </p>
       </div>
 
-      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+      {error && (
+        <div className="alert alert-danger">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {displayGroups.map((group) => (
-          <Card key={group.id || group.groupCode}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Badge variant="purple">{group.groupCode}</Badge>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{group.title}</h3>
-                </div>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '6px' }}>
-                  Subject Name: <strong>{group.subjectName || group.domain || 'Major Project Phase - II'}</strong> | Repository:{' '}
-                  <a href={group.repoUrl || 'https://github.com/mock-repo'} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600 }}>
-                    {group.repoUrl || 'https://github.com/mock-repo'}
-                  </a>
+        {myGroups.length > 0 ? (
+          myGroups.map((group) => (
+            <Card key={group.id || group.groupCode}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Badge variant="purple">{group.groupCode}</Badge>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{group.title}</h3>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#55636B', marginTop: '6px' }}>
+                    Subject: <strong>{group.subjectName}</strong>
+                    {group.repoUrl && (
+                      <>
+                        {' | '}Repository:{' '}
+                        <a href={group.repoUrl} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span>{group.repoUrl}</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>Group Members Roster</h4>
-            <div className="table-container responsive-table-stack">
-              <table className="portal-table">
-                <thead>
-                  <tr>
-                    <th>USN</th>
-                    <th>Student Name</th>
-                    <th>Email Address</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(group.members || []).map((m, idx) => (
-                    <tr key={m.student_id || m.usn || idx}>
-                      <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
-                      <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                      <td data-label="Email Address">{m.email || `${m.usn?.toLowerCase()}@msrit.edu`}</td>
-                    </tr>
-                  ))}
-                  {(!group.members || group.members.length === 0) && (
+              <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>Group Members Roster</h4>
+              <div className="table-container responsive-table-stack">
+                <table className="portal-table">
+                  <thead>
                     <tr>
-                      <td colSpan="3" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>No members found</td>
+                      <th>USN</th>
+                      <th>Student Name</th>
+                      <th>Email Address</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        ))}
-
-        {displayGroups.length === 0 && (
+                  </thead>
+                  <tbody>
+                    {(group.members || []).map((m, idx) => (
+                      <tr key={m.student_id || m.usn || idx}>
+                        <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                        <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
+                        <td data-label="Email Address">{m.email}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ))
+        ) : (
           <Card>
-            <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
-              No project groups assigned to evaluate at this time.
+            <div style={{ textAlign: 'center', padding: '32px 16px', color: '#8A9198' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+                No Groups Assigned Yet
+              </h3>
+              <p style={{ fontSize: '13px', margin: 0 }}>
+                You have not been allocated as a guide to any student project groups in the system.
+              </p>
             </div>
           </Card>
         )}

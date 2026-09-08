@@ -5,13 +5,21 @@ export const academicService = {
   // --- SUBJECTS ---
   
   async getSubjects() {
-    const { data, error } = await supabase
-      .from('subject')
-      .select('*')
-      .order('subject_code');
-      
-    if (error) throw error;
-    return data;
+    // Fetch subjects and faculty coordinators in parallel
+    const [{ data: subjects, error: subjectError }, { data: coordinators }] = await Promise.all([
+      supabase.from('subject').select('*').order('subject_code'),
+      supabase.from('faculty').select('faculty_id, name, subject_id, is_coordinator').eq('is_coordinator', true)
+    ]);
+
+    if (subjectError) throw subjectError;
+
+    // Map each subject to its assigned coordinator name
+    const coordBySubjectId = new Map((coordinators || []).map(f => [f.subject_id, f]));
+
+    return (subjects || []).map(s => ({
+      ...s,
+      coordinator: coordBySubjectId.get(s.subject_id)?.name || null
+    }));
   },
   
   async createSubject(code, name) {
@@ -34,6 +42,72 @@ export const academicService = {
       .select('faculty_id, name, is_coordinator, subject_id, user_id');
     if (error) throw error;
     return data;
+  },
+
+  async assignCoordinator(facultyIdentifier, subjectCode) {
+    try {
+      if (!facultyIdentifier) return { success: false, reason: 'No faculty identifier provided' };
+
+      // 1. Find faculty by ID or by name
+      let facultyRecord = null;
+      if (!isNaN(facultyIdentifier) && String(facultyIdentifier).trim() !== '') {
+        const { data } = await supabase
+          .from('faculty')
+          .select('faculty_id, user_id, name, subject_id')
+          .eq('faculty_id', Number(facultyIdentifier))
+          .maybeSingle();
+        facultyRecord = data;
+      }
+
+      if (!facultyRecord) {
+        const trimmedName = String(facultyIdentifier).trim();
+        const { data: matches } = await supabase
+          .from('faculty')
+          .select('faculty_id, user_id, name, subject_id')
+          .ilike('name', `%${trimmedName}%`);
+        if (matches && matches.length > 0) {
+          facultyRecord = matches[0];
+        }
+      }
+
+      if (!facultyRecord) {
+        console.warn('[assignCoordinator] No faculty found with:', facultyIdentifier);
+        return { success: false, reason: 'Faculty not found in DB' };
+      }
+
+      const facultyId = facultyRecord.faculty_id;
+      const userId = facultyRecord.user_id;
+
+      // 2. Set is_coordinator = true for this faculty
+      await supabase
+        .from('faculty')
+        .update({ is_coordinator: true })
+        .eq('faculty_id', facultyId);
+
+      console.log('[assignCoordinator] Assigned coordinator for:', facultyRecord.name, 'facultyId:', facultyId);
+
+      // 3. Link faculty to subject if subjectCode given
+      if (subjectCode) {
+        const { data: matchedSubject } = await supabase
+          .from('subject')
+          .select('subject_id')
+          .ilike('subject_code', subjectCode.trim())
+          .maybeSingle();
+
+        if (matchedSubject?.subject_id) {
+          await supabase
+            .from('faculty')
+            .update({ subject_id: matchedSubject.subject_id })
+            .eq('faculty_id', facultyId);
+          console.log('[assignCoordinator] Linked faculty to subject_id:', matchedSubject.subject_id);
+        }
+      }
+
+      return { success: true, facultyId, userId, facultyName: facultyRecord.name };
+    } catch (err) {
+      console.warn('[assignCoordinator] Error:', err?.message || err);
+      return { success: false, reason: err.message };
+    }
   },
   
   // --- TEAMS ---
@@ -82,14 +156,45 @@ export const academicService = {
         team_id,
         team_code,
         subject_id,
-        subject:subject(subject_code, subject_name),
-        guide:faculty(name, user_id),
+        subject:subject(subject_id, subject_code, subject_name),
+        guide:faculty(faculty_id, name, user_id),
         members:student(student_id, usn, name, user_id)
       `)
       .eq('team_id', studentData.team_id)
       .single();
       
     if (error) throw error;
+
+    // 3. Fetch the coordinator assigned to this team's subject
+    const subjectCode = data?.subject?.subject_code;
+    let foundCoordinator = null;
+
+    if (subjectCode) {
+      // Find all coordinators with matching subject code
+      const { data: facultyCoordinators } = await supabase
+        .from('faculty')
+        .select('name, is_coordinator, subject_id, subject:subject(subject_code)')
+        .eq('is_coordinator', true);
+
+      if (facultyCoordinators && facultyCoordinators.length > 0) {
+        // Prioritize real coordinator matching subject code (excluding [TEST] if possible)
+        const codeMatch = facultyCoordinators.find(f => 
+          !f.name.includes('[TEST]') && 
+          f.subject?.subject_code?.toLowerCase() === subjectCode.toLowerCase()
+        ) || facultyCoordinators.find(f => 
+          f.subject_id === data.subject_id && !f.name.includes('[TEST]')
+        ) || facultyCoordinators.find(f => 
+          !f.name.includes('[TEST]')
+        );
+
+        if (codeMatch) {
+          foundCoordinator = codeMatch.name;
+        }
+      }
+    }
+
+    data.coordinator = foundCoordinator || 'Not Assigned';
+
     return data;
   },
   

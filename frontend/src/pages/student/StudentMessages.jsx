@@ -1,37 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Send, CheckCircle, MessageSquare, Bell } from 'lucide-react';
+import { Send, CheckCircle, MessageSquare, Bell, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { messageService } from '../../services/messageService';
 import { academicService } from '../../services/academicService';
 
+import { supabase } from '../../lib/supabase';
+
 export const StudentMessages = () => {
-  const { data, currentUser, sendMessage } = useAuth();
+  const { currentUser } = useAuth();
   
-  const [facultyRecipient, setFacultyRecipient] = useState('Dr. R. Sharma (Faculty Evaluator)');
+  const [selectedFacultyId, setSelectedFacultyId] = useState('');
+  const [facultyList, setFacultyList] = useState([]);
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [studentGroup, setStudentGroup] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const initData = async () => {
+      try {
+        const facs = await academicService.getFaculty();
+        let defaultFacId = '';
+        if (facs && facs.length > 0) {
+          setFacultyList(facs);
+          defaultFacId = String(facs[0].faculty_id);
+        }
+
+        // Auto-select assigned guide if available
+        if (currentUser?.student_id) {
+          try {
+            const team = await academicService.getTeamByStudent(currentUser.student_id);
+            if (team?.guide?.faculty_id) {
+              defaultFacId = String(team.guide.faculty_id);
+            }
+          } catch (e) {
+            console.warn("Notice: could not pre-select guide:", e);
+          }
+        }
+
+        if (defaultFacId) {
+          setSelectedFacultyId(defaultFacId);
+        }
+      } catch (err) {
+        console.error("Error loading faculty:", err);
+      }
+    };
+
+    initData();
+
     if (currentUser?.user_id) {
-      fetchMessagesAndGroup(currentUser.user_id, currentUser.student_id);
+      fetchMessages(currentUser.user_id);
     }
   }, [currentUser]);
 
-  const fetchMessagesAndGroup = async (userId, studentId) => {
+  const fetchMessages = async (userId) => {
     try {
       setLoading(true);
-      const [msgs, group] = await Promise.all([
-        messageService.getMessagesForUser(userId),
-        studentId ? academicService.getTeamByStudent(studentId) : Promise.resolve(null)
-      ]);
+      const msgs = await messageService.getMessagesForUser(userId);
       setMessages(msgs || []);
-      setStudentGroup(group);
     } catch (err) {
       console.error(err);
     } finally {
@@ -41,63 +70,75 @@ export const StudentMessages = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (sendMessage) {
-      sendMessage({
-        recipient: facultyRecipient,
-        recipientRole: 'FACULTY',
-        senderRole: 'STUDENT',
-        category: 'DIRECT',
-        subject,
-        content
+    setError(null);
+
+    const targetFaculty = facultyList.find(f => String(f.faculty_id) === String(selectedFacultyId));
+    if (!targetFaculty) {
+      setError('Please select an active faculty recipient.');
+      return;
+    }
+
+    let targetUserId = targetFaculty.user_id;
+    if (!targetUserId) {
+      const { data: facData } = await supabase.from('faculty').select('user_id').eq('faculty_id', targetFaculty.faculty_id).maybeSingle();
+      if (facData?.user_id) targetUserId = facData.user_id;
+    }
+
+    if (!targetUserId) {
+      setError(`Faculty member ${targetFaculty.name} does not have an active institutional user account linked.`);
+      return;
+    }
+
+    if (!currentUser?.user_id) {
+      setError('User not authenticated.');
+      return;
+    }
+
+    try {
+      await messageService.sendMessage({
+        sender_id: currentUser.user_id,
+        receiver_id: targetUserId,
+        message_text: `[${subject}] ${content}`
       });
+      const msgs = await messageService.getMessagesForUser(currentUser.user_id);
+      setMessages(msgs || []);
+      setSubject('');
+      setContent('');
+      setSuccess(`Message sent directly to ${targetFaculty.name}!`);
+      setTimeout(() => setSuccess(''), 3500);
+    } catch (err) {
+      setError(err.message || 'Failed to dispatch message.');
     }
-
-    if (currentUser?.user_id && studentGroup?.guide?.user_id) {
-      try {
-        setError(null);
-        await messageService.sendMessage({
-          sender_id: currentUser.user_id,
-          receiver_id: studentGroup.guide.user_id,
-          message_text: `[${subject}] ${content}`
-        });
-        const msgs = await messageService.getMessagesForUser(currentUser.user_id);
-        setMessages(msgs || []);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    setSubject('');
-    setContent('');
-    setSuccess('Message dispatched directly to Faculty Evaluator!');
-    setTimeout(() => setSuccess(''), 3500);
   };
 
-  // Filter direct messages between Student and Faculty ONLY
-  const localMsgs = (data?.messages || []).filter(m => {
-    if (m.category === 'CIRCULAR') return false;
-    const isStudentFacultyMsg = m.senderRole === 'FACULTY' || m.recipientRole === 'FACULTY' || 
-                                m.senderRole === 'STUDENT' || m.recipientRole === 'STUDENT' ||
-                                m.recipient?.includes('Dr. R. Sharma') || m.sender?.includes('Dr. R. Sharma');
-    return isStudentFacultyMsg;
-  });
+  const handleReply = (msg) => {
+    const replySubject = msg.subject.startsWith('Re: ') ? msg.subject : `Re: ${msg.subject}`;
+    setSubject(replySubject);
+    // If sender was a faculty, select them in dropdown
+    const senderFaculty = facultyList.find(f => f.user_id === msg.senderId);
+    if (senderFaculty) {
+      setSelectedFacultyId(String(senderFaculty.faculty_id));
+    }
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
 
-  const dbMsgs = (messages || []).map(m => ({
+  const messagesList = (messages || []).map(m => ({
     id: m.message_id || m.id,
-    sender: m.sender?.full_name || 'Faculty / Student',
+    senderId: m.sender_id,
+    receiverId: m.receiver_id,
+    sender: m.sender?.email || 'User',
     senderRole: m.sender?.role || 'FACULTY',
-    recipient: m.receiver?.full_name || facultyRecipient,
+    recipient: m.receiver?.email || 'Recipient',
     subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
       ? m.message_text.slice(1, m.message_text.indexOf(']')) 
       : 'Direct Message',
     content: m.message_text?.startsWith('[') && m.message_text.includes(']')
       ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim() 
       : m.message_text,
-    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Just now',
-    isUnread: !m.read_status
+    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
+    isUnread: !m.read_status,
+    isIncoming: m.receiver_id === currentUser?.user_id
   }));
-
-  const messagesList = [...dbMsgs, ...localMsgs];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -108,7 +149,12 @@ export const StudentMessages = () => {
         </p>
       </div>
       
-      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
+      {error && (
+        <div className="alert alert-danger">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
 
       {success && (
         <div className="alert alert-success">
@@ -118,42 +164,55 @@ export const StudentMessages = () => {
       )}
 
       <div className="grid-2">
-        {/* Direct Messages List */}
-        <Card title="Student ↔ Faculty Conversation Inbox">
+        {/* Messages List */}
+        <Card title="Official Message History">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {messagesList.map((msg) => (
+            {messagesList.map((m) => (
               <div 
-                key={msg.id}
+                key={m.id}
                 style={{
                   border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   padding: '14px',
-                  backgroundColor: msg.isUnread ? '#FDF0F2' : '#FFFFFF'
+                  backgroundColor: m.isUnread ? '#FDF8F5' : '#FFFFFF',
+                  borderLeft: m.isUnread ? '4px solid #DE3B0B' : '4px solid #3A1F6F'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
-                    {msg.sender}
-                    <span style={{ fontSize: '11px', color: '#8A9198', marginLeft: '6px' }}>
-                      ({msg.senderRole || 'FACULTY'})
-                    </span>
+                  <div style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '14px' }}>
+                    {m.subject}
                   </div>
-                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
+                  <div style={{ fontSize: '11px', color: '#55636B' }}>
+                    {m.timestamp}
+                  </div>
                 </div>
 
-                <div style={{ fontWeight: 700, fontSize: '14px', color: '#DE3B0B', marginBottom: '6px' }}>
-                  {msg.subject}
+                <div style={{ fontSize: '12px', color: '#B8115B', fontWeight: 700, marginBottom: '6px' }}>
+                  From: {m.sender} ➔ To: {m.recipient}
                 </div>
-                <p style={{ fontSize: '13px', color: '#55636B', lineHeight: 1.4 }}>{msg.content}</p>
-                <div style={{ fontSize: '11px', color: '#8A9198', marginTop: '6px' }}>
-                  To: {msg.recipient}
+
+                <div style={{ fontSize: '13px', color: '#243143', lineHeight: '1.5' }}>
+                  {m.content}
                 </div>
+
+                {m.isIncoming && (
+                  <div style={{ marginTop: '10px', textAlign: 'right' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      style={{ padding: '3px 10px', fontSize: '11px' }}
+                      onClick={() => handleReply(m)}
+                    >
+                      Reply to Faculty
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
 
-            {messagesList.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#8A9198' }}>
-                No direct messages between student and faculty found.
+            {messagesList.length === 0 && !loading && (
+              <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+                No direct messages between student and faculty recorded yet.
               </div>
             )}
           </div>
@@ -166,11 +225,18 @@ export const StudentMessages = () => {
               <label className="form-label">Select Faculty Recipient</label>
               <select
                 className="form-select"
-                value={facultyRecipient}
-                onChange={(e) => setFacultyRecipient(e.target.value)}
+                value={selectedFacultyId}
+                onChange={(e) => setSelectedFacultyId(e.target.value)}
               >
-                <option value="Dr. R. Sharma (Faculty Evaluator)">Dr. R. Sharma (Faculty Evaluator)</option>
-                <option value="Prof. V. Kulkarni (Faculty Evaluator)">Prof. V. Kulkarni (Faculty Evaluator)</option>
+                {facultyList.length > 0 ? (
+                  facultyList.map(f => (
+                    <option key={f.faculty_id} value={f.faculty_id}>
+                      {f.name} ({f.is_coordinator ? 'Coordinator & Faculty' : 'Faculty Guide'})
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No faculty members available</option>
+                )}
               </select>
             </div>
 
@@ -198,7 +264,11 @@ export const StudentMessages = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block">
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-block"
+              disabled={facultyList.length === 0}
+            >
               <Send size={15} />
               <span>DISPATCH MESSAGE TO FACULTY</span>
             </button>

@@ -4,7 +4,16 @@ import { useAuth } from '../../context/AuthContext';
 import { Modal } from './Modal';
 
 export const RoleSelectionModal = () => {
-  const { showRoleSelectionModal, setShowRoleSelectionModal, switchTeacherRole, currentUser } = useAuth();
+  const { showRoleSelectionModal, setShowRoleSelectionModal, switchTeacherRole, currentUser, data } = useAuth();
+
+  const isAssignedCoordinator = Boolean(
+    currentUser?.is_coordinator ||
+    currentUser?.isCoordinator ||
+    (currentUser?.teacherRoles && currentUser.teacherRoles.includes('COORDINATOR')) ||
+    (data?.subjects || []).some(
+      s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
+    )
+  );
 
   return (
     <Modal
@@ -31,10 +40,12 @@ export const RoleSelectionModal = () => {
           Welcome back, {currentUser?.name}
         </h2>
         <p className="text-muted" style={{ fontSize: '14px', marginBottom: '24px' }}>
-          Your account holds multi-role academic responsibilities. Select the workspace view you wish to access for this session:
+          {isAssignedCoordinator 
+            ? 'Your account holds multi-role academic responsibilities. Select the workspace view you wish to access for this session:'
+            : 'Select the workspace view you wish to access for this session:'}
         </p>
 
-        <div className="grid-2" style={{ gap: '16px' }}>
+        <div className={isAssignedCoordinator ? "grid-2" : ""} style={{ gap: '16px', maxWidth: isAssignedCoordinator ? 'none' : '360px', margin: '0 auto' }}>
           <div 
             onClick={() => switchTeacherRole('FACULTY')}
             style={{
@@ -67,37 +78,39 @@ export const RoleSelectionModal = () => {
             </button>
           </div>
 
-          <div 
-            onClick={() => switchTeacherRole('COORDINATOR')}
-            style={{
-              border: '2px solid #E5E5E5',
-              borderRadius: '6px',
-              padding: '20px',
-              cursor: 'pointer',
-              textAlign: 'center',
-              backgroundColor: '#FFFFFF',
-              transition: 'all 0.2s ease-in-out'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#243143';
-              e.currentTarget.style.backgroundColor = '#F4F6F8';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#E5E5E5';
-              e.currentTarget.style.backgroundColor = '#FFFFFF';
-            }}
-          >
-            <div style={{ color: '#243143', marginBottom: '10px' }}>
-              <ClipboardList size={32} style={{ margin: '0 auto' }} />
+          {isAssignedCoordinator && (
+            <div 
+              onClick={() => switchTeacherRole('COORDINATOR')}
+              style={{
+                border: '2px solid #E5E5E5',
+                borderRadius: '6px',
+                padding: '20px',
+                cursor: 'pointer',
+                textAlign: 'center',
+                backgroundColor: '#FFFFFF',
+                transition: 'all 0.2s ease-in-out'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#243143';
+                e.currentTarget.style.backgroundColor = '#F4F6F8';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#E5E5E5';
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+              }}
+            >
+              <div style={{ color: '#243143', marginBottom: '10px' }}>
+                <ClipboardList size={32} style={{ margin: '0 auto' }} />
+              </div>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>Coordinator Workspace</h3>
+              <p style={{ fontSize: '12px', color: '#666' }}>
+                Define milestone deadlines, set evaluation criteria, manage department groups.
+              </p>
+              <button className="btn btn-navy btn-sm btn-block" style={{ marginTop: '14px' }}>
+                Enter as Coordinator
+              </button>
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>Coordinator Workspace</h3>
-            <p style={{ fontSize: '12px', color: '#666' }}>
-              Define milestone deadlines, set evaluation criteria, manage department groups.
-            </p>
-            <button className="btn btn-navy btn-sm btn-block" style={{ marginTop: '14px' }}>
-              Enter as Coordinator
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </Modal>

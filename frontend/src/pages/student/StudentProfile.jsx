@@ -1,19 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, CheckCircle, FolderPlus, BookOpen, Mail, Phone, Shield, Award } from 'lucide-react';
+import { User, Plus, CheckCircle, FolderPlus, BookOpen, Mail, Phone, Shield, Award, Edit, UserCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 
 export const StudentProfile = () => {
-  const { data, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const [team, setTeam] = useState(null);
+  const [facultyList, setFacultyList] = useState([]);
+  const [subjectsList, setSubjectsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     if (currentUser?.student_id) {
       loadTeam(currentUser.student_id);
     }
+    academicService.getFaculty().then(facs => {
+      if (facs && facs.length > 0) {
+        const cleaned = facs.filter(f => !f.name.includes('[TEST]'));
+        setFacultyList(cleaned.length > 0 ? cleaned : facs);
+      }
+    }).catch(console.error);
+
+    academicService.getSubjects().then(subs => {
+      if (subs && subs.length > 0) {
+        const cleaned = subs.filter(s => !(s.subject_name || '').includes('(TEST DATA)'));
+        setSubjectsList(cleaned.length > 0 ? cleaned : subs);
+      }
+    }).catch(console.error);
   }, [currentUser]);
 
   const loadTeam = async (studentId) => {
@@ -28,35 +44,41 @@ export const StudentProfile = () => {
     }
   };
 
-  const studentGroup = (data?.groups || []).find(g => g.id === currentUser?.groupId) || data?.groups?.[0] || {
-    title: team?.subject?.subject_name || 'Major Project Phase - II',
-    groupCode: team?.team_code || 'Group G01',
-    subject: team?.subject?.subject_name || 'Major Project Phase - II',
-    subjectCode: team?.subject?.subject_code || '21CSP81',
-    guide: team?.guide?.name || 'Dr. Anita M.',
-    status: 'Active'
-  };
+  const activeGuide = team?.guide?.name || 'Not Assigned';
+  const activeCoordinator = team?.coordinator || 'Not Assigned';
+  const activeTitle = team?.subject?.subject_name || (team ? 'Academic Project' : 'No Enrolled Project');
+  const activeSubjectCode = team?.subject?.subject_code || 'N/A';
+  const activeGroupCode = team?.team_code || 'Not Enrolled';
 
   // Projects list state (stored in local component state)
-  const [extraProjects, setExtraProjects] = useState([
-    {
-      id: 'proj-1',
-      title: studentGroup.title || 'Major Project Phase - II',
-      groupName: studentGroup.groupCode || 'Group G01',
-      subject: 'Major Project Phase - II',
-      subjectCode: studentGroup.subjectCode || studentGroup.subject || '21CSP81',
-      guide: studentGroup.guide || 'Dr. Anita M.',
-      status: 'Active'
+  const [extraProjects, setExtraProjects] = useState([]);
+
+  // Sync projects with loaded team data from database
+  useEffect(() => {
+    if (team) {
+      setExtraProjects([
+        {
+          id: team.team_id || 'proj-1',
+          title: activeTitle,
+          groupName: activeGroupCode,
+          subject: activeTitle,
+          subjectCode: activeSubjectCode,
+          guide: activeGuide,
+          coordinator: activeCoordinator,
+          status: 'Active'
+        }
+      ]);
+    } else {
+      setExtraProjects([]);
     }
-  ]);
+  }, [team, activeGuide, activeCoordinator, activeTitle, activeSubjectCode, activeGroupCode]);
 
   // Form states for adding another project
   const [newTitle, setNewTitle] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newSubject, setNewSubject] = useState('Technical Seminar & Paper');
   const [newSubjectCode, setNewSubjectCode] = useState('21CSS82');
-  const [newGuide, setNewGuide] = useState('Dr. Anita M.');
-  const [success, setSuccess] = useState('');
+  const [newGuide, setNewGuide] = useState('Faculty Guide');
 
   const handleAddProject = (e) => {
     e.preventDefault();
@@ -119,26 +141,33 @@ export const StudentProfile = () => {
                 <div style={{ fontSize: '14px', fontWeight: 700, color: '#B82226', margin: '4px 0' }}>
                   USN: {currentUser.usn || currentUser.student_id || 'N/A'}
                 </div>
-                <Badge variant="navy">{currentUser.batch || '2021–2025 (8th Sem)'}</Badge>
+                <Badge variant="navy">{currentUser.batch || 'Current Academic Year'}</Badge>
               </div>
             </Card>
 
             <Card title="System Managed Enrolment">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-                <div><strong>Subject Code:</strong> {team?.subject?.subject_code || '21CSP81'}</div>
-                <div><strong>Academic Batch:</strong> {currentUser.batch || '2021–2025 (8th Sem)'}</div>
-                <div><strong>Allocated Guide:</strong> {team?.guide?.name || 'Dr. Anita M.'}</div>
-                <div><strong>Group Association:</strong> {team?.team_code || studentGroup.groupCode || 'Group G01'}</div>
-                <div><strong>Leader Status:</strong> Group Member</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
+                <div><strong>Subject Code:</strong> {activeSubjectCode}</div>
+                <div><strong>Academic Batch:</strong> {currentUser.batch || 'Current Academic Year'}</div>
+                
+                <div>
+                  <strong>Allocated Guide:</strong>{' '}
+                  <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{activeGuide}</span>
+                </div>
+
+
+                <div><strong>Assigned Coordinator:</strong> <span style={{ color: '#B8115B', fontWeight: 700 }}>{activeCoordinator}</span></div>
+                <div><strong>Group Association:</strong> {activeGroupCode}</div>
+                <div><strong>Leader Status:</strong> {team ? 'Group Member' : 'Not Enrolled'}</div>
               </div>
             </Card>
 
             <Card title="Project Group Overview">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-                <div><strong>Group Title:</strong> {team?.subject?.subject_name || studentGroup.title || 'Major Project Phase - II'}</div>
-                <div><strong>Domain:</strong> Cloud Computing & Distributed Systems</div>
+                <div><strong>Group Title:</strong> {activeTitle}</div>
+                <div><strong>Domain:</strong> {team?.domain || 'Computer Science & Engineering'}</div>
                 <div><strong>Submission Mode:</strong> <Badge variant="navy">Digital</Badge></div>
-                <div><strong>Overall Status:</strong> <Badge variant="success">Active</Badge></div>
+                <div><strong>Overall Status:</strong> <Badge variant={team ? 'success' : 'secondary'}>{team ? 'Active' : 'Pending Allocation'}</Badge></div>
               </div>
             </Card>
           </div>
@@ -151,7 +180,7 @@ export const StudentProfile = () => {
               </div>
               <div>
                 <label className="form-label">Registered Contact Phone</label>
-                <input type="text" className="form-input" value={currentUser.phone || '+91 98450 12345'} disabled />
+                <input type="text" className="form-input" value={currentUser.phone || 'Not Provided'} disabled />
               </div>
             </div>
           </Card>
@@ -161,32 +190,38 @@ export const StudentProfile = () => {
       {/* Box 1: Current Working Projects */}
       <Card title="Current Registered Academic Projects">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {extraProjects.map((p) => (
-            <div 
-              key={p.id}
-              style={{
-                border: '1px solid #E5E5E5',
-                borderRadius: '6px',
-                padding: '16px',
-                backgroundColor: '#FFFFFF',
-                borderLeft: '5px solid #3A1F6F'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
-                  {p.title}
-                </h3>
-                <Badge variant="purple">{p.status}</Badge>
-              </div>
+          {extraProjects.length > 0 ? (
+            extraProjects.map((p) => (
+              <div 
+                key={p.id}
+                style={{
+                  border: '1px solid #E5E5E5',
+                  borderRadius: '6px',
+                  padding: '16px',
+                  backgroundColor: '#FFFFFF',
+                  borderLeft: '5px solid #3A1F6F'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                    {p.title}
+                  </h3>
+                  <Badge variant="purple">{p.status}</Badge>
+                </div>
 
-              <div className="grid-4" style={{ fontSize: '13px', color: '#55636B' }}>
-                <div><strong>Group Name:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{p.groupName}</span></div>
-                <div><strong>Subject:</strong> {p.subject}</div>
-                <div><strong>Subject Code:</strong> {p.subjectCode}</div>
-                <div><strong>Guide:</strong> {p.guide}</div>
+                <div className="grid-4" style={{ fontSize: '13px', color: '#55636B' }}>
+                  <div><strong>Group Name:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{p.groupName}</span></div>
+                  <div><strong>Subject:</strong> {p.subject}</div>
+                  <div><strong>Allocated Guide:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{p.guide}</span></div>
+                  <div><strong>Assigned Coordinator:</strong> <span style={{ color: '#B8115B', fontWeight: 700 }}>{p.coordinator || activeCoordinator}</span></div>
+                </div>
               </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '16px', color: '#8A9198', fontSize: '14px' }}>
+              No academic project teams currently registered in the database for this student account.
             </div>
-          ))}
+          )}
         </div>
       </Card>
 
@@ -211,7 +246,7 @@ export const StudentProfile = () => {
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Group G05 or Team Beta"
+                placeholder="e.g. Group G05"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 required
@@ -221,11 +256,10 @@ export const StudentProfile = () => {
 
           <div className="grid-3">
             <div className="form-group">
-              <label className="form-label">Subject Title</label>
+              <label className="form-label">Subject Full Name</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="e.g. Technical Seminar & Paper"
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
                 required
@@ -239,11 +273,10 @@ export const StudentProfile = () => {
                 value={newSubjectCode}
                 onChange={(e) => setNewSubjectCode(e.target.value)}
               >
-                {(data?.subjects || [
-                  { id: 'sub-1', code: '21CSP81', name: 'Major Project Phase - II' },
-                  { id: 'sub-2', code: '21CSS82', name: 'Technical Seminar & Paper' }
-                ]).map(s => (
-                  <option key={s.id} value={s.code}>{s.code} - {s.name}</option>
+                {subjectsList.map(s => (
+                  <option key={s.subject_id || s.id || s.subject_code} value={s.subject_code || s.code}>
+                    {s.subject_code || s.code} - {s.subject_name || s.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -255,12 +288,13 @@ export const StudentProfile = () => {
                 value={newGuide}
                 onChange={(e) => setNewGuide(e.target.value)}
               >
-                {(data?.facultyGuides || [
-                  { id: 'fg-1', name: 'Dr. Anita M.' },
-                  { id: 'fg-2', name: 'Prof. Rajesh K.' }
-                ]).map(g => (
-                  <option key={g.id} value={g.name}>{g.name}</option>
-                ))}
+                {facultyList.length > 0 ? (
+                  facultyList.map(g => (
+                    <option key={g.faculty_id || g.id} value={g.name}>{g.name}</option>
+                  ))
+                ) : (
+                  <option value="Faculty Guide">Faculty Guide</option>
+                )}
               </select>
             </div>
           </div>

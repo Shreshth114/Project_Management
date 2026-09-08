@@ -3,19 +3,20 @@ import { PlusSquare, BookOpen, UserCheck } from 'lucide-react';
 import { Badge } from '../../components/common/Badge';
 import { Card } from '../../components/common/Card';
 import { academicService } from '../../services/academicService';
+import { useAuth } from '../../context/AuthContext';
 
 export const AdminSubjects = () => {
+  const { assignFacultyAsCoordinator } = useAuth();
   const [subjectsList, setSubjectsList] = useState([]);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [credits, setCredits] = useState(6);
   const [semester, setSemester] = useState(8);
-  const [assignedCoordinator, setAssignedCoordinator] = useState('Prof. V. Kulkarni');
+  const [assignedCoordinator, setAssignedCoordinator] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Extra state for dummy faculty guides in the dropdown since academicService doesn't load them here
-  const facultyGuides = [{id: 1, name: 'Prof. V. Kulkarni', designation: 'Professor'}];
+  const [facultyList, setFacultyList] = useState([]);
 
   useEffect(() => {
     fetchSubjects();
@@ -24,8 +25,22 @@ export const AdminSubjects = () => {
   const fetchSubjects = async () => {
     try {
       setLoading(true);
-      const data = await academicService.getSubjects();
+      const [data, fetchedFaculties] = await Promise.all([
+        academicService.getSubjects(),
+        academicService.getFaculty().catch(() => [])
+      ]);
       setSubjectsList(data || []);
+
+      const faculties = (fetchedFaculties || []).map(f => ({
+        id: f.faculty_id || f.id,
+        name: f.name,
+        designation: f.is_coordinator ? 'Coordinator / Faculty' : 'Faculty Member'
+      }));
+
+      setFacultyList(faculties);
+      if (faculties.length > 0) {
+        setAssignedCoordinator(faculties[0].name);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -38,7 +53,12 @@ export const AdminSubjects = () => {
     try {
       setError(null);
       const newSub = await academicService.createSubject(code, name);
-      // Mocking the extra data to display in UI immediately
+      if (assignedCoordinator) {
+        await academicService.assignCoordinator(assignedCoordinator, code);
+        if (assignFacultyAsCoordinator) {
+          assignFacultyAsCoordinator(assignedCoordinator, code);
+        }
+      }
       const enhancedSub = {
         ...newSub,
         credits: Number(credits),
@@ -90,8 +110,8 @@ export const AdminSubjects = () => {
                         <td data-label="Subject Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.subject_code || s.code}</td>
                         <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
                         <td data-label="Credits">{s.credits || 6} Credits</td>
-                        <td data-label="Coordinator" style={{ fontWeight: 700, color: '#3A1F6F' }}>
-                          {s.coordinator || 'Prof. V. Kulkarni'}
+                        <td data-label="Coordinator" style={{ fontWeight: 700, color: s.coordinator ? '#3A1F6F' : '#888' }}>
+                          {s.coordinator || <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Not Assigned</span>}
                         </td>
                         <td data-label="Status"><Badge variant={s.status === 'Active' ? 'success' : 'purple'}>{s.status || 'Active'}</Badge></td>
                       </tr>
@@ -137,8 +157,8 @@ export const AdminSubjects = () => {
                   value={assignedCoordinator}
                   onChange={(e) => setAssignedCoordinator(e.target.value)}
                 >
-                  {facultyGuides.map(g => (
-                    <option key={g.id} value={g.name}>{g.name} ({g.designation})</option>
+                  {facultyList.map((g, idx) => (
+                    <option key={g.id || idx} value={g.name}>{g.name} ({g.designation || 'Faculty Member'})</option>
                   ))}
                 </select>
               </div>

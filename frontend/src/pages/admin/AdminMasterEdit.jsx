@@ -1,43 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { 
   PlusSquare, Calendar, Send, CheckCircle, Trash2, 
-  UserCheck, MessageSquare, Settings, Edit, ShieldAlert, RefreshCw 
+  UserCheck, MessageSquare, Settings, Edit, ShieldAlert, RefreshCw, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
-
+import { messageService } from '../../services/messageService';
 
 export const AdminMasterEdit = () => {
-  const { data, sendMessage, deleteMessage, currentUser } = useAuth();
+  const { currentUser, assignFacultyAsCoordinator } = useAuth();
   
-  // MAIN state
+  // Dynamic state
   const [teams, setTeams] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [faculties, setFaculties] = useState([]);
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [messagesList, setMessagesList] = useState([]);
+  const [directoryUsers, setDirectoryUsers] = useState([]);
+
   const [selectedGroup, setSelectedGroup] = useState('');
   const [newGuide, setNewGuide] = useState('');
   const [extensionHours, setExtensionHours] = useState(48);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // HEAD state
-  const [selectedTask, setSelectedTask] = useState(data?.tasks?.[0]?.id || 'tsk-grp-01');
-  const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('2025-11-15');
-  const [newEvalDeadline, setNewEvalDeadline] = useState('2025-11-20');
+  // Milestone Task Deadline
+  const [selectedTask, setSelectedTask] = useState('');
+  const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('');
   const [deadlineSuccess, setDeadlineSuccess] = useState('');
 
+  // Circular
   const [circularSubject, setCircularSubject] = useState('');
   const [circularContent, setCircularContent] = useState('');
   const [circularSuccess, setCircularSuccess] = useState('');
 
-  const [subjectToAssign, setSubjectToAssign] = useState(data?.subjects?.[0]?.code || '21CSP81');
-  const [newCoordinatorName, setNewCoordinatorName] = useState('Prof. V. Kulkarni');
+  // Coordinator Assignment
+  const [subjectToAssign, setSubjectToAssign] = useState('');
+  const [newCoordinatorName, setNewCoordinatorName] = useState('');
   const [assignSuccess, setAssignSuccess] = useState('');
 
   const [msgNotice, setMsgNotice] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadData();
@@ -46,20 +52,37 @@ export const AdminMasterEdit = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [fetchedTeams, fetchedTasks, fetchedFaculties] = await Promise.all([
-        academicService.getTeams(),
-        taskService.getTasks(),
-        academicService.getFaculty()
+      const [fetchedTeams, fetchedTasks, fetchedFaculties, fetchedSubjects, fetchedMessages, dir] = await Promise.all([
+        academicService.getTeams().catch(() => []),
+        taskService.getTasks().catch(() => []),
+        academicService.getFaculty().catch(() => []),
+        academicService.getSubjects().catch(() => []),
+        messageService.getAllMessages().catch(() => []),
+        academicService.getAdminUserDirectory().catch(() => ({ users: [] }))
       ]);
+
       setTeams(fetchedTeams || []);
       setTasks(fetchedTasks || []);
       setFaculties(fetchedFaculties || []);
-      
+      setSubjectsList(fetchedSubjects || []);
+      setMessagesList(fetchedMessages || []);
+      setDirectoryUsers(dir.users || []);
+
       if (fetchedTeams?.length > 0) setSelectedGroup(fetchedTeams[0].team_id);
-      if (fetchedTasks?.length > 0) setSelectedTask(fetchedTasks[0].task_id);
-      if (fetchedFaculties?.length > 0) setNewGuide(fetchedFaculties[0].faculty_id);
+      if (fetchedTasks?.length > 0) {
+        setSelectedTask(fetchedTasks[0].task_id);
+        setNewSubmissionDeadline(fetchedTasks[0].deadline ? fetchedTasks[0].deadline.slice(0, 10) : '');
+      }
+      if (fetchedFaculties?.length > 0) {
+        setNewGuide(fetchedFaculties[0].faculty_id);
+        setNewCoordinatorName(fetchedFaculties[0].name);
+      }
+      if (fetchedSubjects?.length > 0) {
+        setSubjectToAssign(fetchedSubjects[0].subject_code || fetchedSubjects[0].code);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("AdminMasterEdit load failed:", err);
+      setError("Failed to load administration dataset.");
     } finally {
       setLoading(false);
     }
@@ -68,22 +91,23 @@ export const AdminMasterEdit = () => {
   const handleGuideOverride = async (e) => {
     e.preventDefault();
     try {
+      setError('');
       await academicService.updateTeamGuide(selectedGroup, newGuide);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       loadData();
     } catch (err) {
-      console.error(err);
-      alert('Failed to override guide: ' + err.message);
+      setError('Failed to reassign guide: ' + err.message);
     }
   };
 
   const handleDeadlineOverride = async (e) => {
     e.preventDefault();
     try {
-      const task = tasks.find(t => t.task_id === selectedTask);
+      setError('');
+      const task = tasks.find(t => String(t.task_id) === String(selectedTask));
       if (!task) return;
-      const currentDeadline = new Date(task.deadline);
+      const currentDeadline = new Date(task.deadline || Date.now());
       currentDeadline.setHours(currentDeadline.getHours() + parseInt(extensionHours, 10));
       
       await taskService.updateTaskDeadline(selectedTask, currentDeadline.toISOString());
@@ -92,54 +116,84 @@ export const AdminMasterEdit = () => {
       setTimeout(() => setSaved(false), 3000);
       loadData();
     } catch (err) {
-      console.error(err);
-      alert('Failed to extend deadline: ' + err.message);
+      setError('Failed to extend deadline: ' + err.message);
     }
   };
 
-  const handleExtendDeadlines = (e) => {
+  const handleExtendDeadlines = async (e) => {
     e.preventDefault();
-    if (!data?.tasks) return;
-    const taskObj = data.tasks.find(t => t.id === selectedTask);
-    if (taskObj) {
-      taskObj.deadline = newSubmissionDeadline;
+    try {
+      setError('');
+      if (!selectedTask || !newSubmissionDeadline) return;
+      await taskService.updateTaskDeadline(selectedTask, newSubmissionDeadline);
+      setDeadlineSuccess(`Milestone deadline successfully updated to ${newSubmissionDeadline}!`);
+      setTimeout(() => setDeadlineSuccess(''), 4000);
+      loadData();
+    } catch (err) {
+      setError('Failed to update milestone deadline: ' + err.message);
     }
-    setDeadlineSuccess(`Submission deadline for "${taskObj?.title || 'Task'}" extended to ${newSubmissionDeadline}!`);
-    setTimeout(() => setDeadlineSuccess(''), 4000);
   };
 
-  const handleBroadcastCircular = (e) => {
+  const handleBroadcastCircular = async (e) => {
     e.preventDefault();
-    sendMessage({
-      recipient: 'All System Users (Students, Faculty, Coordinators)',
-      category: 'CIRCULAR',
-      senderRole: 'ADMIN',
-      sender: 'Academic Admin Office',
-      subject: circularSubject,
-      content: circularContent
-    });
-
-    setCircularSubject('');
-    setCircularContent('');
-    setCircularSuccess('Official System Circular broadcasted to all users successfully!');
-    setTimeout(() => setCircularSuccess(''), 4000);
-  };
-
-  const handleAssignCoordinator = (e) => {
-    e.preventDefault();
-    if (!data?.subjects) return;
-    const subObj = data.subjects.find(s => s.code === subjectToAssign);
-    if (subObj) {
-      subObj.coordinator = newCoordinatorName;
+    if (!currentUser?.user_id) {
+      setError('Active admin session not found.');
+      return;
     }
-    setAssignSuccess(`Assigned ${newCoordinatorName} as Coordinator for ${subjectToAssign}!`);
-    setTimeout(() => setAssignSuccess(''), 4000);
+
+    try {
+      setError('');
+      const fullText = `[${circularSubject}]\n${circularContent}`;
+      
+      // Broadcast to all users in the directory
+      const promises = directoryUsers
+        .filter(u => u.user_id && u.user_id !== currentUser.user_id)
+        .map(u => messageService.sendMessage({
+          sender_id: currentUser.user_id,
+          receiver_id: u.user_id,
+          message_text: fullText
+        }));
+
+      await Promise.all(promises);
+
+      setCircularSubject('');
+      setCircularContent('');
+      setCircularSuccess('Official System Circular broadcasted to all registered users!');
+      setTimeout(() => setCircularSuccess(''), 4000);
+
+      const msgs = await messageService.getAllMessages().catch(() => []);
+      setMessagesList(msgs || []);
+    } catch (err) {
+      setError('Failed to broadcast circular: ' + err.message);
+    }
   };
 
-  const handleDeleteSystemMessage = (msgId) => {
-    deleteMessage(msgId);
-    setMsgNotice('Message permanently deleted by System Administrator.');
-    setTimeout(() => setMsgNotice(''), 3000);
+  const handleAssignCoordinator = async (e) => {
+    e.preventDefault();
+    try {
+      setError('');
+      await academicService.assignCoordinator(newCoordinatorName, subjectToAssign);
+      if (assignFacultyAsCoordinator) {
+        assignFacultyAsCoordinator(newCoordinatorName, subjectToAssign);
+      }
+      setAssignSuccess(`✓ ${newCoordinatorName} assigned as Coordinator for ${subjectToAssign}. Changes are active immediately.`);
+      setTimeout(() => setAssignSuccess(''), 5000);
+      loadData();
+    } catch (err) {
+      setError("Failed to assign coordinator: " + err.message);
+    }
+  };
+
+  const handleDeleteSystemMessage = async (msgId) => {
+    try {
+      setError('');
+      await messageService.deleteMessage(msgId);
+      setMessagesList(prev => prev.filter(m => (m.message_id || m.id) !== msgId));
+      setMsgNotice('Message permanently deleted from database.');
+      setTimeout(() => setMsgNotice(''), 3000);
+    } catch (err) {
+      setError('Failed to delete message: ' + err.message);
+    }
   };
 
   return (
@@ -147,9 +201,16 @@ export const AdminMasterEdit = () => {
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Admin Master Editing & System Control Studio</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Central control page to edit deadlines, assign coordinators, write official circulars, and manage/delete system messages.
+          Central control page to edit deadlines, assign coordinators, write official circulars, and manage system messages.
         </p>
       </div>
+
+      {error && (
+        <div className="alert alert-danger">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
 
       {msgNotice && (
         <div className="alert alert-success">
@@ -158,8 +219,15 @@ export const AdminMasterEdit = () => {
         </div>
       )}
 
-      {/* BLOCK 1: EDIT DEADLINES & EVALUATION DATES */}
-      <Card title="1. Edit Submission & Evaluation Deadlines">
+      {saved && (
+        <div className="alert alert-success">
+          <CheckCircle size={18} />
+          <span>Changes saved successfully to database!</span>
+        </div>
+      )}
+
+      {/* BLOCK 1: EDIT DEADLINES */}
+      <Card title="1. Edit Submission Deadlines (Live Database)">
         {deadlineSuccess && (
           <div className="alert alert-success">
             <CheckCircle size={18} />
@@ -168,28 +236,30 @@ export const AdminMasterEdit = () => {
         )}
 
         <form onSubmit={handleExtendDeadlines}>
-          <div className="grid-3">
+          <div className="grid-2">
             <div className="form-group">
               <label className="form-label">Select Milestone Task</label>
               <select
                 className="form-select"
                 value={selectedTask}
-                onChange={(e) => setSelectedTask(e.target.value)}
+                onChange={(e) => {
+                  setSelectedTask(e.target.value);
+                  const task = tasks.find(t => String(t.task_id) === String(e.target.value));
+                  if (task?.deadline) {
+                    setNewSubmissionDeadline(task.deadline.slice(0, 10));
+                  }
+                }}
               >
-                {tasks && tasks.length > 0 ? (
-                  tasks.map(t => (
-                    <option key={t.task_id || t.id} value={t.task_id || t.id}>{t.title} ({t.deadline})</option>
-                  ))
-                ) : (
-                  data?.tasks?.map(t => (
-                    <option key={t.id} value={t.id}>{t.title} ({t.deadline})</option>
-                  ))
-                )}
+                {tasks.map(t => (
+                  <option key={t.task_id} value={t.task_id}>
+                    {t.title} (Current: {t.deadline ? new Date(t.deadline).toLocaleDateString() : 'N/A'})
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label">New Student Submission Deadline</label>
+              <label className="form-label">New Submission Deadline Date</label>
               <input
                 type="date"
                 className="form-input"
@@ -198,30 +268,19 @@ export const AdminMasterEdit = () => {
                 required
               />
             </div>
-
-            <div className="form-group">
-              <label className="form-label">New Faculty Evaluation Deadline</label>
-              <input
-                type="date"
-                className="form-input"
-                value={newEvalDeadline}
-                onChange={(e) => setNewEvalDeadline(e.target.value)}
-                required
-              />
-            </div>
           </div>
 
-          <button type="submit" className="btn btn-purple">
+          <button type="submit" className="btn btn-purple" disabled={tasks.length === 0}>
             <Calendar size={16} />
             <span>APPLY DEADLINE EXTENSION</span>
           </button>
         </form>
       </Card>
 
-      {/* EMERGENCY DEADLINE OVERRIDE (MAIN) */}
-      <Card title="Emergency Milestone Deadline Extension (System)">
+      {/* EMERGENCY DEADLINE OVERRIDE (HOURS) */}
+      <Card title="Emergency Milestone Deadline Extension (By Hours)">
         <form onSubmit={handleDeadlineOverride}>
-          <div className="grid-3">
+          <div className="grid-2">
             <div className="form-group">
               <label className="form-label">Select Milestone Phase</label>
               <select 
@@ -235,7 +294,7 @@ export const AdminMasterEdit = () => {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Extension (Hours)</label>
+              <label className="form-label">Extension Duration (Hours)</label>
               <input
                 type="number"
                 className="form-input"
@@ -245,14 +304,14 @@ export const AdminMasterEdit = () => {
               />
             </div>
           </div>
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" disabled={tasks.length === 0}>
             <Settings size={16} />
             <span>EXTEND DEADLINE HOURS</span>
           </button>
         </form>
       </Card>
 
-      {/* REASSIGN FACULTY GUIDE (MAIN) */}
+      {/* REASSIGN FACULTY GUIDE */}
       <Card title="Reassign Project Group Faculty Guide">
         <form onSubmit={handleGuideOverride}>
           <div className="grid-2">
@@ -264,13 +323,15 @@ export const AdminMasterEdit = () => {
                 onChange={(e) => setSelectedGroup(e.target.value)}
               >
                 {teams.map(g => (
-                  <option key={g.team_id} value={g.team_id}>{g.team_code} - {g.subject?.subject_name}</option>
+                  <option key={g.team_id} value={g.team_id}>
+                    {g.team_code} - {g.subject?.subject_name || 'Project'} (Current Guide: {g.guide?.name || 'Unassigned'})
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Reassign Faculty Guide</label>
+              <label className="form-label">Reassign New Faculty Guide</label>
               <select
                 className="form-select"
                 value={newGuide}
@@ -283,15 +344,15 @@ export const AdminMasterEdit = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" disabled={teams.length === 0 || faculties.length === 0}>
             <UserCheck size={16} />
             <span>REASSIGN FACULTY GUIDE</span>
           </button>
         </form>
       </Card>
 
-      {/* BLOCK 2: WRITE OUT OFFICIAL CIRCULARS */}
-      <Card title="2. Broadcast System Circular (Visible to Everyone)">
+      {/* BLOCK 2: BROADCAST CIRCULARS */}
+      <Card title="2. Broadcast System Circular (Dispatched to All Users)">
         {circularSuccess && (
           <div className="alert alert-success">
             <CheckCircle size={18} />
@@ -317,7 +378,7 @@ export const AdminMasterEdit = () => {
             <textarea
               className="form-textarea"
               rows={4}
-              placeholder="Type circular announcement to be seen by all students, faculty, and coordinators..."
+              placeholder="Type circular announcement to be received by all students, faculty, and coordinators..."
               value={circularContent}
               onChange={(e) => setCircularContent(e.target.value)}
               required
@@ -326,7 +387,7 @@ export const AdminMasterEdit = () => {
 
           <button type="submit" className="btn btn-magenta btn-block">
             <Send size={16} />
-            <span>BROADCAST CIRCULAR TO ALL USERS</span>
+            <span>BROADCAST CIRCULAR TO ALL SYSTEM USERS</span>
           </button>
         </form>
       </Card>
@@ -349,74 +410,89 @@ export const AdminMasterEdit = () => {
                 value={subjectToAssign}
                 onChange={(e) => setSubjectToAssign(e.target.value)}
               >
-                {data.subjects.map(s => (
-                  <option key={s.id} value={s.code}>
-                    {s.code} - {s.name} (Current: {s.coordinator})
+                {subjectsList.map((s, idx) => (
+                  <option key={s.subject_id || s.id || idx} value={s.subject_code || s.code}>
+                    {s.subject_code || s.code} - {s.subject_name || s.name} (Current: {s.coordinator || 'Not Assigned'})
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Assign Coordinator</label>
+              <label className="form-label">Assign Faculty Member as Coordinator</label>
               <select
                 className="form-select"
                 value={newCoordinatorName}
                 onChange={(e) => setNewCoordinatorName(e.target.value)}
               >
-                {data.facultyGuides.map(g => (
-                  <option key={g.id} value={g.name}>{g.name} ({g.designation})</option>
+                {faculties.map((g, idx) => (
+                  <option key={g.faculty_id || g.id || idx} value={g.name}>{g.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" disabled={subjectsList.length === 0 || faculties.length === 0}>
             <UserCheck size={16} />
             <span>ASSIGN COORDINATOR TO SUBJECT</span>
           </button>
         </form>
       </Card>
 
-      {/* BLOCK 4: MASTER MESSAGES & CIRCULARS MANAGER (ADMIN CAN DELETE ALL MESSAGES) */}
-      <Card title="4. Master System Messages Log & Deletion Manager (Admin Master Access)">
-        <div className="table-container responsive-table-stack">
-          <table className="portal-table">
-            <thead>
-              <tr>
-                <th>Sender</th>
-                <th>Category</th>
-                <th>Recipient</th>
-                <th>Subject Line</th>
-                <th>Timestamp</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(data.messages || []).map((msg) => (
-                <tr key={msg.id}>
-                  <td data-label="Sender" style={{ fontWeight: 700, color: '#3A1F6F' }}>{msg.sender}</td>
-                  <td data-label="Category"><Badge variant="purple">{msg.category || 'DIRECT'}</Badge></td>
-                  <td data-label="Recipient" style={{ fontSize: '13px' }}>{msg.recipient}</td>
-                  <td data-label="Subject Line" style={{ fontWeight: 600, color: '#DE3B0B' }}>{msg.subject}</td>
-                  <td data-label="Timestamp" style={{ fontSize: '11px', color: '#55636B' }}>{msg.timestamp}</td>
-                  <td data-label="Action">
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      style={{ color: '#DE3B0B' }}
-                      onClick={() => handleDeleteSystemMessage(msg.id)}
-                      title="Admin Master Deletion"
-                    >
-                      <Trash2 size={13} />
-                      <span>Delete Message</span>
-                    </button>
-                  </td>
+      {/* BLOCK 4: MASTER MESSAGES & CIRCULARS MANAGER */}
+      <Card title="4. Master System Messages Log & Deletion Manager (Database Access)">
+        {loading ? (
+          <p style={{ padding: '16px' }}>Loading messages log...</p>
+        ) : messagesList.length === 0 ? (
+          <p style={{ padding: '16px', color: '#888' }}>No messages logged in database.</p>
+        ) : (
+          <div className="table-container responsive-table-stack">
+            <table className="portal-table">
+              <thead>
+                <tr>
+                  <th>Sender</th>
+                  <th>Recipient</th>
+                  <th>Message Body</th>
+                  <th>Timestamp</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {messagesList.map((msg) => {
+                  const id = msg.message_id || msg.id;
+                  return (
+                    <tr key={id}>
+                      <td data-label="Sender" style={{ fontWeight: 700, color: '#3A1F6F' }}>
+                        {msg.sender?.email || msg.sender_id || 'User'}
+                      </td>
+                      <td data-label="Recipient" style={{ fontSize: '13px' }}>
+                        {msg.receiver?.email || msg.receiver_id || 'User'}
+                      </td>
+                      <td data-label="Message Body" style={{ fontSize: '13px', color: '#333' }}>
+                        {msg.message_text}
+                      </td>
+                      <td data-label="Timestamp" style={{ fontSize: '11px', color: '#55636B' }}>
+                        {msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'N/A'}
+                      </td>
+                      <td data-label="Action">
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          style={{ color: '#DE3B0B' }}
+                          onClick={() => handleDeleteSystemMessage(id)}
+                          title="Admin Master Deletion"
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   );
