@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
-import { ArrowLeft, UserCheck, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, UserCheck, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { academicService } from '../../services/academicService';
 
 export const RegisterFaculty = ({ onBackToLogin }) => {
-  const { data, registerUser } = useAuth();
+  const { registerUser } = useAuth();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
-  const [password, setPassword] = useState(''); // Strictly empty until typed
+  const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dynamic subjects from database
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(true);
+
+  useEffect(() => {
+    academicService.getSubjects()
+      .then(subs => {
+        setSubjects(subs || []);
+        if (subs && subs.length > 0) {
+          setSubjectCode(subs[0].subject_code || subs[0].code);
+          setSubjectName(subs[0].subject_name || subs[0].name);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingSubjects(false));
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -64,7 +82,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '520px',
+        maxWidth: '540px',
         backgroundColor: '#FFFFFF',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -101,7 +119,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               Faculty Enrolment Portal
             </h2>
             <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
-              Specify Subject Name & Subject Code Options
+              Specify Subject Name & Select Course Subject Code
             </div>
           </div>
         </div>
@@ -117,6 +135,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
           {error && (
             <div className="alert alert-danger">
+              <AlertCircle size={18} />
               <span>{error}</span>
             </div>
           )}
@@ -149,7 +168,31 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Subject Name Option</label>
+                <label className="form-label">Course Subject Code</label>
+                <select 
+                  className="form-select"
+                  value={subjectCode}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    setSubjectCode(code);
+                    const foundSub = subjects.find(s => (s.subject_code || s.code) === code);
+                    if (foundSub) setSubjectName(foundSub.subject_name || foundSub.name);
+                  }}
+                  required
+                >
+                  <option value="">
+                    {loadingSubjects ? 'Loading subjects...' : 'Select a subject'}
+                  </option>
+                  {subjects.map(s => (
+                    <option key={s.subject_id || s.id || s.subject_code} value={s.subject_code || s.code}>
+                      {s.subject_code || s.code} ({s.subject_name || s.name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Subject Full Name</label>
                 <input
                   type="text"
                   className="form-input"
@@ -158,27 +201,6 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
                   onChange={(e) => setSubjectName(e.target.value)}
                   required
                 />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Subject Code</label>
-                <select 
-                  className="form-select"
-                  value={subjectCode}
-                  onChange={(e) => {
-                    setSubjectCode(e.target.value);
-                    const foundSub = (data?.subjects || []).find(s => s.code === e.target.value);
-                    if (foundSub) setSubjectName(foundSub.name);
-                  }}
-                  required
-                >
-                  <option value="">Select a subject</option>
-                  {(data?.subjects || []).map(s => (
-                    <option key={s.id || s.code} value={s.code}>
-                      {s.code} ({s.name})
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
 
@@ -195,7 +217,12 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               />
             </div>
 
-            <button type="submit" className="btn btn-magenta btn-block" style={{ marginTop: '16px', padding: '12px' }} disabled={isSubmitting}>
+            <button 
+              type="submit" 
+              className="btn btn-magenta btn-block" 
+              style={{ marginTop: '16px', padding: '12px' }} 
+              disabled={isSubmitting}
+            >
               <UserCheck size={16} />
               <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT FACULTY ENROLMENT'}</span>
             </button>

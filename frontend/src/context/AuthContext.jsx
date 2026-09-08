@@ -1,26 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { authService } from '../services/authService';
-import { initialCollegeData } from '../data/mockData';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('rit_college_data');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return initialCollegeData;
-      }
-    }
-    return initialCollegeData;
+    localStorage.removeItem('rit_college_data');
+    return {
+      users: [], groups: [], tasks: [], submissions: [],
+      individualSubmissions: [], groupEvaluations: [],
+      messages: [], auditLogs: [], subjects: [], facultyGuides: []
+    };
   });
-
-  useEffect(() => {
-    localStorage.setItem('rit_college_data', JSON.stringify(data));
-  }, [data]);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [currentRole, setCurrentRole] = useState(null);
@@ -57,9 +49,30 @@ export const AuthProvider = ({ children }) => {
         const savedProfile = localStorage.getItem('rit_current_user_profile');
         if (savedProfile) {
           try {
-            const profile = JSON.parse(savedProfile);
+            const cached = JSON.parse(savedProfile);
+            // Re-fetch fresh profile from DB using cached email to reflect any admin assignments immediately
+            let freshProfile = null;
+            try {
+              if (cached?.email) {
+                freshProfile = await authService.getUserProfile(cached.email);
+              }
+            } catch (fetchErr) {
+              console.warn("Notice: could not refresh profile from DB, using cached:", fetchErr?.message);
+            }
+            const profile = freshProfile || cached;
             setCurrentUser(profile);
-            setCurrentRole(profile.role === 'TEACHER' ? (profile.teacherRoles?.[0] || 'FACULTY') : profile.role);
+            localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
+
+            if (profile.role === 'STUDENT') {
+              setCurrentRole('STUDENT');
+            } else if (profile.role === 'ADMIN') {
+              setCurrentRole('ADMIN');
+            } else if (profile.role === 'TEACHER') {
+              const isAssignedCoord = profile.teacherRoles?.includes('COORDINATOR') ||
+                profile.is_coordinator ||
+                profile.isCoordinator;
+              setCurrentRole(prev => prev || (profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY'));
+            }
             setIsAuthLoading(false);
             return;
           } catch (e) {
@@ -110,14 +123,15 @@ export const AuthProvider = ({ children }) => {
             setCurrentRole('ADMIN');
             setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
           } else if (profile.role === 'TEACHER') {
-            const isAssignedCoord = (data.subjects || []).some(
-              s => s.coordinator === profile.name || s.coordinator === profile.username
-            ) || (profile.teacherRoles && profile.teacherRoles.includes('COORDINATOR'));
+            const isAssignedCoord = profile.teacherRoles?.includes('COORDINATOR') ||
+              profile.is_coordinator ||
+              profile.isCoordinator;
 
             if (pendingRole === 'COORDINATOR' || pendingRole === 'FACULTY') {
               setCurrentRole(pendingRole);
               setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
             } else if (isAssignedCoord) {
+              setCurrentRole('FACULTY');
               setShowModeSelectionLanding(true);
               setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
             } else {
@@ -189,15 +203,15 @@ export const AuthProvider = ({ children }) => {
         setCurrentRole('ADMIN');
         setActiveTab('dashboard');
       } else if (profile.role === 'TEACHER') {
-        // Evaluate if they are assigned as coordinator in local data
-        const isAssignedCoord = (data.subjects || []).some(
-          s => s.coordinator === profile.name || s.coordinator === profile.username
-        ) || (profile.teacherRoles && profile.teacherRoles.includes('COORDINATOR'));
+        const isAssignedCoord = profile.teacherRoles?.includes('COORDINATOR') ||
+          profile.is_coordinator ||
+          profile.isCoordinator;
 
         if (expectedRole === 'COORDINATOR' || expectedRole === 'FACULTY') {
           setCurrentRole(expectedRole);
           setActiveTab('dashboard');
         } else if (isAssignedCoord) {
+          setCurrentRole('FACULTY');
           setShowModeSelectionLanding(true);
           setActiveTab('dashboard');
         } else {
@@ -217,15 +231,75 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await authService.registerUser(newUser);
       if (res.success) {
-        setData(prev => ({
-          ...prev,
-          users: [newUser, ...(prev.users || [])]
-        }));
+        setData(prev => {
+          const isFaculty = newUser.role === 'FACULTY' || newUser.role === 'TEACHER';
+          const existingGuides = prev.facultyGuides || [];
+          const exists = existingGuides.some(g => g.name?.toLowerCase() === newUser.name?.toLowerCase());
+          
+          const newGuide = isFaculty && !exists ? {
+            id: `f-${Date.now()}`,
+            name: newUser.name,
+            email: newUser.email,
+            designation: 'Faculty Member',
+            subjectCode: newUser.subjectCode || newUser.subject,
+            isCoordinator: false,
+            is_coordinator: false
+          } : null;
+
+          return {
+            ...prev,
+            users: [newUser, ...(prev.users || [])],
+            facultyGuides: newGuide ? [...existingGuides, newGuide] : existingGuides
+          };
+        });
       }
       return res;
     } catch (err) {
       return { success: false, message: err.message || 'Registration failed.' };
     }
+  };
+
+  const assignFacultyAsCoordinator = (facultyName, subjectCode) => {
+    setData(prev => {
+      const updatedSubjects = (prev.subjects || []).map(s => {
+        if (s.code === subjectCode || s.id === subjectCode || s.subject_code === subjectCode) {
+          return { ...s, coordinator: facultyName };
+        }
+        return s;
+      });
+
+      const updatedFacultyGuides = (prev.facultyGuides || []).map(g => {
+        if (g.name?.toLowerCase() === facultyName?.toLowerCase()) {
+          return {
+            ...g,
+            isCoordinator: true,
+            is_coordinator: true
+          };
+        }
+        return g;
+      });
+
+      const updatedUsers = (prev.users || []).map(u => {
+        if (u.name?.toLowerCase() === facultyName?.toLowerCase() || u.username?.toLowerCase() === facultyName?.toLowerCase()) {
+          const currentTeacherRoles = u.teacherRoles || ['FACULTY'];
+          const newTeacherRoles = Array.from(new Set([...currentTeacherRoles, 'COORDINATOR']));
+          return {
+            ...u,
+            isCoordinator: true,
+            is_coordinator: true,
+            teacherRoles: newTeacherRoles
+          };
+        }
+        return u;
+      });
+
+      return {
+        ...prev,
+        subjects: updatedSubjects,
+        facultyGuides: updatedFacultyGuides,
+        users: updatedUsers
+      };
+    });
   };
 
   const switchTeacherRole = (newRole) => {
@@ -400,6 +474,7 @@ export const AuthProvider = ({ children }) => {
         setActiveTab,
         login,
         registerUser,
+        assignFacultyAsCoordinator,
         resetPassword,
         updatePassword,
         logout,

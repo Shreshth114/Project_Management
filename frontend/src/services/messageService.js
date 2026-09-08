@@ -13,7 +13,21 @@ export const messageService = {
       .order('sent_at', { ascending: false });
       
     if (error) throw error;
-    return data;
+    return data || [];
+  },
+
+  async getAllMessages() {
+    const { data, error } = await supabase
+      .from('message')
+      .select(`
+        *,
+        sender:users!sender_id(role, email),
+        receiver:users!receiver_id(role, email)
+      `)
+      .order('sent_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
 
   async sendMessage(payload) {
@@ -27,6 +41,16 @@ export const messageService = {
       .select()
       .single();
       
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteMessage(messageId) {
+    const { data, error } = await supabase
+      .from('message')
+      .delete()
+      .eq('message_id', messageId);
+
     if (error) throw error;
     return data;
   }

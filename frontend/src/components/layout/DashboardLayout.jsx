@@ -49,7 +49,7 @@ export const DashboardLayout = () => {
   const effectiveRole = activeRole || currentRole;
 
   // Render Full-Screen Faculty Mode Landing Page if mode is not chosen yet
-  if (showModeSelectionLanding && (effectiveRole === 'FACULTY' || effectiveRole === 'TEACHER' || effectiveRole === 'COORDINATOR')) {
+  if (showModeSelectionLanding) {
     return <FacultyModeSelectionPage />;
   }
 

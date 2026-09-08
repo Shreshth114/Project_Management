@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { ArrowLeft, UserCheck, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, UserCheck, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { academicService } from '../../services/academicService';
 
 export const RegisterStudent = ({ onBackToLogin }) => {
-  const { data, registerUser } = useAuth();
+  const { registerUser } = useAuth();
   
   const [usn, setUsn] = useState('');
   const [name, setName] = useState('');
@@ -12,10 +13,45 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [groupName, setGroupName] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [guide, setGuide] = useState('');
-  const [password, setPassword] = useState(''); // Strictly empty until typed
+  const [guideId, setGuideId] = useState('');
+  const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Dynamic dropdown options from database
+  const [subjects, setSubjects] = useState([]);
+  const [facultyList, setFacultyList] = useState([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+
+  useEffect(() => {
+    loadDropdowns();
+  }, []);
+
+  const loadDropdowns = async () => {
+    try {
+      setLoadingOptions(true);
+      const [fetchedSubjects, fetchedFaculty] = await Promise.all([
+        academicService.getSubjects().catch(() => []),
+        academicService.getFaculty().catch(() => [])
+      ]);
+
+      setSubjects(fetchedSubjects || []);
+      if (fetchedSubjects && fetchedSubjects.length > 0) {
+        setSelectedSubject(fetchedSubjects[0].subject_code || fetchedSubjects[0].code);
+      }
+
+      setFacultyList(fetchedFaculty || []);
+      if (fetchedFaculty && fetchedFaculty.length > 0) {
+        setGuide(fetchedFaculty[0].name);
+        setGuideId(fetchedFaculty[0].faculty_id);
+      }
+    } catch (err) {
+      console.warn("Failed to load registration options:", err);
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -23,6 +59,11 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
     if (!email.toLowerCase().includes('@msrit.edu')) {
       setError('Please provide an official college email (@msrit.edu).');
+      return;
+    }
+
+    if (!guideId && facultyList.length > 0) {
+      setError('Please select an allocated faculty guide.');
       return;
     }
 
@@ -35,12 +76,12 @@ export const RegisterStudent = ({ onBackToLogin }) => {
         email,
         role: 'STUDENT',
         department: 'CSE',
-        batch,
+        batch: batch || 'Batch 1 (8th Sem)',
         subject: selectedSubject,
-        groupName,
+        groupName: groupName.trim() || `Group ${usn.slice(-3).toUpperCase()}`,
         guide,
-        password,
-        groupId: 'G01'
+        guideId: guideId ? Number(guideId) : null,
+        password
       };
 
       const res = await registerUser(newUser);
@@ -70,7 +111,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '600px',
+        maxWidth: '640px',
         backgroundColor: '#FFFFFF',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
@@ -107,7 +148,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               Student Registration Portal
             </h2>
             <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
-              Select System Subject, Academic Batch & Group Name
+              Select Course Subject, Academic Batch & Allocated Faculty Guide
             </div>
           </div>
         </div>
@@ -123,6 +164,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
           {error && (
             <div className="alert alert-danger">
+              <AlertCircle size={18} />
               <span>{error}</span>
             </div>
           )}
@@ -168,7 +210,6 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 />
               </div>
 
-              {/* Added Academic Batch Option */}
               <div className="form-group">
                 <label className="form-label">Academic Batch</label>
                 <select
@@ -189,7 +230,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Group G01"
+                  placeholder="e.g. Group G01 or Team Gamma"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
                   required
@@ -199,33 +240,43 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">System Subject Code</label>
+                <label className="form-label">Course Subject Code</label>
                 <select 
                   className="form-select"
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
                   required
                 >
-                  <option value="">Select a subject</option>
-                  {(data?.subjects || []).map(s => (
-                    <option key={s.id || s.code} value={s.code}>
-                      {s.code} - {s.name}
+                  <option value="">
+                    {loadingOptions ? 'Loading subjects...' : 'Select a course subject'}
+                  </option>
+                  {subjects.map(s => (
+                    <option key={s.subject_id || s.id || s.subject_code} value={s.subject_code || s.code}>
+                      {s.subject_code || s.code} - {s.subject_name || s.name}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Coordinator</label>
+                <label className="form-label">Allocated Faculty Guide</label>
                 <select 
                   className="form-select"
-                  value={guide}
-                  onChange={(e) => setGuide(e.target.value)}
+                  value={guideId}
+                  onChange={(e) => {
+                    setGuideId(e.target.value);
+                    const selected = facultyList.find(g => String(g.faculty_id) === String(e.target.value));
+                    if (selected) setGuide(selected.name);
+                  }}
                   required
                 >
-                  <option value="">Select a guide</option>
-                  {(data?.facultyGuides || []).map(g => (
-                    <option key={g.id || g.name} value={g.name}>{g.name}</option>
+                  <option value="">
+                    {loadingOptions ? 'Loading faculty guides...' : 'Select a faculty guide'}
+                  </option>
+                  {facultyList.map(g => (
+                    <option key={g.faculty_id} value={g.faculty_id}>
+                      {g.name} ({g.is_coordinator ? 'Coordinator & Guide' : 'Faculty Guide'})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -244,7 +295,12 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '16px', padding: '12px' }} disabled={isSubmitting}>
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-block" 
+              style={{ marginTop: '16px', padding: '12px' }} 
+              disabled={isSubmitting}
+            >
               <UserCheck size={16} />
               <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT STUDENT ENROLMENT'}</span>
             </button>

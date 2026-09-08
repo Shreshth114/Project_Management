@@ -1,62 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Users, ExternalLink, UserCheck, Eye, X, CheckSquare, FolderCheck, Award } from 'lucide-react';
+import { Search, Users, ExternalLink, UserCheck, Eye, X, CheckSquare, FolderCheck, Award, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
+import { taskService } from '../../services/taskService';
+import { submissionService } from '../../services/submissionService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const CoordinatorGroups = () => {
-  const { data, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   const [search, setSearch] = useState('');
   const [inspectingGroup, setInspectingGroup] = useState(null);
-  const [backendGroups, setBackendGroups] = useState([]);
+  const [inspectingSubmissions, setInspectingSubmissions] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [groupsList, setGroupsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const groupEvaluations = data?.groupEvaluations || [];
-
   useEffect(() => {
-    fetchGroups();
+    loadData();
   }, []);
 
-  const fetchGroups = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const teams = await academicService.getTeams();
-      setBackendGroups(teams || []);
+      const [fetchedTeams, fetchedTasks] = await Promise.all([
+        academicService.getTeams().catch(() => []),
+        taskService.getTasks().catch(() => [])
+      ]);
+
+      setTasks(fetchedTasks || []);
+
+      const enrichedGroups = [];
+      for (const t of fetchedTeams || []) {
+        const subs = await submissionService.getSubmissionsByTeam(t.team_id).catch(() => []);
+        const totalT = (fetchedTasks || []).length;
+        const progress = totalT > 0 ? Math.min(100, Math.round(((subs?.length || 0) / totalT) * 100)) : 0;
+
+        enrichedGroups.push({
+          id: t.team_id,
+          groupCode: t.team_code,
+          title: t.subject?.subject_name || 'Academic Project',
+          subjectName: t.subject?.subject_name || 'Course Project',
+          subjectCode: t.subject?.subject_code || 'N/A',
+          coordinator: currentUser?.name || 'Assigned Coordinator',
+          guide: t.guide?.name || 'Faculty Guide',
+          members: t.members || [],
+          repoUrl: t.repo_url,
+          overallProgress: progress,
+          submissions: subs || []
+        });
+      }
+
+      setGroupsList(enrichedGroups);
     } catch (err) {
-      console.warn("Backend teams fetch:", err);
+      console.warn("Coordinator groups error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Merge backend groups with fallback context data
-  const allGroups = (backendGroups.length > 0 ? backendGroups : (data?.groups || [])).map(g => ({
-    id: g.team_id || g.id,
-    groupCode: g.team_code || g.groupCode || 'Group G01',
-    title: g.subject?.subject_name || g.title || 'Project Work',
-    subjectName: g.subject?.subject_name || g.subjectName || g.domain || 'CSE Project',
-    subjectCode: g.subject?.subject_code || g.subjectCode || '21CSP81',
-    coordinator: g.coordinator || g.guide?.name || g.guide || 'Prof. V. Kulkarni',
-    guide: g.guide?.name || g.guide || 'Faculty Guide',
-    members: g.members || [],
-    submissionMode: g.submissionMode || 'LEADER_SUBMITS_ALL',
-    overallProgress: g.overallProgress || 80,
-    components: g.components || {
-      synopsis: { title: '1. Project Synopsis & Scope', status: 'COMPLETED', fileName: 'Synopsis.pdf', submittedAt: '2025-08-12' },
-      srsDocument: { title: '2. SRS Specification', status: 'COMPLETED', fileName: 'SRS_Doc.pdf', submittedAt: '2025-08-28' },
-      designDoc: { title: '3. Architectural Design', status: 'COMPLETED', fileName: 'Design_Doc.pdf', submittedAt: '2025-09-15' },
-      finalReport: { title: '4. Final Project Report', status: 'PENDING' },
-      deploymentLink: { title: '5. Live Application Endpoint', status: 'COMPLETED', url: 'https://major-project-2025.msrit.edu', submittedAt: '2025-10-05' }
+  const handleInspect = async (group) => {
+    setInspectingGroup(group);
+    try {
+      const subs = await submissionService.getSubmissionsByTeam(group.id).catch(() => []);
+      setInspectingSubmissions(subs || []);
+    } catch (err) {
+      setInspectingSubmissions(group.submissions || []);
     }
-  }));
+  };
 
-  const filteredGroups = allGroups.filter(g => 
+  const filteredGroups = groupsList.filter(g => 
     g.groupCode.toLowerCase().includes(search.toLowerCase()) ||
     g.title.toLowerCase().includes(search.toLowerCase()) ||
-    (g.coordinator && g.coordinator.toLowerCase().includes(search.toLowerCase())) ||
     (g.guide && g.guide.toLowerCase().includes(search.toLowerCase()))
   );
+
+  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Department Project Groups...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -72,89 +92,77 @@ export const CoordinatorGroups = () => {
           <input
             type="text"
             className="form-input"
-            placeholder="Search group code, title, or guide..."
+            placeholder="Search group code, title, guide..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <Card title="Coordinated Project Batches Directory">
-        <div className="table-container responsive-table-stack">
-          <table className="portal-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Project Title & Subject</th>
-                <th>Subject Coordinator / Guide</th>
-                <th>Team Members</th>
-                <th>Submission Mode</th>
-                <th>Overall Progress</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredGroups.map((g) => (
-                <tr key={g.id}>
-                  <td data-label="Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.groupCode}</td>
-                  <td data-label="Title & Subject">
-                    <div style={{ fontWeight: 700, color: '#3A1F6F' }}>{g.title}</div>
-                    <div style={{ fontSize: '12px', color: '#55636B' }}>Subject: {g.subjectName}</div>
-                  </td>
-                  <td data-label="Coordinator" style={{ fontWeight: 600 }}>{g.coordinator}</td>
-                  <td data-label="Members">
-                    {g.members.length > 0 ? (
-                      <span style={{ fontWeight: 600, color: '#3A1F6F' }}>{g.members.length} Students</span>
-                    ) : (
-                      <span style={{ color: '#888' }}>Unassigned</span>
-                    )}
-                  </td>
-                  <td data-label="Mode">
-                    <Badge variant="purple">
-                      {g.submissionMode === 'LEADER_SUBMITS_ALL' ? 'Mode A (Group)' : 'Mode B (Distributed)'}
-                    </Badge>
-                  </td>
-                  <td data-label="Progress">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div className="progress-container" style={{ width: '80px' }}>
-                        <div className="progress-bar" style={{ width: `${g.overallProgress}%` }}></div>
-                      </div>
-                      <strong style={{ fontSize: '13px', color: '#3A1F6F' }}>{g.overallProgress}%</strong>
-                    </div>
-                  </td>
-                  <td data-label="Action">
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => setInspectingGroup(g)}
-                      title="View submitted files, faculty grading status, and student marks"
-                    >
-                      <Eye size={13} />
-                      <span>Inspect Progress</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredGroups.length === 0 && (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
-                    No project groups matching your search query.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {filteredGroups.length > 0 ? (
+          filteredGroups.map(group => (
+            <Card key={group.id}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <Badge variant="purple">{group.groupCode}</Badge>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                      {group.title}
+                    </h3>
+                  </div>
 
-      {/* Coordinator Group Progress Inspection Modal */}
+                  <div className="grid-3" style={{ fontSize: '13px', color: '#55636B', marginBottom: '12px' }}>
+                    <div>Subject: <strong>{group.subjectName} ({group.subjectCode})</strong></div>
+                    <div>Allocated Guide: <strong style={{ color: '#3A1F6F' }}>{group.guide}</strong></div>
+                    <div>Enrolled Members: <strong>{group.members.length} Students</strong></div>
+                  </div>
+
+                  {/* Progress Metric */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ flex: 1, backgroundColor: '#E5E5E5', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${group.overallProgress}%`, backgroundColor: group.overallProgress === 100 ? '#728C5E' : '#3A1F6F', height: '100%' }} />
+                    </div>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#3A1F6F' }}>
+                      {group.overallProgress}% Submissions Complete
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  type="button" 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleInspect(group)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Eye size={14} />
+                  <span>Inspect Milestones</span>
+                </button>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Card>
+            <div style={{ textAlign: 'center', padding: '32px 16px', color: '#8A9198' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+                No Groups Registered
+              </h3>
+              <p style={{ fontSize: '13px', margin: 0 }}>
+                No student project groups have been created in the database yet.
+              </p>
+            </div>
+          </Card>
+        )}
+      </div>
+
+      {/* Modal: Real Milestones & Submissions */}
       {inspectingGroup && (
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '720px' }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FolderCheck size={18} />
-                <span>Group Progress & Deliverables Inspection ({inspectingGroup.groupCode})</span>
+                <span>Group Progress Inspection ({inspectingGroup.groupCode})</span>
               </h3>
               <button 
                 onClick={() => setInspectingGroup(null)}
@@ -163,61 +171,83 @@ export const CoordinatorGroups = () => {
                 <X size={18} />
               </button>
             </div>
-
             <div className="modal-body">
               <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
-                <h4 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                   {inspectingGroup.title}
                 </h4>
                 <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
-                  Subject: <strong>{inspectingGroup.subjectName}</strong> | Coordinator / Guide: <strong>{inspectingGroup.coordinator}</strong>
+                  Guide: <strong>{inspectingGroup.guide}</strong> | Progress: <strong>{inspectingGroup.overallProgress}%</strong>
                 </div>
               </div>
 
-              {/* 1. Submitted Deliverables */}
               <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
-                1. Submitted Deliverables & Artifacts Status:
+                Milestones & Team Submissions:
               </h5>
 
               <div className="table-container responsive-table-stack" style={{ marginBottom: '20px' }}>
                 <table className="portal-table">
                   <thead>
                     <tr>
-                      <th>Deliverable Component</th>
+                      <th>Milestone</th>
                       <th>Upload Status</th>
                       <th>Submitted File / Link</th>
-                      <th>Upload Date</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {inspectingGroup.components && Object.keys(inspectingGroup.components).map(compKey => {
-                      const comp = inspectingGroup.components[compKey];
-                      const isDone = comp.status === 'COMPLETED';
+                    {tasks.length > 0 ? (
+                      tasks.map(t => {
+                        const sub = inspectingSubmissions.find(s => s.task_id === t.task_id);
+                        const isDone = Boolean(sub);
 
-                      return (
-                        <tr key={compKey}>
-                          <td data-label="Component" style={{ fontWeight: 700, color: '#3A1F6F' }}>{comp.title}</td>
-                          <td data-label="Status">
-                            <Badge variant={isDone ? 'success' : 'warning'}>
-                              {isDone ? '✓ Uploaded' : '○ Pending'}
-                            </Badge>
-                          </td>
-                          <td data-label="File/Link" style={{ fontSize: '12px', color: '#DE3B0B', fontWeight: 600 }}>
-                            {isDone ? (comp.fileName || comp.url) : 'Pending Upload'}
-                          </td>
-                          <td data-label="Date" style={{ fontSize: '12px', color: '#55636B' }}>
-                            {comp.submittedAt || '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr key={t.task_id}>
+                            <td data-label="Milestone" style={{ fontWeight: 700, color: '#3A1F6F' }}>{t.title}</td>
+                            <td data-label="Status">
+                              <Badge variant={isDone ? 'success' : 'warning'}>
+                                {isDone ? '✓ Uploaded' : '○ Pending'}
+                              </Badge>
+                            </td>
+                            <td data-label="File/Link" style={{ fontSize: '12px' }}>
+                              {isDone ? (
+                                sub.file_url && sub.file_url !== '#' ? (
+                                  <button 
+                                    type="button"
+                                    onClick={() => submissionService.openSubmissionFile(sub.file_url, sub.file_name)}
+                                    style={{ 
+                                      background: 'none', 
+                                      border: 'none', 
+                                      color: '#DE3B0B', 
+                                      fontWeight: 600, 
+                                      cursor: 'pointer',
+                                      padding: 0,
+                                      font: 'inherit',
+                                      textDecoration: 'underline'
+                                    }}
+                                  >
+                                    {sub.file_name || 'View Deliverable'}
+                                  </button>
+                                ) : (
+                                  <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{sub.file_name || 'Attached File'}</span>
+                                )
+                              ) : (
+                                <span style={{ color: '#8A9198' }}>Pending</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={3} style={{ textAlign: 'center', color: '#8A9198' }}>No milestones published.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
 
-              {/* 2. Faculty Evaluation Status */}
               <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
-                2. Faculty Evaluation Status & Individual Student Marks:
+                Enrolled Team Members:
               </h5>
 
               <div className="table-container responsive-table-stack">
@@ -226,33 +256,23 @@ export const CoordinatorGroups = () => {
                     <tr>
                       <th>USN</th>
                       <th>Student Name</th>
-                      <th>Faculty Evaluator Review</th>
-                      <th>Individual Score</th>
-                      <th>Evaluation Status</th>
+                      <th>Email</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {inspectingGroup.members.map(m => {
-                      const evalRec = groupEvaluations.find(e => (e.groupId === inspectingGroup.id || e.groupId === inspectingGroup.groupCode) && e.studentUsn === m.usn);
-
-                      return (
-                        <tr key={m.usn}>
+                    {inspectingGroup.members.length > 0 ? (
+                      inspectingGroup.members.map((m, idx) => (
+                        <tr key={m.student_id || m.usn || idx}>
                           <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
-                          <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                          <td data-label="Review" style={{ fontSize: '12px', color: '#55636B' }}>
-                            {evalRec ? evalRec.feedback : 'Under faculty evaluation'}
-                          </td>
-                          <td data-label="Score" style={{ fontWeight: 800, color: '#3A1F6F' }}>
-                            {evalRec ? `${evalRec.totalScore} / 50` : 'Pending'}
-                          </td>
-                          <td data-label="Status">
-                            <Badge variant={evalRec ? 'success' : 'warning'}>
-                              {evalRec ? '✓ Evaluated' : '○ Pending Review'}
-                            </Badge>
-                          </td>
+                          <td data-label="Name" style={{ fontWeight: 600 }}>{m.name}</td>
+                          <td data-label="Email">{m.email || '—'}</td>
                         </tr>
-                      );
-                    })}
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={3} style={{ textAlign: 'center', color: '#8A9198' }}>No members enrolled.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -260,7 +280,7 @@ export const CoordinatorGroups = () => {
 
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={() => setInspectingGroup(null)}>
-                Close Group Inspection View
+                Close
               </button>
             </div>
           </div>

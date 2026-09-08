@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Download, CheckCircle, Clock, AlertCircle, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { supabase } from '../../lib/supabase';
 import { academicService } from '../../services/academicService';
 import { submissionService } from '../../services/submissionService';
 import { taskService } from '../../services/taskService';
@@ -14,11 +15,25 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (currentUser?.faculty_id) {
-      loadData(currentUser.faculty_id);
-    } else if (!isAuthLoading) {
-      setLoading(false);
-    }
+    const resolveAndLoad = async () => {
+      let fId = currentUser?.faculty_id;
+      if (!fId && currentUser?.user_id) {
+        const { data: fac } = await supabase
+          .from('faculty')
+          .select('faculty_id')
+          .eq('user_id', currentUser.user_id)
+          .maybeSingle();
+        if (fac?.faculty_id) fId = fac.faculty_id;
+      }
+
+      if (fId) {
+        loadData(fId);
+      } else if (!isAuthLoading) {
+        setLoading(false);
+      }
+    };
+
+    resolveAndLoad();
   }, [currentUser, isAuthLoading]);
 
   const loadData = async (facultyId) => {
@@ -97,72 +112,8 @@ export const FacultySubmissions = ({ readOnly = false }) => {
     });
   }
 
-  // 2. Group Deliverable Components from data (portal state)
-  if (data?.groups) {
-    data.groups.forEach(g => {
-      const isModeA = g.submissionMode === 'LEADER_SUBMITS_ALL' || g.submissionMode === 'GROUP';
-      const modeLabel = isModeA ? 'Mode A (Group Mode)' : 'Mode B (Individual Mode)';
-      
-      if (g.components) {
-        Object.keys(g.components).forEach(compKey => {
-          const comp = g.components[compKey];
-          if (comp && (comp.status === 'COMPLETED' || comp.fileName || comp.url)) {
-            let submittedByLabel = '';
-            if (isModeA) {
-              submittedByLabel = `${g.groupCode} (Group Submission)`;
-            } else {
-              submittedByLabel = comp.submittedByNames && comp.submittedByNames.length > 0 
-                ? `${comp.submittedByNames.join(' + ')} (${comp.submittedByUsns?.join(', ') || '1MS21CS078'})` 
-                : `${g.leaderName} (${g.leaderUsn})`;
-            }
+  // Only real Supabase Submissions are displayed
 
-            const id = `${g.id}-${compKey}`;
-            const alreadyExists = allSubmissions.some(
-              s => s.id === id || (s.groupCode === g.groupCode && s.taskTitle === comp.title)
-            );
-
-            if (!alreadyExists) {
-              allSubmissions.push({
-                id,
-                groupCode: g.groupCode,
-                taskTitle: comp.title,
-                modeOfSubmission: modeLabel,
-                fileName: comp.fileName || comp.url || "Live Endpoint URL",
-                fileSize: comp.fileSize || "Web Link",
-                fileUrl: comp.url,
-                submittedBy: submittedByLabel,
-                submittedAt: comp.submittedAt || "2025-10-08",
-                status: comp.status || "COMPLETED",
-                isModeA
-              });
-            }
-          }
-        });
-      }
-    });
-  }
-
-  // 3. Individual Submissions from data
-  if (data?.individualSubmissions) {
-    data.individualSubmissions.forEach(ind => {
-      const id = `ind-${ind.id}`;
-      if (!allSubmissions.some(s => s.id === id || s.id === ind.id)) {
-        allSubmissions.push({
-          id,
-          groupCode: `Individual (${ind.studentUsn})`,
-          taskTitle: ind.taskTitle,
-          modeOfSubmission: "Mode B (Individual Mode)",
-          fileName: ind.fileName || ind.fileUrl || "Deliverable File",
-          fileSize: ind.fileSize || "1.8 MB",
-          fileUrl: ind.fileUrl,
-          submittedBy: `${ind.studentName} (${ind.studentUsn})`,
-          submittedAt: ind.submittedAt || "2025-10-08",
-          status: ind.status || "COMPLETED",
-          isModeA: false
-        });
-      }
-    });
-  }
 
   if (loading) {
     return (
@@ -207,17 +158,30 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                       <Badge variant="purple">{sub.modeOfSubmission}</Badge>
                     </td>
                     <td data-label="Deliverable File" style={{ color: '#3A1F6F', fontWeight: 600 }}>
-                      {sub.fileUrl ? (
-                        <a 
-                          href={sub.fileUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          style={{ color: '#3A1F6F', fontWeight: 600, textDecoration: 'underline' }}
+                      {sub.fileUrl && sub.fileUrl !== '#' ? (
+                        <button 
+                          type="button"
+                          onClick={() => submissionService.openSubmissionFile(sub.fileUrl, sub.fileName)}
+                          style={{ 
+                            background: 'none', 
+                            border: 'none', 
+                            color: '#3A1F6F', 
+                            fontWeight: 700, 
+                            textDecoration: 'underline', 
+                            cursor: 'pointer',
+                            padding: 0,
+                            font: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                          title="Click to view/download deliverable"
                         >
-                          {sub.fileName} ({sub.fileSize})
-                        </a>
+                          <FileText size={16} color="#DE3B0B" />
+                          <span>{sub.fileName} ({sub.fileSize})</span>
+                        </button>
                       ) : (
-                        <span>{sub.fileName} ({sub.fileSize})</span>
+                        <span style={{ color: '#8A9198' }}>{sub.fileName} ({sub.fileSize})</span>
                       )}
                     </td>
                     <td data-label="Submitted By" style={{ fontWeight: 700, color: '#3A1F6F' }}>{sub.submittedBy}</td>

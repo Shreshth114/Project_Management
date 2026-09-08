@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCheck, ShieldCheck, ArrowRight, Layers, Award, CheckSquare, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
+import { academicService } from '../../services/academicService';
 
 export const FacultyModeSelectionPage = ({ onSelectMode }) => {
-  const { currentUser, switchTeacherRole, data } = useAuth();
+  const { currentUser, switchTeacherRole } = useAuth();
 
   const [notification, setNotification] = useState('');
+  const [subjects, setSubjects] = useState([]);
+
+  useEffect(() => {
+    academicService.getSubjects()
+      .then(subs => setSubjects(subs || []))
+      .catch(() => {});
+  }, []);
 
   // Check if faculty is assigned as coordinator by Admin
-  const isAssignedCoordinator = (data.subjects || []).some(
-    s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
-  ) || (currentUser?.teacherRoles && currentUser.teacherRoles.includes('COORDINATOR'));
+  const isAssignedCoordinator = Boolean(
+    currentUser?.is_coordinator ||
+    currentUser?.isCoordinator ||
+    (currentUser?.teacherRoles && currentUser.teacherRoles.includes('COORDINATOR')) ||
+    subjects.some(
+      s => (s.coordinator && (s.coordinator.toLowerCase() === currentUser?.name?.toLowerCase() || s.coordinator.toLowerCase() === currentUser?.email?.toLowerCase()))
+    )
+  );
 
-  const assignedCoordinatorSubjects = (data.subjects || []).filter(
-    s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
+  const assignedCoordinatorSubjects = subjects.filter(
+    s => (s.coordinator && (s.coordinator.toLowerCase() === currentUser?.name?.toLowerCase() || s.coordinator.toLowerCase() === currentUser?.email?.toLowerCase()))
   );
 
   const handleSelectFacultyMode = () => {
@@ -28,7 +41,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
       switchTeacherRole('COORDINATOR');
       if (onSelectMode) onSelectMode('COORDINATOR');
     } else {
-      setNotification("You are not assigned as coordinator, if any issues contact admin.");
+      setNotification("You have not been assigned as a Coordinator by the Admin.");
     }
   };
 
@@ -154,28 +167,31 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                     Coordinator
                   </h2>
                   <Badge variant={isAssignedCoordinator ? 'magenta' : 'info'}>
-                    Coordinator Access
+                    {isAssignedCoordinator ? 'Coordinator Access' : 'Not Assigned'}
                   </Badge>
                 </div>
 
                 <p className="text-muted" style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
-                  Continue to the Coordinator interface/dashboard.
+                  {isAssignedCoordinator
+                    ? 'Continue to the Coordinator interface/dashboard.'
+                    : 'Requires Coordinator Assignment by System Administrator.'}
                 </p>
 
                 {assignedCoordinatorSubjects.length > 0 && (
                   <div style={{ marginTop: '10px', fontSize: '12px', color: '#3A1F6F', fontWeight: 700 }}>
-                    Assigned Subjects: {assignedCoordinatorSubjects.map(s => `${s.code} (${s.branch})`).join(', ')}
+                    Assigned Subjects: {assignedCoordinatorSubjects.map(s => `${s.code || s.subject_code} (${s.name || s.subject_name || ''})`).join(', ')}
                   </div>
                 )}
               </div>
 
               <button 
                 type="button"
-                className="btn btn-magenta btn-block"
-                style={{ padding: '12px', fontSize: '14px' }}
+                className={`btn ${isAssignedCoordinator ? 'btn-magenta' : 'btn-secondary'} btn-block`}
+                style={{ padding: '12px', fontSize: '14px', opacity: isAssignedCoordinator ? 1 : 0.6 }}
                 onClick={handleSelectCoordinatorMode}
+                disabled={!isAssignedCoordinator}
               >
-                <span>ENTER COORDINATOR INTERFACE</span>
+                <span>{isAssignedCoordinator ? 'ENTER COORDINATOR INTERFACE' : 'COORDINATOR ACCESS REQUIRED'}</span>
                 <ArrowRight size={16} />
               </button>
             </div>

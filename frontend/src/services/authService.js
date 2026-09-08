@@ -154,14 +154,66 @@ export const authService = {
 
     // 6. Insert role-specific record
     if (role === 'STUDENT') {
-      let teamId = 1;
-      if (newUser.groupName) {
-        const { data: matchedTeam } = await supabase
-          .from('team')
-          .select('team_id')
-          .ilike('team_code', newUser.groupName.trim())
+      let teamId = null;
+
+      // Resolve subject_id
+      let subjectId = null;
+      if (newUser.subject) {
+        const { data: sub } = await supabase
+          .from('subject')
+          .select('subject_id')
+          .ilike('subject_code', newUser.subject.trim())
           .maybeSingle();
-        if (matchedTeam) teamId = matchedTeam.team_id;
+        subjectId = sub?.subject_id || null;
+      }
+
+      // Resolve guide_id
+      let guideId = newUser.guideId ? Number(newUser.guideId) : null;
+      if (!guideId && newUser.guide) {
+        const { data: fac } = await supabase
+          .from('faculty')
+          .select('faculty_id')
+          .ilike('name', newUser.guide.trim())
+          .maybeSingle();
+        guideId = fac?.faculty_id || null;
+      }
+
+      // Find or create team
+      const groupCode = (newUser.groupName || `Group-${(newUser.usn || '').toUpperCase()}`).trim().toUpperCase();
+      const { data: matchedTeam } = await supabase
+        .from('team')
+        .select('team_id, guide_id')
+        .ilike('team_code', groupCode)
+        .maybeSingle();
+
+      if (matchedTeam) {
+        teamId = matchedTeam.team_id;
+        // If team's guide is not set or was updated, update it
+        if (guideId && (!matchedTeam.guide_id || matchedTeam.guide_id === 1)) {
+          await supabase.from('team').update({ guide_id: guideId }).eq('team_id', teamId);
+        }
+      } else {
+        // Create new project team with the student's chosen guide and subject
+        const { data: createdTeam } = await supabase
+          .from('team')
+          .insert({
+            team_code: groupCode,
+            subject_id: subjectId || 1,
+            guide_id: guideId
+          })
+          .select('team_id')
+          .maybeSingle();
+
+        if (createdTeam) {
+          teamId = createdTeam.team_id;
+        }
+      }
+
+      if (!teamId) teamId = 1;
+
+      // If teamId is 1 and guideId was specified, update team 1 guide as well
+      if (teamId === 1 && guideId) {
+        await supabase.from('team').update({ guide_id: guideId }).eq('team_id', teamId);
       }
 
       const { error: studentError } = await supabase
@@ -177,14 +229,37 @@ export const authService = {
         return { success: false, message: studentError.message };
       }
     } else if (role === 'FACULTY' || role === 'TEACHER') {
-      let subjectId = 1;
+      let subjectId = null;
       if (newUser.subjectCode) {
         const { data: matchedSubject } = await supabase
           .from('subject')
           .select('subject_id')
           .ilike('subject_code', newUser.subjectCode.trim())
           .maybeSingle();
-        if (matchedSubject) subjectId = matchedSubject.subject_id;
+
+        if (matchedSubject) {
+          subjectId = matchedSubject.subject_id;
+        } else {
+          // Auto-create subject if it does not exist yet
+          const { data: newSub } = await supabase
+            .from('subject')
+            .insert({
+              subject_code: newUser.subjectCode.trim().toUpperCase(),
+              subject_name: newUser.subjectName || newUser.subjectCode
+            })
+            .select('subject_id')
+            .maybeSingle();
+          if (newSub) subjectId = newSub.subject_id;
+        }
+      }
+
+      if (!subjectId) {
+        const { data: anySub } = await supabase
+          .from('subject')
+          .select('subject_id')
+          .limit(1)
+          .maybeSingle();
+        subjectId = anySub?.subject_id || 1;
       }
 
       const { error: facultyError } = await supabase
@@ -243,22 +318,53 @@ export const authService = {
       profile.name = profile.name || email;
       profile.username = profile.usn || email;
       
-    } else if (role === 'FACULTY') {
-      const { data: facultyRecord } = await supabase
+    } else if (role === 'FACULTY' || role === 'TEACHER') {
+      let { data: facultyRecord } = await supabase
         .from('faculty')
         .select('*')
         .eq('user_id', dbUserId)
         .maybeSingle();
-        
-      if (facultyRecord) profile = { ...profile, ...facultyRecord };
-      
+
       const email = userRecord.email || (typeof userOrEmail === 'string' ? userOrEmail : userOrEmail?.email);
-      profile.name = profile.name || email;
+
+      // Fallback: search by email prefix or name if user_id link is missing
+      if (!facultyRecord && email) {
+        const { data: byName } = await supabase
+          .from('faculty')
+          .select('*')
+          .ilike('name', email.split('@')[0])
+          .maybeSingle();
+        if (byName) {
+          facultyRecord = byName;
+          // link user_id for future queries
+          await supabase.from('faculty').update({ user_id: dbUserId }).eq('faculty_id', byName.faculty_id);
+        }
+      }
+        
+      if (facultyRecord) {
+        profile = { ...profile, ...facultyRecord };
+
+        // Fetch allocated subject code and name from subject table
+        if (facultyRecord.subject_id) {
+          const { data: subData } = await supabase
+            .from('subject')
+            .select('subject_code, subject_name')
+            .eq('subject_id', facultyRecord.subject_id)
+            .maybeSingle();
+          if (subData) {
+            profile.subjectCode = subData.subject_code;
+            profile.subjectName = subData.subject_name;
+          }
+        }
+      }
+      
+      profile.name = facultyRecord?.name || profile.name || email;
       profile.username = email;
       
       profile.teacherRoles = ['FACULTY'];
-      if (profile.is_coordinator || email === 'faculty_test@msrit.edu') {
+      if (profile.is_coordinator || facultyRecord?.is_coordinator || email === 'faculty_test@msrit.edu' || email === 'coord_test@msrit.edu') {
         profile.teacherRoles.push('COORDINATOR');
+        profile.is_coordinator = true;
       }
       
       profile.role = 'TEACHER';

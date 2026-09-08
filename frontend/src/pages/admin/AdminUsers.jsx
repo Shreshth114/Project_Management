@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Edit, Eye, Key } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import { academicService } from '../../services/academicService';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -28,16 +27,12 @@ const matchesSearch = (item, searchTerm) => {
 };
 
 export const AdminUsers = () => {
-  const { data } = useAuth();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [allUsers, setAllUsers] = useState([]);
   const [teams, setTeams] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [faculty, setFaculty] = useState([]);
-  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [expandedTeams, setExpandedTeams] = useState({});
 
   useEffect(() => {
     let ignore = false;
@@ -49,10 +44,8 @@ export const AdminUsers = () => {
 
         if (ignore) return;
 
+        setAllUsers(data.users || []);
         setTeams(data.teams || []);
-        setStudents(data.students || []);
-        setFaculty(data.faculty || []);
-        setAdmins(data.admins || []);
         setError('');
       } catch (err) {
         if (!ignore) {
@@ -73,45 +66,22 @@ export const AdminUsers = () => {
     };
   }, []);
 
-  const visibleTeams = teams.filter((team) => matchesSearch(team, search));
-  const visibleStudents = students.filter((student) => {
-    const matchesRole = roleFilter === 'ALL' || roleFilter === 'STUDENT';
-    return matchesRole && matchesSearch(student, search);
-  });
-  
-  const filtered = (students || []).filter(u => {
-    const matchesSearchFilter = (u.name && u.name.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.username && u.username.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.email && u.email.toLowerCase().includes(search.toLowerCase())) ||
-                          (u.usn && u.usn.toLowerCase().includes(search.toLowerCase()));
-    
+  const filtered = allUsers.filter(u => {
+    const matches = matchesSearch(u, search);
+
     let matchesRole = true;
-    if (roleFilter === 'STUDENT') matchesRole = u.role === 'STUDENT';
-    else if (roleFilter === 'FACULTY_ONLY') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.length === 1 && u.teacherRoles.includes('FACULTY');
-    else if (roleFilter === 'BOTH') matchesRole = u.role === 'TEACHER' && u.teacherRoles?.includes('COORDINATOR');
-    else if (roleFilter === 'ADMIN') matchesRole = u.role === 'ADMIN';
+    if (roleFilter === 'STUDENT') {
+      matchesRole = u.role === 'STUDENT';
+    } else if (roleFilter === 'FACULTY_ONLY') {
+      matchesRole = (u.role === 'FACULTY' || u.role === 'TEACHER') && !u.isCoordinator;
+    } else if (roleFilter === 'BOTH') {
+      matchesRole = (u.role === 'FACULTY' || u.role === 'TEACHER') && u.isCoordinator;
+    } else if (roleFilter === 'ADMIN') {
+      matchesRole = u.role === 'ADMIN';
+    }
 
-    return matchesSearchFilter && matchesRole;
+    return matches && matchesRole;
   });
-  const visibleFaculty = faculty.filter((person) => {
-    const matchesRole = roleFilter === 'ALL' || roleFilter === 'FACULTY';
-    return matchesRole && matchesSearch(person, search);
-  });
-  const visibleAdmins = admins.filter((admin) => {
-    const matchesRole = roleFilter === 'ALL' || roleFilter === 'ADMIN';
-    return matchesRole && matchesSearch(admin, search);
-  });
-
-  const showStudents = roleFilter === 'ALL' || roleFilter === 'STUDENT';
-  const showFaculty = roleFilter === 'ALL' || roleFilter === 'FACULTY';
-  const showAdmins = roleFilter === 'ALL' || roleFilter === 'ADMIN';
-
-  const toggleTeam = (teamId) => {
-    setExpandedTeams((prev) => ({
-      ...prev,
-      [teamId]: !prev[teamId]
-    }));
-  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -148,125 +118,126 @@ export const AdminUsers = () => {
         </div>
       </div>
 
-      {/* Academic Batches Roster */}
-      <Card title="Academic Batches Roster">
-        <div className="table-container">
-          <table className="portal-table">
-            <thead>
-              <tr>
-                <th>Batch Name</th>
-                <th>Academic Semester</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ fontWeight: 800, color: '#DE3B0B' }}>Batch 1</td>
-                <td style={{ fontWeight: 600 }}>8th Semester CSE</td>
-                <td><Badge variant="success">Active</Badge></td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 800, color: '#3A1F6F' }}>Batch 2</td>
-                <td style={{ fontWeight: 600 }}>6th Semester CSE</td>
-                <td><Badge variant="purple">Upcoming</Badge></td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: 800, color: '#3A1F6F' }}>Batch 3</td>
-                <td style={{ fontWeight: 600 }}>4th Semester CSE</td>
-                <td><Badge variant="purple">Upcoming</Badge></td>
-              </tr>
-            </tbody>
-          </table>
+      {error && (
+        <div className="alert alert-danger">
+          <span>{error}</span>
         </div>
+      )}
+
+      {/* Active Project Teams Summary */}
+      <Card title="Active Project Groups Summary">
+        {teams.length === 0 ? (
+          <p style={{ padding: '12px', color: '#888' }}>No registered project teams found.</p>
+        ) : (
+          <div className="table-container">
+            <table className="portal-table">
+              <thead>
+                <tr>
+                  <th>Team Code</th>
+                  <th>Course Title</th>
+                  <th>Assigned Guide</th>
+                  <th>Student Members</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teams.map((t) => (
+                  <tr key={t.team_id}>
+                    <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{t.teamCode}</td>
+                    <td style={{ fontWeight: 600 }}>{t.subjectName || t.subjectCode || 'Major Project'}</td>
+                    <td style={{ fontWeight: 600, color: '#3A1F6F' }}>{t.guideName || 'Unassigned'}</td>
+                    <td><Badge variant="purple">{t.studentCount} Students</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
 
       {/* Full Accounts Table */}
       <Card title="All Registered Accounts Directory">
-        <div className="table-container responsive-table-stack">
-          <table className="portal-table">
-            <thead>
-              <tr>
-                <th>Username / USN</th>
-                <th>Full Name</th>
-                <th>Email Address</th>
-                <th>Account Category</th>
-                <th>Account Password</th>
-                <th>Subject / Group</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u) => {
-                // Determine specific Account Category label
-                let categoryLabel = 'STUDENT';
-                let categoryVariant = 'info';
+        {loading ? (
+          <p style={{ padding: '16px' }}>Loading accounts directory...</p>
+        ) : filtered.length === 0 ? (
+          <p style={{ padding: '16px', color: '#888' }}>No accounts matched the selected filter.</p>
+        ) : (
+          <div className="table-container responsive-table-stack">
+            <table className="portal-table">
+              <thead>
+                <tr>
+                  <th>Username / USN</th>
+                  <th>Full Name</th>
+                  <th>Email Address</th>
+                  <th>Account Category</th>
+                  <th>Subject / Project Group</th>
+                  <th>Guide</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u) => {
+                  let categoryLabel = 'STUDENT';
+                  let categoryVariant = 'info';
 
-                if (u.role === 'ADMIN') {
-                  categoryLabel = 'ADMINISTRATOR';
-                  categoryVariant = 'danger';
-                } else if (u.role === 'TEACHER' || u.role === 'FACULTY' || u.role === 'COORDINATOR') {
-                  const isBoth = (u.teacherRoles && u.teacherRoles.includes('COORDINATOR')) ||
-                                 (data.subjects || []).some(s => s.coordinator === u.name || s.coordinator === u.username);
-                  if (isBoth) {
-                    categoryLabel = 'FACULTY & COORDINATOR';
-                    categoryVariant = 'magenta';
-                  } else {
-                    categoryLabel = 'JUST FACULTY';
-                    categoryVariant = 'purple';
+                  if (u.role === 'ADMIN') {
+                    categoryLabel = 'ADMINISTRATOR';
+                    categoryVariant = 'danger';
+                  } else if (u.role === 'TEACHER' || u.role === 'FACULTY' || u.role === 'COORDINATOR') {
+                    if (u.isCoordinator) {
+                      categoryLabel = 'FACULTY & COORDINATOR';
+                      categoryVariant = 'magenta';
+                    } else {
+                      categoryLabel = 'JUST FACULTY';
+                      categoryVariant = 'purple';
+                    }
                   }
-                }
 
-                // Determine Subject / Group display (for faculty show subjects assigned or evaluating!)
-                let subjectGroupLabel = '';
-                if (u.role === 'STUDENT') {
-                  subjectGroupLabel = `${u.groupName || u.groupId || 'Group G01'} (${u.subject || '21CSP81'})`;
-                } else if (u.role === 'ADMIN') {
-                  subjectGroupLabel = 'System Academic Governance';
-                } else {
-                  // Faculty -> Show assigned or evaluated subjects!
-                  subjectGroupLabel = u.assignedSubjects && u.assignedSubjects.length > 0 
-                    ? u.assignedSubjects.join(', ')
-                    : '21CSP81 - Major Project Phase - II';
-                }
+                  let subjectGroupLabel = '-';
+                  if (u.role === 'STUDENT') {
+                    subjectGroupLabel = `${u.teamCode || 'No Team'} (${u.subjectCode || u.subjectName || 'Course'})`;
+                  } else if (u.role === 'ADMIN') {
+                    subjectGroupLabel = 'System Administration';
+                  } else {
+                    subjectGroupLabel = u.subjectName || u.subjectCode || 'Academic Faculty';
+                  }
 
-                return (
-                  <tr key={u.id}>
-                    <td data-label="Username / USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.usn || u.username}</td>
-                    <td data-label="Full Name" style={{ fontWeight: 600 }}>{u.name}</td>
-                    <td data-label="Email Address">{u.email}</td>
-                    
-                    {/* Account Category Column: FACULTY & COORDINATOR / JUST FACULTY / STUDENT */}
-                    <td data-label="Account Category">
-                      <Badge variant={categoryVariant}>{categoryLabel}</Badge>
-                    </td>
+                  return (
+                    <tr key={u.id || u.user_id}>
+                      <td data-label="Username / USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>
+                        {u.usn || u.username}
+                      </td>
+                      <td data-label="Full Name" style={{ fontWeight: 600 }}>{u.name}</td>
+                      <td data-label="Email Address">{u.email}</td>
+                      
+                      <td data-label="Account Category">
+                        <Badge variant={categoryVariant}>{categoryLabel}</Badge>
+                      </td>
 
-                    {/* Account Password Column */}
-                    <td data-label="Account Password" style={{ fontWeight: 700, color: '#B8115B', fontFamily: 'monospace' }}>
-                      {u.password || 'student123'}
-                    </td>
+                      <td data-label="Subject / Project Group" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
+                        {subjectGroupLabel}
+                      </td>
 
-                    {/* Subject / Group Column: Shows assigned/evaluated subjects for faculty */}
-                    <td data-label="Subject / Group" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
-                      {subjectGroupLabel}
-                    </td>
+                      <td data-label="Guide" style={{ fontSize: '13px' }}>
+                        {u.guideName || '-'}
+                      </td>
 
-                    <td data-label="Actions">
-                      <button 
-                        className="btn btn-secondary btn-sm" 
-                        onClick={() => alert(`Editing credentials and permissions for ${u.name}`)}
-                      >
-                        <Edit size={13} />
-                        <span>Edit Account</span>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <td data-label="Actions">
+                        <button 
+                          className="btn btn-secondary btn-sm" 
+                          onClick={() => alert(`Credentials & permissions for ${u.name}`)}
+                        >
+                          <Edit size={13} />
+                          <span>Inspect</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
-
     </div>
   );
 };

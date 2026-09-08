@@ -5,18 +5,53 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
 import { academicService } from '../../services/academicService';
+import { evaluationService } from '../../services/evaluationService';
 
 export const CoordinatorDashboard = () => {
-  const { data, currentUser, setActiveTab } = useAuth();
+  const { currentUser, setActiveTab } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [teamsCount, setTeamsCount] = useState(0);
+  const [allTeams, setAllTeams] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (currentUser?.faculty_id) {
-      taskService.getTasks({ faculty_id: currentUser.faculty_id }).then(setTasks).catch(console.error);
-    }
-    academicService.getAdminStats().then(stats => setTeamsCount(stats.teamsCount)).catch(console.error);
+    loadDashboardData();
   }, [currentUser]);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [fetchedTasks, teams, evals] = await Promise.all([
+        taskService.getTasks().catch(() => []),
+        academicService.getTeams().catch(() => []),
+        evaluationService.getAllEvaluations().catch(() => [])
+      ]);
+
+      setTasks(fetchedTasks || []);
+      setAllTeams(teams || []);
+      setEvaluations(evals || []);
+    } catch (err) {
+      console.error("Coordinator dashboard load error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const nextUpcomingTask = [...tasks]
+    .filter(t => t.deadline && new Date(t.deadline) >= new Date())
+    .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
+
+  // Group teams by guide
+  const guideAllocationsMap = {};
+  allTeams.forEach(t => {
+    const guideName = t.guide?.name || 'Unassigned Guide';
+    if (!guideAllocationsMap[guideName]) {
+      guideAllocationsMap[guideName] = { name: guideName, count: 0, teams: [] };
+    }
+    guideAllocationsMap[guideName].count += 1;
+    guideAllocationsMap[guideName].teams.push(t);
+  });
+  const guideAllocations = Object.values(guideAllocationsMap);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -25,7 +60,7 @@ export const CoordinatorDashboard = () => {
         backgroundColor: '#243143',
         color: '#FFFFFF',
         padding: '24px',
-        borderRadius: '4px',
+        borderRadius: '6px',
         borderLeft: '6px solid #B82226',
         display: 'flex',
         justifyContent: 'space-between',
@@ -41,7 +76,7 @@ export const CoordinatorDashboard = () => {
             Project Coordinator Control Panel
           </h1>
           <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
-            CSE 8th Semester Major Project
+            Coordinator: <strong>{currentUser?.name || 'Academic Coordinator'}</strong>
           </div>
         </div>
 
@@ -54,23 +89,27 @@ export const CoordinatorDashboard = () => {
       {/* Metrics Grid */}
       <div className="grid-4">
         <Card title="Department Groups">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{teamsCount} Batches</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Registered in Database</div>
+          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{allTeams.length} Batches</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Enrolled in system</div>
         </Card>
 
-        <Card title="Tasks Published">
+        <Card title="Published Milestones">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasks.length} Milestones</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>By you</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Active department tasks</div>
         </Card>
 
-        <Card title="Submissions Rate">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>78%</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mock data (28/36 uploaded)</div>
+        <Card title="Evaluations Completed">
+          <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>{evaluations.length} Records</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Evaluations recorded in database</div>
         </Card>
 
-        <Card title="Evaluation Deadlines">
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#FD0A0A' }}>Oct 10, 2025</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Mock data</div>
+        <Card title="Next Milestone Deadline">
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#B82226' }}>
+            {nextUpcomingTask ? new Date(nextUpcomingTask.deadline).toLocaleDateString() : 'None Scheduled'}
+          </div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            {nextUpcomingTask?.title || 'All deadlines reached'}
+          </div>
         </Card>
       </div>
 
@@ -85,31 +124,37 @@ export const CoordinatorDashboard = () => {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {tasks.map((task) => {
-              const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
-              return (
-                <div 
-                  key={task.task_id}
-                  style={{
-                    border: '1px solid #E5E5E5',
-                    borderRadius: '4px',
-                    padding: '14px',
-                    backgroundColor: '#FFFFFF',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                      Weightage: {totalMarks} Marks | Deadline: {new Date(task.deadline).toLocaleDateString()}
+            {tasks.length > 0 ? (
+              tasks.map((task) => {
+                const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
+                return (
+                  <div 
+                    key={task.task_id}
+                    style={{
+                      border: '1px solid #E5E5E5',
+                      borderRadius: '4px',
+                      padding: '14px',
+                      backgroundColor: '#FFFFFF',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
+                      <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                        Weightage: {totalMarks} Marks | Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : '—'}
+                      </div>
                     </div>
+                    <Badge variant="purple">{task.task_type || 'GROUP'}</Badge>
                   </div>
-                  <Badge>{task.task_type}</Badge>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+                No milestone tasks created yet. Click "+ New Milestone" to publish a task.
+              </div>
+            )}
           </div>
         </Card>
 
@@ -118,31 +163,27 @@ export const CoordinatorDashboard = () => {
             <table className="portal-table">
               <thead>
                 <tr>
-                  <th>Faculty Advisor</th>
+                  <th>Faculty Guide</th>
                   <th>Assigned Groups</th>
-                  <th>Evaluated</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#243143' }}>Dr. R. Sharma</td>
-                  <td>4 Batches</td>
-                  <td>3 / 4</td>
-                  <td><Badge variant="success">On Schedule</Badge></td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#243143' }}>Prof. V. Kulkarni</td>
-                  <td>3 Batches</td>
-                  <td>3 / 3</td>
-                  <td><Badge variant="success">Completed</Badge></td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#243143' }}>Dr. Anita M.</td>
-                  <td>4 Batches</td>
-                  <td>2 / 4</td>
-                  <td><Badge variant="warning">Followup Sent</Badge></td>
-                </tr>
+                {guideAllocations.length > 0 ? (
+                  guideAllocations.map((alloc) => (
+                    <tr key={alloc.name}>
+                      <td style={{ fontWeight: 700, color: '#243143' }}>{alloc.name}</td>
+                      <td>{alloc.count} {alloc.count === 1 ? 'Batch' : 'Batches'}</td>
+                      <td><Badge variant="success">Active Allocation</Badge></td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                      No faculty guide allocations registered in database.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
