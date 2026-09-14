@@ -12,6 +12,8 @@ export const CoordinatorMessages = () => {
   const [taskUpdateContent, setTaskUpdateContent] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState(null);
+  const [targetAudience, setTargetAudience] = useState('STUDENTS');
+  const [faculties, setFaculties] = useState([]);
   const [teams, setTeams] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,11 +27,18 @@ export const CoordinatorMessages = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [fetchedTeams, msgs] = await Promise.all([
-        academicService.getTeams().catch(() => []),
+      const subjectId = currentUser.subject_id;
+      const [fetchedTeams, allFaculties, msgs] = await Promise.all([
+        academicService.getTeams(subjectId ? { subject_id: subjectId } : {}).catch(() => []),
+        academicService.getFaculty().catch(() => []),
         messageService.getMessagesForUser(currentUser.user_id).catch(() => [])
       ]);
       setTeams(fetchedTeams || []);
+      if (subjectId) {
+        setFaculties((allFaculties || []).filter(f => f.subject_id === subjectId));
+      } else {
+        setFaculties(allFaculties || []);
+      }
       setMessages(msgs || []);
     } catch (err) {
       console.warn("Error loading coordinator messages data:", err);
@@ -47,27 +56,44 @@ export const CoordinatorMessages = () => {
       return;
     }
 
-    if (teams.length === 0) {
-      setError('No teams registered to send notifications to.');
-      return;
-    }
-
     try {
       const fullMessage = `[${taskUpdateSubject}]\n${taskUpdateContent}`;
       const promises = [];
-      teams.forEach(team => {
-        if (team.members) {
-          team.members.forEach(member => {
-            if (member.user_id) {
-              promises.push(messageService.sendMessage({
-                sender_id: currentUser.user_id,
-                receiver_id: member.user_id,
-                message_text: fullMessage
-              }));
-            }
-          });
+      
+      if (targetAudience === 'STUDENTS') {
+        if (teams.length === 0) {
+          setError('No teams registered under your subject to send notifications to.');
+          return;
         }
-      });
+        teams.forEach(team => {
+          if (team.members) {
+            team.members.forEach(member => {
+              if (member.user_id) {
+                promises.push(messageService.sendMessage({
+                  sender_id: currentUser.user_id,
+                  receiver_id: member.user_id,
+                  message_text: fullMessage
+                }));
+              }
+            });
+          }
+        });
+      } else if (targetAudience === 'FACULTY') {
+        if (faculties.length === 0) {
+          setError('No faculty registered under your subject to send notifications to.');
+          return;
+        }
+        faculties.forEach(faculty => {
+          if (faculty.user_id) {
+            promises.push(messageService.sendMessage({
+              sender_id: currentUser.user_id,
+              receiver_id: faculty.user_id,
+              message_text: fullMessage
+            }));
+          }
+        });
+      }
+
       await Promise.all(promises);
 
       const updated = await messageService.getMessagesForUser(currentUser.user_id);
@@ -75,7 +101,7 @@ export const CoordinatorMessages = () => {
 
       setTaskUpdateSubject('');
       setTaskUpdateContent('');
-      setSuccess('Circular dispatched to all enrolled students in the department!');
+      setSuccess(`Circular dispatched successfully to ${targetAudience.toLowerCase()}!`);
       setTimeout(() => setSuccess(''), 3500);
     } catch (err) {
       setError(err.message || 'Failed to dispatch circular.');
@@ -158,8 +184,21 @@ export const CoordinatorMessages = () => {
         </Card>
 
         {/* Send Circular / Task Update Form */}
-        <Card title="Dispatch New Circular to All Students">
+        <Card title="Dispatch New Circular">
           <form onSubmit={handleSendTaskUpdate}>
+            <div className="form-group">
+              <label className="form-label">Target Audience</label>
+              <select 
+                className="form-select"
+                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', marginBottom: '16px' }}
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+              >
+                <option value="STUDENTS">Students</option>
+                <option value="FACULTY">Faculty</option>
+              </select>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Circular / Update Subject</label>
               <input
@@ -185,16 +224,18 @@ export const CoordinatorMessages = () => {
             </div>
 
             <div style={{ fontSize: '12px', color: '#55636B', marginBottom: '12px' }}>
-              This will be sent to all {teams.reduce((acc, t) => acc + (t.members?.length || 0), 0)} enrolled students across {teams.length} registered project groups.
+              {targetAudience === 'STUDENTS' 
+                ? `This will be sent to all ${teams.reduce((acc, t) => acc + (t.members?.length || 0), 0)} enrolled students across ${teams.length} project groups under your subject.`
+                : `This will be sent to ${faculties.length} faculty members assigned to your subject.`}
             </div>
 
             <button 
               type="submit" 
               className="btn btn-primary btn-block"
-              disabled={teams.length === 0}
+              disabled={targetAudience === 'STUDENTS' ? teams.length === 0 : faculties.length === 0}
             >
               <Megaphone size={15} />
-              <span>BROADCAST CIRCULAR TO ALL STUDENTS</span>
+              <span>BROADCAST CIRCULAR</span>
             </button>
           </form>
         </Card>

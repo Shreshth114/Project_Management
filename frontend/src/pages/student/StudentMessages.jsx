@@ -122,23 +122,29 @@ export const StudentMessages = () => {
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
-  const messagesList = (messages || []).map(m => ({
-    id: m.message_id || m.id,
-    senderId: m.sender_id,
-    receiverId: m.receiver_id,
-    sender: m.sender?.email || 'User',
-    senderRole: m.sender?.role || 'FACULTY',
-    recipient: m.receiver?.email || 'Recipient',
-    subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
-      ? m.message_text.slice(1, m.message_text.indexOf(']')) 
-      : 'Direct Message',
-    content: m.message_text?.startsWith('[') && m.message_text.includes(']')
-      ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim() 
-      : m.message_text,
-    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
-    isUnread: !m.read_status,
-    isIncoming: m.receiver_id === currentUser?.user_id
-  }));
+  const messagesList = (messages || []).map(m => {
+    const senderFaculty = facultyList.find(f => f.user_id === m.sender_id);
+    const isCoordinator = senderFaculty?.is_coordinator || false;
+    
+    return {
+      id: m.message_id || m.id,
+      senderId: m.sender_id,
+      receiverId: m.receiver_id,
+      sender: m.sender?.email || 'User',
+      senderRole: m.sender?.role || 'FACULTY',
+      recipient: m.receiver?.email || 'Recipient',
+      subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
+        ? m.message_text.slice(1, m.message_text.indexOf(']')) 
+        : 'Direct Message',
+      content: m.message_text?.startsWith('[') && m.message_text.includes(']')
+        ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim() 
+        : m.message_text,
+      timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
+      isUnread: !m.read_status,
+      isIncoming: m.receiver_id === currentUser?.user_id,
+      isCoordinator
+    };
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -195,7 +201,7 @@ export const StudentMessages = () => {
                   {m.content}
                 </div>
 
-                {m.isIncoming && (
+                {m.isIncoming && !m.isCoordinator && (
                   <div style={{ marginTop: '10px', textAlign: 'right' }}>
                     <button
                       type="button"

@@ -1,18 +1,18 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  FileText, 
-  BarChart2, 
-  MessageSquare, 
-  User, 
-  Users, 
-  ClipboardCheck, 
-  PlusSquare, 
-  BookOpen, 
-  ShieldAlert, 
-  Settings, 
-  History 
+import {
+  LayoutDashboard,
+  CheckSquare,
+  FileText,
+  BarChart2,
+  MessageSquare,
+  User,
+  Users,
+  ClipboardCheck,
+  PlusSquare,
+  BookOpen,
+  ShieldAlert,
+  Settings,
+  History
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RefreshCw } from 'lucide-react';
@@ -77,10 +77,10 @@ export const Sidebar = () => {
       s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
     ) || currentUser?.role === 'COORDINATOR';
 
-  const isTeacher = currentUser?.role === 'TEACHER' || 
-                    currentUser?.role === 'FACULTY' || 
-                    currentUser?.role === 'COORDINATOR' ||
-                    (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
+  const isTeacher = currentUser?.role === 'TEACHER' ||
+    currentUser?.role === 'FACULTY' ||
+    currentUser?.role === 'COORDINATOR' ||
+    (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   return (
     <aside className="portal-sidebar">
@@ -115,7 +115,7 @@ export const Sidebar = () => {
 
         {isTeacher && isAssignedCoordinator && (
           <div style={{ padding: '20px 16px 0 16px' }}>
-            <button 
+            <button
               onClick={() => setShowModeSelectionLanding(true)}
               className="btn btn-secondary btn-block"
               style={{
@@ -141,6 +141,25 @@ export const Sidebar = () => {
       <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', fontSize: '12px', color: '#9F9F9F' }}>
         <div>VTU Academic Scheme</div>
         <div>Batch: 2021–2025 (8th Sem)</div>
+
+        <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '11px', color: '#7A7A7A' }}>
+          <div style={{ fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#8A8A8A' }}>
+            Project Advisor
+          </div>
+          <div style={{ marginBottom: '12px', color: '#9F9F9F' }}>
+            Krishna Raj P M
+          </div>
+
+          <div style={{ fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#8A8A8A' }}>
+            Developed By
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div>Sanjana K R</div>
+            <div>Manaswini Uppuluri</div>
+            <div>Shreshth Agrawal</div>
+            <div>Vaishnavi Biswagar</div>
+          </div>
+        </div>
       </div>
     </aside>
   );
