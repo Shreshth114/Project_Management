@@ -10,10 +10,7 @@ import {
   ClipboardCheck,
   PlusSquare,
   BookOpen,
-<<<<<<< HEAD
-=======
   ShieldAlert,
->>>>>>> origin/m1_finalchanges
   Settings,
   History
 } from 'lucide-react';
@@ -81,15 +78,9 @@ export const Sidebar = () => {
     ) || currentUser?.role === 'COORDINATOR';
 
   const isTeacher = currentUser?.role === 'TEACHER' ||
-<<<<<<< HEAD
-                    currentUser?.role === 'FACULTY' ||
-                    currentUser?.role === 'COORDINATOR' ||
-                    (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
-=======
     currentUser?.role === 'FACULTY' ||
     currentUser?.role === 'COORDINATOR' ||
     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
->>>>>>> origin/m1_finalchanges
 
   return (
     <aside className="portal-sidebar">
