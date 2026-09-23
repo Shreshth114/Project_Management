@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Utility: Base64 File Decoder</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; background-color: #f4f4f5; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { width: 100%; height: 150px; margin-bottom: 15px; padding: 10px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; resize: vertical; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #2563eb; color: white; border: none; border-radius: 4px; }
+        button:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Base64 File Decoder</h2>
+        <p>Browsers block pasting <code>data:</code> URIs directly into the address bar for security reasons. Use this utility to download files directly from the raw database string.</p>
+        <p><strong>Instructions:</strong> Paste the entire <code>data:application/...;base64,...</code> string from the Supabase table below and click Download.</p>
+        
+        <textarea id="base64Input" placeholder="Paste the massive data URI string here..."></textarea>
+        <br/>
+        <button onclick="downloadFile()">Download File</button>
+    </div>
+
+    <script>
+        function downloadFile() {
+            const fileUrl = document.getElementById('base64Input').value.trim();
+            if (!fileUrl.startsWith('data:')) {
+                alert('Invalid data string. It must start with "data:"');
+                return;
+            }
+            try {
+                const parts = fileUrl.split(',');
+                const mimeMatch = parts[0].match(/:(.*?);/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+                
+                // Best effort extension guessing based on mime type
+                let ext = 'bin';
+                if (mime.includes('pdf')) ext = 'pdf';
+                else if (mime.includes('png')) ext = 'png';
+                else if (mime.includes('jpeg') || mime.includes('jpg')) ext = 'jpg';
+                else if (mime.includes('wordprocessingml.document')) ext = 'docx';
+                else if (mime.includes('msword')) ext = 'doc';
+                else if (mime.includes('presentationml')) ext = 'pptx';
+                
+                const link = document.createElement('a');
+                link.href = fileUrl; // The browser allows downloads from data URIs, just not top-level navigation
+                link.download = 'database_extraction.' + ext;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                alert('Error processing string: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

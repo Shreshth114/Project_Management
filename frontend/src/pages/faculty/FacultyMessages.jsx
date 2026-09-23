@@ -19,6 +19,7 @@ export const FacultyMessages = () => {
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [facultyList, setFacultyList] = useState([]);
 
   useEffect(() => {
     if (currentUser?.user_id) {
@@ -38,13 +39,15 @@ export const FacultyMessages = () => {
         if (fac?.faculty_id) resolvedFacultyId = fac.faculty_id;
       }
 
-      const [fetchedMessages, fetchedGroups] = await Promise.all([
+      const [fetchedMessages, fetchedGroups, allFacs] = await Promise.all([
         messageService.getMessagesForUser(userId).catch(() => []),
-        resolvedFacultyId ? academicService.getTeams({ guide_id: resolvedFacultyId }).catch(() => []) : []
+        resolvedFacultyId ? academicService.getTeams({ guide_id: resolvedFacultyId }).catch(() => []) : [],
+        academicService.getFaculty().catch(() => [])
       ]);
 
       setMessages(fetchedMessages || []);
       setGroups(fetchedGroups || []);
+      setFacultyList(allFacs || []);
       if (fetchedGroups && fetchedGroups.length > 0) {
         setSelectedTeamId(String(fetchedGroups[0].team_id));
         const firstMemberWithUser = (fetchedGroups[0].members || []).find(m => m.user_id);
@@ -149,22 +152,28 @@ export const FacultyMessages = () => {
     window.scrollTo({ top: 350, behavior: 'smooth' });
   };
 
-  const messagesList = (messages || []).map(m => ({
-    id: m.message_id || m.id,
-    senderId: m.sender_id,
-    receiverId: m.receiver_id,
-    sender: m.sender?.email || 'Student',
-    senderRole: m.sender?.role || 'STUDENT',
-    recipient: m.receiver?.email || 'Recipient',
-    subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
-      ? m.message_text.slice(1, m.message_text.indexOf(']'))
-      : 'Direct Message',
-    content: m.message_text?.startsWith('[') && m.message_text.includes(']')
-      ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim()
-      : m.message_text,
-    timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
-    isIncoming: m.receiver_id === currentUser?.user_id
-  }));
+  const messagesList = (messages || []).map(m => {
+    const senderFaculty = facultyList.find(f => f.user_id === m.sender_id);
+    const isCoordinator = senderFaculty?.is_coordinator || false;
+
+    return {
+      id: m.message_id || m.id,
+      senderId: m.sender_id,
+      receiverId: m.receiver_id,
+      sender: m.sender?.email || 'Student',
+      senderRole: m.sender?.role || 'STUDENT',
+      recipient: m.receiver?.email || 'Recipient',
+      subject: m.message_text?.startsWith('[') && m.message_text.includes(']')
+        ? m.message_text.slice(1, m.message_text.indexOf(']'))
+        : 'Direct Message',
+      content: m.message_text?.startsWith('[') && m.message_text.includes(']')
+        ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim()
+        : m.message_text,
+      timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
+      isIncoming: m.receiver_id === currentUser?.user_id,
+      isCoordinator
+    };
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -233,7 +242,7 @@ export const FacultyMessages = () => {
                   {m.content}
                 </div>
 
-                {m.isIncoming && (
+                {m.isIncoming && !m.isCoordinator && (
                   <div style={{ marginTop: '10px', textAlign: 'right' }}>
                     <button
                       type="button"
