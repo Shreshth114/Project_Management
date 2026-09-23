@@ -33,6 +33,27 @@ export const taskService = {
     return data;
   },
 
+  async updateTask(taskId, updates) {
+    const { data, error } = await supabase
+      .from('task')
+      .update({
+        title: updates.title,
+        description: updates.description,
+        task_type: updates.task_type,
+        deadline: updates.deadline
+      })
+      .eq('task_id', taskId)
+      .select(`
+        *,
+        faculty:faculty(name),
+        evaluation_criteria(*)
+      `)
+      .single();
+      
+    if (error) throw error;
+    return data;
+  },
+
   async createTaskWithCriteria(taskData, criteriaList) {
     // 1. Insert Task
     const { data: taskRecord, error: taskError } = await supabase

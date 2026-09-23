@@ -68,7 +68,8 @@
 html, body {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -120,18 +121,19 @@ small, .text-small {
 
 /* Application Layout Structure */
 .app-layout {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .app-body {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - var(--header-height));
+  min-height: 0;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .main-content {
@@ -139,6 +141,7 @@ small, .text-small {
   padding: 24px;
   background-color: var(--page-bg);
   overflow-y: auto;
+  overflow-x: hidden;
   max-width: 100%;
   width: 100%;
 }
@@ -202,11 +205,14 @@ small, .text-small {
 /* Sidebar Navigation */
 .portal-sidebar {
   width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  min-height: 100%;
   background-color: var(--deep-navy);
   color: var(--surface-white);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 

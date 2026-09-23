@@ -1,18 +1,17 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  CheckSquare, 
-  FileText, 
-  BarChart2, 
-  MessageSquare, 
-  User, 
-  Users, 
-  ClipboardCheck, 
-  PlusSquare, 
-  BookOpen, 
-  ShieldAlert, 
-  Settings, 
-  History 
+import {
+  LayoutDashboard,
+  CheckSquare,
+  FileText,
+  BarChart2,
+  MessageSquare,
+  User,
+  Users,
+  ClipboardCheck,
+  PlusSquare,
+  BookOpen,
+  Settings,
+  History
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RefreshCw } from 'lucide-react';
@@ -77,71 +76,91 @@ export const Sidebar = () => {
       s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
     ) || currentUser?.role === 'COORDINATOR';
 
-  const isTeacher = currentUser?.role === 'TEACHER' || 
-                    currentUser?.role === 'FACULTY' || 
+  const isTeacher = currentUser?.role === 'TEACHER' ||
+                    currentUser?.role === 'FACULTY' ||
                     currentUser?.role === 'COORDINATOR' ||
                     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   return (
     <aside className="portal-sidebar">
+
+      {/* Role label */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div style={{ fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {currentRole} WORKSPACE
         </div>
       </div>
 
-      <nav style={{ flex: 1 }}>
-        <ul className="sidebar-nav">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setActiveTab(item.id);
-                  }}
-                >
-                  <Icon className="icon" />
-                  <span>{item.label}</span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+      {/* Nav items */}
+      <ul className="sidebar-nav">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <li key={item.id}>
+              <a
+                href={`#${item.id}`}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab(item.id);
+                }}
+              >
+                <Icon className="icon" />
+                <span>{item.label}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
 
-        {isTeacher && isAssignedCoordinator && (
-          <div style={{ padding: '20px 16px 0 16px' }}>
-            <button 
-              onClick={() => setShowModeSelectionLanding(true)}
-              className="btn btn-secondary btn-block"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                fontSize: '13px',
-                padding: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#FFFFFF'
-              }}
-            >
-              <RefreshCw size={16} />
-              <span>Switch Workspace</span>
-            </button>
-          </div>
-        )}
-      </nav>
+      {/* Switch workspace (faculty+coordinator only) */}
+      {isTeacher && isAssignedCoordinator && (
+        <div style={{ padding: '0 16px 16px 16px' }}>
+          <button
+            onClick={() => setShowModeSelectionLanding(true)}
+            className="btn btn-secondary btn-block"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: '8px', fontSize: '13px', padding: '10px',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#FFFFFF'
+            }}
+          >
+            <RefreshCw size={16} />
+            <span>Switch Workspace</span>
+          </button>
+        </div>
+      )}
 
-      {/* Footer Info inside Sidebar */}
-      <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', fontSize: '12px', color: '#9F9F9F' }}>
-        <div>VTU Academic Scheme</div>
-        <div>Batch: 2021–2025 (8th Sem)</div>
+      {/* Project info — right below nav items */}
+      <div style={{
+        padding: '16px',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        fontSize: '11px',
+        color: '#9F9F9F',
+        lineHeight: '1.7'
+      }}>
+        <div style={{ marginBottom: '2px' }}>VTU Academic Scheme</div>
+        <div style={{ marginBottom: '12px' }}>Batch: 2023–2027 (7th Sem)</div>
+
+        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+          Project Advisor
+        </div>
+        <div style={{ marginBottom: '12px', color: '#C0C0C0' }}>Krishna Raj P M</div>
+
+        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+          Developed By
+        </div>
+        <div style={{ color: '#C0C0C0', lineHeight: '1.8' }}>
+          <div>Sanjana K R</div>
+          <div>Manaswini Uppuluri</div>
+          <div>Shreshth Agrawal</div>
+          <div>Vaishnavi Biswagar</div>
+        </div>
       </div>
+
     </aside>
   );
 };

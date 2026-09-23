@@ -227,7 +227,7 @@ export const AdminMasterEdit = () => {
       )}
 
       {/* BLOCK 1: EDIT DEADLINES */}
-      <Card title="1. Edit Submission Deadlines (Live Database)">
+      <Card title="Edit Submission Deadlines (Live Database)">
         {deadlineSuccess && (
           <div className="alert alert-success">
             <CheckCircle size={18} />
@@ -352,7 +352,7 @@ export const AdminMasterEdit = () => {
       </Card>
 
       {/* BLOCK 2: BROADCAST CIRCULARS */}
-      <Card title="2. Broadcast System Circular (Dispatched to All Users)">
+      <Card title="Broadcast System Circular (Dispatched to All Users)">
         {circularSuccess && (
           <div className="alert alert-success">
             <CheckCircle size={18} />
@@ -393,7 +393,7 @@ export const AdminMasterEdit = () => {
       </Card>
 
       {/* BLOCK 3: ASSIGN COORDINATORS TO SUBJECTS */}
-      <Card title="3. Assign Subject Coordinators to Courses">
+      <Card title="Assign Subject Coordinators to Courses">
         {assignSuccess && (
           <div className="alert alert-success">
             <CheckCircle size={18} />
@@ -440,7 +440,7 @@ export const AdminMasterEdit = () => {
       </Card>
 
       {/* BLOCK 4: MASTER MESSAGES & CIRCULARS MANAGER */}
-      <Card title="4. Master System Messages Log & Deletion Manager (Database Access)">
+      <Card title="Master System Messages Log & Deletion Manager (Database Access)">
         {loading ? (
           <p style={{ padding: '16px' }}>Loading messages log...</p>
         ) : messagesList.length === 0 ? (
