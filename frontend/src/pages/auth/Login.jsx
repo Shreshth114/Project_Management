@@ -41,8 +41,6 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
     e.preventDefault();
     if (onNavigateForgotPassword) {
       onNavigateForgotPassword();
-    } else {
-      alert("Please contact the System Admin at admin@msrit.edu for password reset.");
     }
   };
 
