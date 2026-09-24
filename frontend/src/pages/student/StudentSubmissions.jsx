@@ -342,8 +342,8 @@ export const StudentSubmissions = () => {
 
               <div className="form-group">
                 <label className="form-label">Submission Format</label>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                  <label className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
                     <input 
                       type="radio" 
                       name="subType" 
@@ -353,7 +353,7 @@ export const StudentSubmissions = () => {
                     />
                     Document / Archive File (PDF, ZIP, DOCX)
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                  <label className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
                     <input 
                       type="radio" 
                       name="subType" 
@@ -394,7 +394,7 @@ export const StudentSubmissions = () => {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
               <button 
                 type="submit" 
                 className="btn btn-primary"

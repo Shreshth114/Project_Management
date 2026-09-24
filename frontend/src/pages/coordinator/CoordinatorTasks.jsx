@@ -168,7 +168,7 @@ export const CoordinatorTasks = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '580px' }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Edit size={18} />
                 <span>Edit Milestone Task Requirements</span>
               </h3>

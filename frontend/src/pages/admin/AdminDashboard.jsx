@@ -118,7 +118,7 @@ export const AdminDashboard = () => {
                   fontSize: '13px'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                   <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
                   <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
                 </div>

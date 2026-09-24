@@ -106,7 +106,7 @@ export const StudentDashboard = () => {
       <div className="grid-2">
         <Card title="Project Overall Progress">
           <ProgressBar progress={progressPercent} height={12} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', fontSize: '13px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', fontSize: '13px' }}>
             <span>Milestones: <strong style={{ color: '#3A1F6F' }}>{submittedCount} / {totalTasks} Submitted</strong></span>
             <span>Progress: <strong style={{ color: progressPercent === 100 ? '#728C5E' : '#DA8B3E' }}>{progressPercent}%</strong></span>
           </div>
@@ -114,7 +114,7 @@ export const StudentDashboard = () => {
 
         <Card title="Assigned Faculty Guide & Coordinator">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 width: '38px',
                 height: '38px',
@@ -134,7 +134,7 @@ export const StudentDashboard = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '10px', borderTop: '1px solid #F0F0F0' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '10px', borderTop: '1px solid #F0F0F0' }}>
               <div style={{
                 width: '38px',
                 height: '38px',
@@ -183,7 +183,9 @@ export const StudentDashboard = () => {
                     backgroundColor: '#FFFFFF',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px'
                   }}
                 >
                   <div>

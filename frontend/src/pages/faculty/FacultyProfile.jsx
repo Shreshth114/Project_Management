@@ -87,7 +87,7 @@ export const FacultyProfile = () => {
             type="button"
             className="btn btn-secondary"
             onClick={() => switchTeacherRole('COORDINATOR')}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #DE3B0B', color: '#DE3B0B', fontWeight: 700 }}
+            className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #DE3B0B', color: '#DE3B0B', fontWeight: 700 }}
           >
             <RefreshCw size={15} />
             <span>SWITCH TO COORDINATOR WORKSPACE</span>
@@ -105,7 +105,7 @@ export const FacultyProfile = () => {
       {/* Grid: Identification Card & Credentials */}
       <div className="grid-2">
         <Card title="Faculty Identification">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
               width: '64px',
               height: '64px',
@@ -127,7 +127,7 @@ export const FacultyProfile = () => {
               <div style={{ fontSize: '13px', color: '#55636B', marginTop: '2px' }}>
                 Department of Computer Science & Engineering
               </div>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                 <Badge variant="purple">Faculty Advisor</Badge>
                 {isAssignedCoordinator && <Badge variant="magenta">Subject Coordinator</Badge>}
               </div>
@@ -160,7 +160,7 @@ export const FacultyProfile = () => {
                   borderLeft: '5px solid #3A1F6F'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     {sub.subjectName}
                   </h3>

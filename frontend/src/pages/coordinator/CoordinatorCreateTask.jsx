@@ -102,7 +102,7 @@ export const CoordinatorCreateTask = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button 
           className="btn btn-secondary btn-sm" 
           onClick={() => setActiveTab && setActiveTab('tasks')}
@@ -174,7 +174,7 @@ export const CoordinatorCreateTask = () => {
             backgroundColor: '#F8F9FA',
             marginBottom: '24px'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                 Assessment Components & Rubrics
               </h3>
@@ -204,7 +204,7 @@ export const CoordinatorCreateTask = () => {
                     border: '1px solid #E5E5E5'
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#3A1F6F', width: '24px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#3A1F6F', width: '100%', maxWidth: '24px' }}>
                     #{index + 1}
                   </span>
 
@@ -218,7 +218,7 @@ export const CoordinatorCreateTask = () => {
                     required
                   />
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '130px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', maxWidth: '130px' }}>
                     <input
                       type="number"
                       className="form-input"
@@ -226,7 +226,7 @@ export const CoordinatorCreateTask = () => {
                       max="100"
                       value={item.marks}
                       onChange={(e) => handleItemChange(item.id, 'marks', e.target.value)}
-                      style={{ width: '70px', textAlign: 'center' }}
+                      style={{ width: '100%', maxWidth: '70px', textAlign: 'center' }}
                       required
                     />
                     <span style={{ fontSize: '13px', fontWeight: 600, color: '#55636B' }}>Marks</span>
@@ -247,7 +247,7 @@ export const CoordinatorCreateTask = () => {
             </div>
 
             {/* Assessment Footer Total */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #CCCCCC' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #CCCCCC' }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
