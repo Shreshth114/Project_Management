@@ -46,7 +46,7 @@ export const CoordinatorStudents = () => {
           </p>
         </div>
 
-        <div style={{ width: '280px' }}>
+        <div style={{ width: '100%', maxWidth: '280px' }}>
           <input
             type="text"
             className="form-input"

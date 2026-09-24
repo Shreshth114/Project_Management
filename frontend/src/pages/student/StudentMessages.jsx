@@ -184,7 +184,7 @@ export const StudentMessages = () => {
                   borderLeft: m.isUnread ? '4px solid #DE3B0B' : '4px solid #3A1F6F'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '14px' }}>
                     {m.subject}
                   </div>

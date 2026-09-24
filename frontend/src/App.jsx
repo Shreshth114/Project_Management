@@ -34,7 +34,7 @@ const MainContent = () => {
 
   if (isAuthLoading) {
     return (
-      <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F8F8' }}>
+      <div className="mobile-wrap" style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F8F8' }}>
         <p style={{ color: '#243143', fontWeight: 600 }}>Loading Academic Project Governance Portal...</p>
       </div>
     );

@@ -230,11 +230,11 @@ export const StudentProfile = () => {
                   borderLeft: '5px solid #3A1F6F'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     {p.title}
                   </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Badge variant={p.status === 'Active' ? 'warning' : 'info'}>{p.status}</Badge>
                     {p.status === 'Enrolled' && (
                       <button

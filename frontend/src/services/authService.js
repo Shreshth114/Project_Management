@@ -387,9 +387,31 @@ export const authService = {
   },
 
   async resetPasswordForEmail(identifier) {
-    const emailToUse = identifier.trim().toLowerCase();
+    const trimmedId = identifier.trim();
+    let emailToUse = trimmedId.toLowerCase();
 
-    // 1. Check if user exists in public.users
+    // 1. If identifier is a USN (no '@'), resolve email from student table
+    if (!trimmedId.includes('@')) {
+      const { data: studentMatch } = await supabase
+        .from('student')
+        .select('user_id')
+        .ilike('usn', trimmedId)
+        .maybeSingle();
+
+      if (studentMatch?.user_id) {
+        const { data: userMatch } = await supabase
+          .from('users')
+          .select('email')
+          .eq('user_id', studentMatch.user_id)
+          .maybeSingle();
+
+        if (userMatch?.email) {
+          emailToUse = userMatch.email;
+        }
+      }
+    }
+
+    // 2. Check if user exists in public.users
     const { data: userRecord, error: userError } = await supabase
       .from('users')
       .select('user_id, email, password_hash')

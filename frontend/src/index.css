@@ -269,6 +269,7 @@ small, .text-small {
   bottom: 0;
   left: 0;
   width: 280px;
+  max-width: 85vw;
   background-color: var(--deep-navy);
   color: var(--surface-white);
   z-index: 201;
@@ -286,6 +287,7 @@ small, .text-small {
   box-shadow: var(--shadow-sm);
   margin-bottom: 20px;
   max-width: 100%;
+  min-width: 0;
 }
 
 .card-header {
@@ -564,6 +566,7 @@ small, .text-small {
   justify-content: flex-end;
   gap: 10px;
   background-color: #F8F9FA;
+  flex-wrap: wrap;
 }
 
 /* Alerts */
@@ -660,8 +663,12 @@ small, .text-small {
     border: none;
     border-bottom: 1px solid #F0F0F0;
     position: relative;
-    padding-left: 45%;
-    text-align: right;
+    padding: 12px 12px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     word-break: break-word;
   }
 
@@ -670,15 +677,144 @@ small, .text-small {
   }
 
   .responsive-table-stack td::before {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    width: 40%;
-    padding-right: 10px;
-    white-space: nowrap;
+    position: static;
+    display: block;
+    width: auto;
+    white-space: normal;
     text-align: left;
-    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 800;
     color: var(--rit-purple);
     content: attr(data-label);
+  }
+}
+
+.mobile-menu-btn {
+  display: none !important;
+}
+
+/* Global Responsive Utilities */
+
+/* Fix common flex overlap issues on mobile */
+.desktop-hide {
+  display: none;
+}
+
+.segmented-control {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.segmented-control.dark {
+  background-color: #F0F2F5;
+  border: 1px solid #E5E5E5;
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 6px 16px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.segmented-control.dark .segmented-btn {
+  color: #55636B;
+}
+
+.segmented-btn.active {
+  background: #FFFFFF;
+  color: #3A1F6F;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .mobile-wrap {
+    flex-wrap: wrap !important;
+  }
+  
+  .mobile-col {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+  
+  .mobile-w-100 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .desktop-hide {
+    display: block !important;
+  }
+
+  .mobile-mt-sm {
+    margin-top: 12px !important;
+  }
+
+  .mobile-hide {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex !important;
+  }
+
+  /* Make sure modal dialogs fit */
+  .modal-dialog {
+    margin: 10px;
+    width: calc(100% - 20px) !important;
+    max-height: calc(100vh - 20px) !important;
+  }
+  
+  /* Fix Notifications popover getting clipped by the left screen edge */
+  .notification-modal {
+    position: fixed !important;
+    top: 60px !important;
+    right: 16px !important;
+    left: 16px !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+  
+  /* Fix cards overflowing */
+  .card {
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* Form groups should always stack properly */
+  .form-group {
+    width: 100% !important;
+  }
+  
+  /* Fix card headers overlapping buttons */
+  .card-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  /* Button groups should wrap */
+  .btn-group-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  /* Fix alert width */
+  .alert {
+    width: 100%;
+    box-sizing: border-box;
   }
 }

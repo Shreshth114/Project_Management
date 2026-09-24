@@ -86,7 +86,7 @@ export const AdminProfile = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
               <Badge variant="danger">System Administrator</Badge>
               <Badge variant="purple">Master Database Access</Badge>
             </div>
@@ -98,7 +98,7 @@ export const AdminProfile = () => {
       <Card title="Live Infrastructure Database Metrics">
         <div className="grid-4">
           <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#728C5E', marginBottom: '6px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#728C5E', marginBottom: '6px' }}>
               <Server size={18} />
               <strong style={{ fontSize: '13px' }}>Database Health</strong>
             </div>
@@ -107,7 +107,7 @@ export const AdminProfile = () => {
           </div>
 
           <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3A1F6F', marginBottom: '6px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3A1F6F', marginBottom: '6px' }}>
               <BookOpen size={18} />
               <strong style={{ fontSize: '13px' }}>Active Subjects</strong>
             </div>
@@ -116,7 +116,7 @@ export const AdminProfile = () => {
           </div>
 
           <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B8115B', marginBottom: '6px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B8115B', marginBottom: '6px' }}>
               <Database size={18} />
               <strong style={{ fontSize: '13px' }}>Registered Accounts</strong>
             </div>
@@ -125,7 +125,7 @@ export const AdminProfile = () => {
           </div>
 
           <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DE3B0B', marginBottom: '6px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DE3B0B', marginBottom: '6px' }}>
               <Activity size={18} />
               <strong style={{ fontSize: '13px' }}>Audit Trail Logs</strong>
             </div>

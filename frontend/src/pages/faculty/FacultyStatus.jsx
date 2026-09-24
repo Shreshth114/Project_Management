@@ -122,7 +122,7 @@ export const FacultyStatus = () => {
       {/* Search & Filter Bar */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
             <Search size={18} color="#3A1F6F" />
             <input
               type="text"
@@ -133,11 +133,11 @@ export const FacultyStatus = () => {
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Filter size={16} color="#3A1F6F" />
             <select
               className="form-select"
-              style={{ width: '220px' }}
+              style={{ width: '100%', maxWidth: '220px' }}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -243,7 +243,7 @@ export const FacultyStatus = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '540px' }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Award size={18} />
                 <span>Student Compliance Details ({inspectingStudent.usn})</span>
               </h3>

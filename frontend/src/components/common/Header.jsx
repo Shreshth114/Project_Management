@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bell, 
   Menu, 
@@ -25,6 +25,18 @@ export const Header = ({ onToggleMobileDrawer }) => {
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setShowNotifications(false);
+      }
+    };
+    if (showNotifications) {
+      document.addEventListener('keydown', handleEscape);
+    }
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showNotifications]);
 
   // Check if faculty is assigned as coordinator by Admin
   const isAssignedCoordinator = currentUser?.is_coordinator ||
@@ -64,12 +76,13 @@ export const Header = ({ onToggleMobileDrawer }) => {
   };
 
   return (
+    <>
     <header className="portal-header">
       <div className="header-brand">
         <button 
-          className="btn btn-secondary btn-sm" 
+          className="btn btn-secondary btn-sm mobile-menu-btn" 
           onClick={onToggleMobileDrawer}
-          style={{ display: 'none', padding: '6px 10px' }}
+          style={{ padding: '6px 10px' }}
           id="mobile-menu-btn"
         >
           <Menu size={18} />
@@ -78,7 +91,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
         <RitLogo size="small" light={true} />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="mobile-hide" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <span style={{ fontWeight: 800, fontSize: '15px', color: '#FFFFFF' }}>
           {formatTitle(activeTab)}
         </span>
@@ -91,16 +104,26 @@ export const Header = ({ onToggleMobileDrawer }) => {
       </div>
 
       <div className="header-right">
-        {/* Mode Switcher Pill: Only shown if user is teacher, labeled "Coordinator Access" */}
+        {/* Desktop Segmented Mode Switcher */}
         {isTeacher && isAssignedCoordinator && (
-          <button 
-            className="role-mode-switcher"
-            onClick={handleModeToggle}
-            title="Toggle between Evaluator and Coordinator workspaces"
-          >
-            <RefreshCw size={13} />
-            <span>Mode: {activeRole === 'COORDINATOR' ? 'Coordinator Mode' : 'Faculty Mode'}</span>
-          </button>
+          <div className="segmented-control mobile-hide">
+            <button
+              className={`segmented-btn ${activeRole === 'FACULTY' ? 'active' : ''}`}
+              onClick={() => {
+                if (activeRole !== 'FACULTY') handleModeToggle();
+              }}
+            >
+              Faculty
+            </button>
+            <button
+              className={`segmented-btn ${activeRole === 'COORDINATOR' ? 'active' : ''}`}
+              onClick={() => {
+                if (activeRole !== 'COORDINATOR') handleModeToggle();
+              }}
+            >
+              Coordinator
+            </button>
+          </div>
         )}
 
         {/* Notifications & System Circulars Dropdown */}
@@ -141,10 +164,21 @@ export const Header = ({ onToggleMobileDrawer }) => {
 
           {/* Notifications Popover Window */}
           {showNotifications && (
-            <div style={{
+            <>
+              {/* Invisible Overlay for click-outside-to-close */}
+              <div 
+                onClick={() => setShowNotifications(false)}
+                style={{
+                  position: 'fixed',
+                  top: 0, left: 0, right: 0, bottom: 0,
+                  zIndex: 290,
+                  cursor: 'default'
+                }}
+              />
+              <div className="notification-modal" style={{
               position: 'absolute',
               top: '44px',
-              right: '-60px',
+              right: '0px',
               backgroundColor: '#FFFFFF',
               color: '#242044',
               borderRadius: '6px',
@@ -162,41 +196,58 @@ export const Header = ({ onToggleMobileDrawer }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}>
-                <div style={{ fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Bell size={15} />
-                  <span>Official System Circulars</span>
+                <div style={{ fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'flex-start', gap: '6px', flex: 1, minWidth: 0, flexWrap: 'wrap' }}>
+                  <Bell size={15} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ wordBreak: 'break-word' }}>Official System Circulars</span>
                 </div>
                 <button 
                   onClick={() => setShowNotifications(false)}
-                  style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', flexShrink: 0, marginLeft: '10px' }}
                 >
                   <X size={15} />
                 </button>
               </div>
 
-              <div style={{ maxHeight: '300px', overflowY: 'auto', padding: '8px 0' }}>
-                {circularsList.map(item => (
-                  <div 
-                    key={item.id}
-                    style={{
-                      padding: '10px 16px',
-                      borderBottom: '1px solid #F0F0F0',
-                      backgroundColor: '#FFFFFF'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
-                        📢 OFFICIAL CIRCULAR
-                      </span>
-                      <span style={{ fontSize: '10px', color: '#8A9198' }}>{item.timestamp}</span>
+              <div style={{ maxHeight: '300px', overflowY: 'auto', padding: circularsList.length === 0 ? '0' : '8px 0' }}>
+                {circularsList.length === 0 ? (
+                  <div style={{
+                    padding: '40px 20px',
+                    textAlign: 'center',
+                    backgroundColor: '#FAFAFA'
+                  }}>
+                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>
+                      No new notifications
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#3A1F6F' }}>{item.subject}</div>
-                    <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
-                    <div style={{ fontSize: '10px', color: '#8A9198', marginTop: '4px' }}>From: Admin Office</div>
+                    <div style={{ fontSize: '12px', color: '#8A9198' }}>
+                      You're all caught up!
+                    </div>
                   </div>
-                ))}
+                ) : (
+                  circularsList.map(item => (
+                    <div 
+                      key={item.id}
+                      style={{
+                        padding: '10px 16px',
+                        borderBottom: '1px solid #F0F0F0',
+                        backgroundColor: '#FFFFFF'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
+                          📢 OFFICIAL CIRCULAR
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#8A9198' }}>{item.timestamp}</span>
+                      </div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#3A1F6F' }}>{item.subject}</div>
+                      <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
+                      <div style={{ fontSize: '10px', color: '#8A9198', marginTop: '4px' }}>From: Admin Office</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
+          </>
           )}
         </div>
 
@@ -230,11 +281,11 @@ export const Header = ({ onToggleMobileDrawer }) => {
             }}>
               {currentUser?.name ? currentUser.name.charAt(0) : 'U'}
             </div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+            <div className="mobile-hide" style={{ textAlign: 'left', lineHeight: 1.2 }}>
               <div style={{ fontSize: '13px', fontWeight: 700 }}>{currentUser?.name || 'User'}</div>
               <div style={{ fontSize: '11px', color: '#E0D6F5' }}>{activeRole}</div>
             </div>
-            <ChevronDown size={14} color="#D1D5DB" />
+            <ChevronDown className="mobile-hide" size={14} color="#D1D5DB" />
           </button>
 
           {showDropdown && (
@@ -248,12 +299,13 @@ export const Header = ({ onToggleMobileDrawer }) => {
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               border: '1px solid #E5E5E5',
               width: '210px',
+              maxWidth: 'calc(100vw - 32px)',
               zIndex: 250,
               padding: '8px 0'
             }}>
               <div style={{ padding: '8px 16px', borderBottom: '1px solid #E5E5E5' }}>
-                <div style={{ fontWeight: 700, fontSize: '13px', color: '#3A1F6F' }}>{currentUser?.name}</div>
-                <div style={{ fontSize: '12px', color: '#55636B' }}>{currentUser?.email}</div>
+                <div style={{ fontWeight: 700, fontSize: '13px', color: '#3A1F6F', wordBreak: 'break-word' }}>{currentUser?.name}</div>
+                <div style={{ fontSize: '12px', color: '#55636B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
               </div>
 
               <button 
@@ -281,5 +333,30 @@ export const Header = ({ onToggleMobileDrawer }) => {
         </div>
       </div>
     </header>
+
+    {/* Mobile Segmented Mode Switcher */}
+    {isTeacher && isAssignedCoordinator && (
+      <div className="desktop-hide" style={{ padding: '10px 16px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #EAEAEA', zIndex: 100 }}>
+        <div className="segmented-control dark">
+          <button
+            className={`segmented-btn ${activeRole === 'FACULTY' ? 'active' : ''}`}
+            onClick={() => {
+              if (activeRole !== 'FACULTY') handleModeToggle();
+            }}
+          >
+            Faculty
+          </button>
+          <button
+            className={`segmented-btn ${activeRole === 'COORDINATOR' ? 'active' : ''}`}
+            onClick={() => {
+              if (activeRole !== 'COORDINATOR') handleModeToggle();
+            }}
+          >
+            Coordinator
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 };

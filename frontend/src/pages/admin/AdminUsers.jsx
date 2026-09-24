@@ -97,7 +97,7 @@ export const AdminUsers = () => {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <select
             className="form-select"
-            style={{ width: '220px' }}
+            style={{ width: '100%', maxWidth: '220px' }}
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
           >
@@ -111,7 +111,7 @@ export const AdminUsers = () => {
           <input
             type="text"
             className="form-input"
-            style={{ width: '240px' }}
+            style={{ width: '100%', maxWidth: '240px' }}
             placeholder="Search name, USN, email, team, subject, guide..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -246,7 +246,7 @@ export const AdminUsers = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '560px' }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Shield size={18} />
                 <span>Account Governance & Credentials</span>
               </h3>
@@ -259,7 +259,7 @@ export const AdminUsers = () => {
             </div>
             <div className="modal-body">
               <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div>
                     <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                       {inspectingUser.name}

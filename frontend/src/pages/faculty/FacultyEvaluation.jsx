@@ -409,7 +409,7 @@ export const FacultyEvaluation = () => {
               padding: '20px',
               backgroundColor: '#FFFFFF'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})

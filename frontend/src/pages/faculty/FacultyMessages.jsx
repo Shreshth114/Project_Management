@@ -213,7 +213,7 @@ export const FacultyMessages = () => {
                   borderLeft: m.isIncoming ? '4px solid #DE3B0B' : '4px solid #3A1F6F'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '14px' }}>
                     {m.subject}
                   </span>
@@ -222,7 +222,7 @@ export const FacultyMessages = () => {
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <div style={{ fontSize: '12px', color: '#B8115B', fontWeight: 700 }}>
                     From: {m.sender} ➔ To: {m.recipient}
                   </div>
@@ -272,7 +272,7 @@ export const FacultyMessages = () => {
             {/* Recipient Type Selector */}
             <div className="form-group">
               <label className="form-label">Recipient Category</label>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button
                   type="button"
                   onClick={() => setRecipientType('group')}
