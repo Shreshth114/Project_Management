@@ -77,8 +77,8 @@ export const StudentProfile = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newSubject, setNewSubject] = useState('Technical Seminar & Paper');
-  const [newSubjectCode, setNewSubjectCode] = useState('21CSS82');
-  const [newGuide, setNewGuide] = useState('Faculty Guide');
+  const [newSubjectCode, setNewSubjectCode] = useState('');
+  const [newGuide, setNewGuide] = useState('');
 
   const handleAddProject = (e) => {
     e.preventDefault();
@@ -256,10 +256,11 @@ export const StudentProfile = () => {
 
           <div className="grid-3">
             <div className="form-group">
-              <label className="form-label">Subject Full Name</label>
+              <label className="form-label">Subject Name</label>
               <input
                 type="text"
                 className="form-input"
+                placeholder="e.g. Major Project"
                 value={newSubject}
                 onChange={(e) => setNewSubject(e.target.value)}
                 required
@@ -272,7 +273,9 @@ export const StudentProfile = () => {
                 className="form-select"
                 value={newSubjectCode}
                 onChange={(e) => setNewSubjectCode(e.target.value)}
+                required
               >
+                <option value="" disabled>--- Select a Subject Code ---</option>
                 {subjectsList.map(s => (
                   <option key={s.subject_id || s.id || s.subject_code} value={s.subject_code || s.code}>
                     {s.subject_code || s.code} - {s.subject_name || s.name}
@@ -287,7 +290,9 @@ export const StudentProfile = () => {
                 className="form-select"
                 value={newGuide}
                 onChange={(e) => setNewGuide(e.target.value)}
+                required
               >
+                <option value="" disabled>--- Choose a Faculty Guide ---</option>
                 {facultyList.length > 0 ? (
                   facultyList.map(g => (
                     <option key={g.faculty_id || g.id} value={g.name}>{g.name}</option>
