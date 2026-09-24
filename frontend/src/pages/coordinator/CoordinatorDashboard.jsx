@@ -6,12 +6,14 @@ import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
 import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
+import { supabase } from '../../lib/supabase';
 
 export const CoordinatorDashboard = () => {
   const { currentUser, setActiveTab } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
+  const [subjectInfo, setSubjectInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,15 +23,36 @@ export const CoordinatorDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [fetchedTasks, teams, evals] = await Promise.all([
+
+      // Resolve coordinator's own subject_id
+      let coordinatorSubjectId = null;
+      if (currentUser?.faculty_id) {
+        const { data: facultyRow } = await supabase
+          .from('faculty')
+          .select('subject_id, subject:subject(subject_id, subject_code, subject_name)')
+          .eq('faculty_id', currentUser.faculty_id)
+          .maybeSingle();
+        coordinatorSubjectId = facultyRow?.subject_id || null;
+        if (facultyRow?.subject) setSubjectInfo(facultyRow.subject);
+      }
+
+      const filters = coordinatorSubjectId ? { subject_id: coordinatorSubjectId } : {};
+
+      const [fetchedTasks, teams, allEvals] = await Promise.all([
         taskService.getTasks().catch(() => []),
-        academicService.getTeams().catch(() => []),
+        academicService.getTeams(filters).catch(() => []),
         evaluationService.getAllEvaluations().catch(() => [])
       ]);
 
+      const teamIds = new Set((teams || []).map(t => t.team_id));
+      // Filter evaluations to only those belonging to the coordinator's teams
+      const filteredEvals = (allEvals || []).filter(e =>
+        e.submission?.team_id ? teamIds.has(e.submission.team_id) : false
+      );
+
       setTasks(fetchedTasks || []);
       setAllTeams(teams || []);
-      setEvaluations(evals || []);
+      setEvaluations(filteredEvals);
     } catch (err) {
       console.error("Coordinator dashboard load error:", err);
     } finally {
@@ -77,6 +100,11 @@ export const CoordinatorDashboard = () => {
           </h1>
           <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
             Coordinator: <strong>{currentUser?.name || 'Academic Coordinator'}</strong>
+            {subjectInfo && (
+              <span style={{ marginLeft: '12px', color: '#A5B4FC' }}>
+                | Subject: <strong>{subjectInfo.subject_name} ({subjectInfo.subject_code})</strong>
+              </span>
+            )}
           </div>
         </div>
 

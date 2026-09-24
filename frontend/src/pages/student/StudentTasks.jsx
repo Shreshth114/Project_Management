@@ -44,9 +44,9 @@ export const StudentTasks = () => {
             const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
             return (
               <Card key={task.task_id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <Badge variant={task.task_type === 'INDIVIDUAL' ? 'info' : 'navy'}>
                         {task.task_type === 'INDIVIDUAL' ? '👤 INDIVIDUAL TASK' : '👥 GROUP TASK'}
                       </Badge>
@@ -54,7 +54,7 @@ export const StudentTasks = () => {
                       <Badge variant="warning">Pending</Badge>
                     </div>
 
-                    <p style={{ fontSize: '14px', color: '#444', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '14px', color: '#444', marginBottom: '12px', lineHeight: 1.5 }}>
                       {task.description}
                     </p>
 
@@ -72,6 +72,7 @@ export const StudentTasks = () => {
 
                   <button 
                     className="btn btn-primary"
+                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
                     onClick={() => setActiveTab('submissions')}
                   >
                     <Upload size={16} />

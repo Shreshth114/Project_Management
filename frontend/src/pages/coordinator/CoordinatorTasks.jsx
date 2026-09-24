@@ -41,27 +41,57 @@ export const CoordinatorTasks = () => {
 
   const handleOpenEdit = (task) => {
     setEditingTask(task);
-    setTitle(task.title);
-    setDescription(task.description);
-    setDeadline(task.deadline || '2025-10-25');
-    setMaxMarks(task.maxMarks || 100);
-    setSubmissionMode(task.submissionMode || 'LEADER_SUBMITS_ALL');
+    setTitle(task.title || '');
+    setDescription(task.description || '');
+    setDeadline(task.deadline ? (task.deadline.includes('T') ? task.deadline.split('T')[0] : task.deadline) : '2025-10-25');
+    const computedMax = task.evaluation_criteria && task.evaluation_criteria.length > 0
+      ? task.evaluation_criteria.reduce((sum, c) => sum + Number(c.max_marks || 0), 0)
+      : (task.maxMarks || 100);
+    setMaxMarks(computedMax);
+    const isIndiv = task.task_type === 'INDIVIDUAL' || task.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED';
+    setSubmissionMode(isIndiv ? 'MEMBERS_SUBMIT_ASSIGNED' : 'LEADER_SUBMITS_ALL');
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingTask) return;
 
-    setTasks(prev => prev.map(t => {
-      if (t.id === editingTask.id) {
-        return { ...t, title, description, deadline, maxMarks: parseInt(maxMarks), submissionMode };
-      }
-      return t;
-    }));
+    const taskId = editingTask.task_id || editingTask.id;
+    const taskType = submissionMode === 'MEMBERS_SUBMIT_ASSIGNED' ? 'INDIVIDUAL' : 'GROUP';
 
-    setSuccessMsg(`Milestone task "${title}" updated successfully!`);
-    setEditingTask(null);
-    setTimeout(() => setSuccessMsg(''), 4000);
+    try {
+      if (editingTask.task_id) {
+        await taskService.updateTask(editingTask.task_id, {
+          title,
+          description,
+          task_type: taskType,
+          deadline
+        });
+      }
+
+      setTasks(prev => prev.map(t => {
+        const currentId = t.task_id || t.id;
+        if (currentId === taskId) {
+          return {
+            ...t,
+            title,
+            description,
+            deadline,
+            task_type: taskType,
+            submissionMode,
+            maxMarks: parseInt(maxMarks)
+          };
+        }
+        return t;
+      }));
+
+      setSuccessMsg(`Milestone task "${title}" updated successfully!`);
+      setEditingTask(null);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error("Save edit error:", err);
+      setError(err.message || 'Failed to update milestone');
+    }
   };
 
   return (
@@ -71,7 +101,7 @@ export const CoordinatorTasks = () => {
           <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Master Department Tasks & Milestones</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Milestones and submission modes defined for all final year project batches.
-            Milestones defined for all final year project batches.          </p>
+          </p>
         </div>
         <button className="btn btn-primary" onClick={() => setActiveTab('create-task')}>
           <PlusSquare size={16} />
@@ -86,37 +116,51 @@ export const CoordinatorTasks = () => {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {tasks.map((task) => (
-          <Card key={task.id}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                  <Badge variant="purple">{task.phase}</Badge>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{task.title}</h3>
-                  <Badge variant={task.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED' ? 'magenta' : 'info'}>
-                    {task.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED' ? 'Mode B: Individual Submissions' : 'Mode A: Group Mode (1 Upload Reflected for All)'}
-                  </Badge>
-                </div>
-                <p style={{ fontSize: '14px', color: '#55636B', marginBottom: '12px', lineHeight: 1.4 }}>{task.description}</p>
-                <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#55636B', flexWrap: 'wrap' }}>
-                  <div><strong>Deadline:</strong> {task.deadline}</div>
-                  <div><strong>Max Marks:</strong> {task.maxMarks} Marks</div>
-                  <div><strong>Deliverable Format:</strong> {task.allowedTypes}</div>
-                </div>
-              </div>
+      {error && (
+        <div className="alert alert-danger" style={{ color: '#D32F2F', background: '#FFEBEE', padding: '10px 14px', borderRadius: '6px' }}>
+          {error}
+        </div>
+      )}
 
-              <button 
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => handleOpenEdit(task)}
-              >
-                <Edit size={14} />
-                <span>Edit Milestone</span>
-              </button>
-            </div>
-          </Card>
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {tasks.map((task) => {
+          const isIndiv = task.task_type === 'INDIVIDUAL' || task.submissionMode === 'MEMBERS_SUBMIT_ASSIGNED';
+          const computedMax = task.evaluation_criteria && task.evaluation_criteria.length > 0
+            ? task.evaluation_criteria.reduce((sum, c) => sum + Number(c.max_marks || 0), 0)
+            : (task.maxMarks || 100);
+          const deadlineStr = task.deadline ? (task.deadline.includes('T') ? task.deadline.split('T')[0] : task.deadline) : '—';
+
+          return (
+            <Card key={task.task_id || task.id}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                    <Badge variant="purple">{task.phase || 'Phase 2'}</Badge>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{task.title}</h3>
+                    <Badge variant={isIndiv ? 'magenta' : 'info'}>
+                      {isIndiv ? 'Mode B: Individual Submissions' : 'Mode A: Group Mode (1 Upload Reflected for All)'}
+                    </Badge>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#55636B', marginBottom: '12px', lineHeight: 1.4 }}>{task.description}</p>
+                  <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#55636B', flexWrap: 'wrap' }}>
+                    <div><strong>Deadline:</strong> {deadlineStr}</div>
+                    <div><strong>Max Marks:</strong> {computedMax} Marks</div>
+                    <div><strong>Deliverable Format:</strong> {task.allowedTypes || 'PDF / Document / Link'}</div>
+                  </div>
+                </div>
+
+                <button 
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => handleOpenEdit(task)}
+                >
+                  <Edit size={14} />
+                  <span>Edit Milestone</span>
+                </button>
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Edit Milestone Modal */}

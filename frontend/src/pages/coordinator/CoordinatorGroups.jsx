@@ -7,6 +7,7 @@ import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { submissionService } from '../../services/submissionService';
 import { evaluationService } from '../../services/evaluationService';
+import { supabase } from '../../lib/supabase';
 
 export const CoordinatorGroups = () => {
   const { currentUser } = useAuth();
@@ -24,8 +25,22 @@ export const CoordinatorGroups = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+
+      // Resolve the coordinator's own subject_id so we only show their groups
+      let coordinatorSubjectId = null;
+      if (currentUser?.faculty_id) {
+        const { data: facultyRow } = await supabase
+            .from('faculty')
+            .select('subject_id')
+            .eq('faculty_id', currentUser.faculty_id)
+            .maybeSingle();
+        coordinatorSubjectId = facultyRow?.subject_id || null;
+      }
+
+      const filters = coordinatorSubjectId ? { subject_id: coordinatorSubjectId } : {};
+
       const [fetchedTeams, fetchedTasks] = await Promise.all([
-        academicService.getTeams().catch(() => []),
+        academicService.getTeams(filters).catch(() => []),
         taskService.getTasks().catch(() => [])
       ]);
 

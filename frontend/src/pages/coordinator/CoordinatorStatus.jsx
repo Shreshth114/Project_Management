@@ -6,8 +6,10 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 import { submissionService } from '../../services/submissionService';
+import { supabase } from '../../lib/supabase';
 
 export const CoordinatorStatus = () => {
+  const { currentUser } = useAuth();
   const [inspectingGroupStatus, setInspectingGroupStatus] = useState(null);
   const [teams, setTeams] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
@@ -16,13 +18,26 @@ export const CoordinatorStatus = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentUser]);
 
   const loadData = async () => {
     try {
       setLoading(true);
+
+      let coordinatorSubjectId = null;
+      if (currentUser?.faculty_id) {
+        const { data: facultyRow } = await supabase
+          .from('faculty')
+          .select('subject_id')
+          .eq('faculty_id', currentUser.faculty_id)
+          .maybeSingle();
+        coordinatorSubjectId = facultyRow?.subject_id || null;
+      }
+
+      const filters = coordinatorSubjectId ? { subject_id: coordinatorSubjectId } : {};
+
       const [fetchedTeams, fetchedEvals] = await Promise.all([
-        academicService.getTeams().catch(() => []),
+        academicService.getTeams(filters).catch(() => []),
         evaluationService.getAllEvaluations().catch(() => [])
       ]);
 

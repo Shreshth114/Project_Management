@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Edit, Eye, Key } from 'lucide-react';
+import { Edit, Eye, Key, X, Shield } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -29,6 +29,7 @@ const matchesSearch = (item, searchTerm) => {
 export const AdminUsers = () => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [inspectingUser, setInspectingUser] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,7 @@ export const AdminUsers = () => {
           >
             <option value="ALL">All Account Roles</option>
             <option value="STUDENT">STUDENT</option>
-            <option value="FACULTY_ONLY">JUST FACULTY</option>
+            <option value="FACULTY_ONLY">FACULTY</option>
             <option value="BOTH">FACULTY & COORDINATOR</option>
             <option value="ADMIN">ADMIN</option>
           </select>
@@ -187,7 +188,7 @@ export const AdminUsers = () => {
                       categoryLabel = 'FACULTY & COORDINATOR';
                       categoryVariant = 'magenta';
                     } else {
-                      categoryLabel = 'JUST FACULTY';
+                      categoryLabel = 'FACULTY';
                       categoryVariant = 'purple';
                     }
                   }
@@ -224,9 +225,10 @@ export const AdminUsers = () => {
                       <td data-label="Actions">
                         <button 
                           className="btn btn-secondary btn-sm" 
-                          onClick={() => alert(`Credentials & permissions for ${u.name}`)}
+                          onClick={() => setInspectingUser({ ...u, categoryLabel, categoryVariant, subjectGroupLabel })}
+                          title="Inspect account credentials"
                         >
-                          <Edit size={13} />
+                          <Eye size={13} />
                           <span>Inspect</span>
                         </button>
                       </td>
@@ -238,6 +240,87 @@ export const AdminUsers = () => {
           </div>
         )}
       </Card>
+
+      {/* Account Inspect Modal */}
+      {inspectingUser && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog" style={{ maxWidth: '560px' }}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Shield size={18} />
+                <span>Account Governance & Credentials</span>
+              </h3>
+              <button 
+                onClick={() => setInspectingUser(null)}
+                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                      {inspectingUser.name}
+                    </h4>
+                    <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                      {inspectingUser.email}
+                    </div>
+                  </div>
+                  <Badge variant={inspectingUser.categoryVariant}>{inspectingUser.categoryLabel}</Badge>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+                <div><strong>Username / USN:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{inspectingUser.usn || inspectingUser.username}</span></div>
+                <div><strong>System User ID:</strong> <span style={{ color: '#55636B', fontFamily: 'monospace' }}>#{inspectingUser.id || inspectingUser.user_id}</span></div>
+                <div><strong>Assigned Subject / Course:</strong> <span>{inspectingUser.subjectName ? `${inspectingUser.subjectName} (${inspectingUser.subjectCode || 'Active'})` : (inspectingUser.role === 'ADMIN' ? 'System Administration' : 'Not Assigned')}</span></div>
+                
+                {inspectingUser.role === 'STUDENT' && (
+                  <>
+                    <div><strong>Project Team Code:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{inspectingUser.teamCode || 'No Team Assigned'}</span></div>
+                    <div><strong>Allocated Guide:</strong> <span>{inspectingUser.guideName || 'Not Assigned'}</span></div>
+                  </>
+                )}
+
+                {(inspectingUser.role === 'FACULTY' || inspectingUser.role === 'TEACHER') && (
+                  <>
+                    <div><strong>Coordinator Privileges:</strong> <Badge variant={inspectingUser.isCoordinator ? 'success' : 'secondary'}>{inspectingUser.isCoordinator ? 'Yes (Department Coordinator)' : 'No (Standard Guide)'}</Badge></div>
+                    <div>
+                      <strong>Mentored Project Batches:</strong>
+                      <div style={{ marginTop: '4px', fontSize: '13px', color: '#3A1F6F', fontWeight: 600 }}>
+                        {teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).length > 0
+                          ? teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).map(t => `${t.teamCode} (${t.studentCount} students)`).join(', ')
+                          : 'No project batches currently assigned'}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <strong>System Access Privileges:</strong>
+                  <div style={{ marginTop: '4px', padding: '8px 12px', background: '#F8F9FA', borderRadius: '4px', fontSize: '13px', color: '#55636B' }}>
+                    {inspectingUser.role === 'ADMIN' 
+                      ? 'Full administrative governance, database synchronization, master edit access, and user lifecycle control.'
+                      : inspectingUser.isCoordinator 
+                        ? 'Milestone configuration, department evaluation matrix oversight, and team allocation access.'
+                        : inspectingUser.role === 'STUDENT'
+                          ? 'Milestone deliverable submissions, project evaluation viewing, and guide message exchanges.'
+                          : 'Rubric score evaluation, guide feedback submission, and student deliverable review.'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '20px', textAlign: 'right' }}>
+                <button className="btn btn-secondary btn-sm" onClick={() => setInspectingUser(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
