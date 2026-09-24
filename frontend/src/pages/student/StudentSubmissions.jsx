@@ -13,11 +13,11 @@ export const StudentSubmissions = () => {
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [selectedTaskId, setSelectedTaskId] = useState('');
-  
+
   const [file, setFile] = useState(null);
   const [urlInput, setUrlInput] = useState('');
   const [submissionType, setSubmissionType] = useState('file'); // 'file' or 'link'
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -36,13 +36,13 @@ export const StudentSubmissions = () => {
       setLoading(true);
       const studentTeam = await academicService.getTeamByStudent(studentId).catch(() => null);
       setTeam(studentTeam);
-      
+
       const allTasks = await taskService.getTasks().catch(() => []);
       setTasks(allTasks || []);
       if (allTasks && allTasks.length > 0) {
         setSelectedTaskId(allTasks[0].task_id);
       }
-      
+
       if (studentTeam?.team_id) {
         const teamSubmissions = await submissionService.getSubmissionsByTeam(studentTeam.team_id).catch(() => []);
         setSubmissions(teamSubmissions || []);
@@ -165,7 +165,7 @@ export const StudentSubmissions = () => {
           <span>{successMsg}</span>
         </div>
       )}
-      
+
       {error && (
         <div className="alert alert-danger">
           <AlertCircle size={18} />
@@ -222,16 +222,16 @@ export const StudentSubmissions = () => {
                       <td data-label="Submitted File / Link">
                         {isSubmitted ? (
                           sub.file_url && sub.file_url !== '#' ? (
-                            <button 
+                            <button
                               type="button"
                               onClick={() => submissionService.openSubmissionFile(sub.file_url, sub.file_name)}
-                              style={{ 
-                                background: 'none', 
-                                border: 'none', 
-                                color: '#DE3B0B', 
-                                fontWeight: 600, 
-                                display: 'inline-flex', 
-                                alignItems: 'center', 
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#DE3B0B',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
                                 gap: '4px',
                                 cursor: 'pointer',
                                 padding: 0,
@@ -262,7 +262,7 @@ export const StudentSubmissions = () => {
                             <span>Completed</span>
                           </span>
                         ) : (
-                          <button 
+                          <button
                             type="button"
                             className="btn btn-primary btn-sm"
                             onClick={() => {
@@ -298,7 +298,7 @@ export const StudentSubmissions = () => {
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">Target Milestone</label>
-                <select 
+                <select
                   className="form-select"
                   value={selectedTaskId}
                   onChange={(e) => setSelectedTaskId(e.target.value)}
@@ -322,20 +322,20 @@ export const StudentSubmissions = () => {
                 <label className="form-label">Submission Format</label>
                 <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="subType" 
-                      value="file" 
+                    <input
+                      type="radio"
+                      name="subType"
+                      value="file"
                       checked={submissionType === 'file'}
                       onChange={() => setSubmissionType('file')}
                     />
                     Document / Archive File (PDF, ZIP, DOCX)
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="subType" 
-                      value="link" 
+                    <input
+                      type="radio"
+                      name="subType"
+                      value="link"
                       checked={submissionType === 'link'}
                       onChange={() => setSubmissionType('link')}
                     />
@@ -348,9 +348,9 @@ export const StudentSubmissions = () => {
             {submissionType === 'file' ? (
               <div className="form-group">
                 <label className="form-label">Upload Deliverable Document</label>
-                <input 
-                  type="file" 
-                  className="form-input" 
+                <input
+                  type="file"
+                  className="form-input"
                   onChange={(e) => setFile(e.target.files[0])}
                   required={submissionType === 'file'}
                 />
@@ -361,9 +361,9 @@ export const StudentSubmissions = () => {
             ) : (
               <div className="form-group">
                 <label className="form-label">Live Deployment / Repository URL</label>
-                <input 
-                  type="url" 
-                  className="form-input" 
+                <input
+                  type="url"
+                  className="form-input"
                   placeholder="https://github.com/my-org/my-project or https://live-demo.msrit.edu"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
@@ -373,13 +373,13 @@ export const StudentSubmissions = () => {
             )}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-primary"
                 disabled={submitting || tasks.length === 0}
               >
                 <Upload size={16} />
-                <span>{submitting ? 'Submitting to Database...' : 'CONFIRM & SUBMIT DELIVERABLE'}</span>
+                <span>{submitting ? 'Submitting...' : 'CONFIRM & SUBMIT DELIVERABLE'}</span>
               </button>
             </div>
           </form>
