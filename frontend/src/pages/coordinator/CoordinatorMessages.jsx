@@ -159,7 +159,7 @@ export const CoordinatorMessages = () => {
                     borderLeft: '4px solid #DE3B0B'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                     <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
                       📢 COORDINATOR CIRCULAR
                     </span>

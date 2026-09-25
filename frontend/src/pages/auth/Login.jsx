@@ -41,8 +41,6 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
     e.preventDefault();
     if (onNavigateForgotPassword) {
       onNavigateForgotPassword();
-    } else {
-      alert("Please contact the System Admin at admin@msrit.edu for password reset.");
     }
   };
 
@@ -50,12 +48,12 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'column',
       background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
       padding: '20px'
     }}>
       <div style={{
+        margin: 'auto',
         width: '100%',
         maxWidth: '460px',
         backgroundColor: '#FFFFFF',
@@ -71,7 +69,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           textAlign: 'center',
           borderBottom: '4px solid #E63B00'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
             <RitLogo size="large" light={true} />
           </div>
 
@@ -93,7 +91,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           </p>
 
           {error && (
-            <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <div className="alert alert-danger mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <AlertCircle size={16} />
               <span style={{ fontSize: '13px' }}>{error}</span>
             </div>
@@ -114,7 +112,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
             </div>
 
             <div className="form-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
                 <a 
                   href="#forgot" 

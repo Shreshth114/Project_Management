@@ -73,7 +73,7 @@ export const FacultyGroups = () => {
             <Card key={group.id || group.groupCode}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Badge variant="purple">{group.groupCode}</Badge>
                     <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{group.title}</h3>
                   </div>

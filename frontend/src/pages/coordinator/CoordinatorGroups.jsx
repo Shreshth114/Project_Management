@@ -7,6 +7,7 @@ import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { submissionService } from '../../services/submissionService';
 import { evaluationService } from '../../services/evaluationService';
+import { supabase } from '../../lib/supabase';
 
 export const CoordinatorGroups = () => {
   const { currentUser } = useAuth();
@@ -24,8 +25,22 @@ export const CoordinatorGroups = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+
+      // Resolve the coordinator's own subject_id so we only show their groups
+      let coordinatorSubjectId = null;
+      if (currentUser?.faculty_id) {
+        const { data: facultyRow } = await supabase
+            .from('faculty')
+            .select('subject_id')
+            .eq('faculty_id', currentUser.faculty_id)
+            .maybeSingle();
+        coordinatorSubjectId = facultyRow?.subject_id || null;
+      }
+
+      const filters = coordinatorSubjectId ? { subject_id: coordinatorSubjectId } : {};
+
       const [fetchedTeams, fetchedTasks] = await Promise.all([
-        academicService.getTeams().catch(() => []),
+        academicService.getTeams(filters).catch(() => []),
         taskService.getTasks().catch(() => [])
       ]);
 
@@ -88,7 +103,7 @@ export const CoordinatorGroups = () => {
           </p>
         </div>
 
-        <div style={{ width: '280px' }}>
+        <div style={{ width: '100%', maxWidth: '280px' }}>
           <input
             type="text"
             className="form-input"
@@ -105,7 +120,7 @@ export const CoordinatorGroups = () => {
             <Card key={group.id}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                     <Badge variant="purple">{group.groupCode}</Badge>
                     <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                       {group.title}
@@ -119,7 +134,7 @@ export const CoordinatorGroups = () => {
                   </div>
 
                   {/* Progress Metric */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ flex: 1, backgroundColor: '#E5E5E5', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: `${group.overallProgress}%`, backgroundColor: group.overallProgress === 100 ? '#728C5E' : '#3A1F6F', height: '100%' }} />
                     </div>
@@ -133,7 +148,7 @@ export const CoordinatorGroups = () => {
                   type="button" 
                   className="btn btn-primary btn-sm"
                   onClick={() => handleInspect(group)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                  className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Eye size={14} />
                   <span>Inspect Milestones</span>
@@ -160,7 +175,7 @@ export const CoordinatorGroups = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '720px' }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FolderCheck size={18} />
                 <span>Group Progress Inspection ({inspectingGroup.groupCode})</span>
               </h3>

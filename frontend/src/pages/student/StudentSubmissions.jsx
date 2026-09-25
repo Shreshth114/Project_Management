@@ -75,10 +75,17 @@ export const StudentSubmissions = () => {
       return;
     }
 
-    // Prevent re-submission: block if this task already has a submission
-    const alreadySubmitted = submissions.some(s => s.task_id === selectedTaskId);
+    const currentTask = tasks.find(t => t.task_id === selectedTaskId);
+    const isIndividual = currentTask?.task_type === 'INDIVIDUAL';
+
+    // Prevent re-submission:
+    const alreadySubmitted = isIndividual
+      ? submissions.some(s => s.task_id === selectedTaskId && s.submitted_by_student_id === currentUser.student_id)
+      : submissions.some(s => s.task_id === selectedTaskId);
     if (alreadySubmitted) {
-      setError('This milestone has already been submitted. Re-submission is not allowed.');
+      setError(isIndividual
+        ? 'You have already submitted this individual deliverable. Re-submission is not allowed.'
+        : 'This milestone has already been submitted by your team. Re-submission is not allowed.');
       return;
     }
 
@@ -105,11 +112,13 @@ export const StudentSubmissions = () => {
         file_url: fileInfo.file_url
       };
 
-      await submissionService.submitTask(payload);
+      await submissionService.submitTask(payload, isIndividual);
       const updatedSubmissions = await submissionService.getSubmissionsByTeam(team.team_id);
       setSubmissions(updatedSubmissions || []);
 
-      setSuccessMsg('Deliverable uploaded successfully! Reflected for all group members.');
+      setSuccessMsg(isIndividual
+        ? 'Individual deliverable uploaded successfully!'
+        : 'Deliverable uploaded successfully! Reflected for all group members.');
       setFile(null);
       setUrlInput('');
       setTimeout(() => setSuccessMsg(''), 4000);
@@ -195,7 +204,10 @@ export const StudentSubmissions = () => {
             <tbody>
               {tasks.length > 0 ? (
                 tasks.map(task => {
-                  const sub = submissions.find(s => s.task_id === task.task_id);
+                  const isIndividual = task.task_type === 'INDIVIDUAL';
+                  const sub = isIndividual
+                    ? submissions.find(s => s.task_id === task.task_id && s.submitted_by_student_id === currentUser?.student_id)
+                    : submissions.find(s => s.task_id === task.task_id);
                   const isSubmitted = Boolean(sub);
                   const deadlineStr = task.deadline ? (task.deadline.includes('T') ? new Date(task.deadline).toLocaleDateString() : task.deadline) : '—';
 
@@ -304,9 +316,19 @@ export const StudentSubmissions = () => {
                   onChange={(e) => setSelectedTaskId(e.target.value)}
                   required
                 >
-                  {tasks.filter(t => !submissions.some(s => s.task_id === t.task_id)).length > 0 ? (
+                  {tasks.filter(t => {
+                    if (t.task_type === 'INDIVIDUAL') {
+                      return !submissions.some(s => s.task_id === t.task_id && s.submitted_by_student_id === currentUser?.student_id);
+                    }
+                    return !submissions.some(s => s.task_id === t.task_id);
+                  }).length > 0 ? (
                     tasks
-                      .filter(t => !submissions.some(s => s.task_id === t.task_id))
+                      .filter(t => {
+                        if (t.task_type === 'INDIVIDUAL') {
+                          return !submissions.some(s => s.task_id === t.task_id && s.submitted_by_student_id === currentUser?.student_id);
+                        }
+                        return !submissions.some(s => s.task_id === t.task_id);
+                      })
                       .map(t => (
                         <option key={t.task_id} value={t.task_id}>
                           {t.title} ({t.task_type || 'GROUP'})
@@ -320,22 +342,22 @@ export const StudentSubmissions = () => {
 
               <div className="form-group">
                 <label className="form-label">Submission Format</label>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="subType"
-                      value="file"
+                <div className="mobile-wrap" style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                  <label className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="subType" 
+                      value="file" 
                       checked={submissionType === 'file'}
                       onChange={() => setSubmissionType('file')}
                     />
                     Document / Archive File (PDF, ZIP, DOCX)
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="subType"
-                      value="link"
+                  <label className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="subType" 
+                      value="link" 
                       checked={submissionType === 'link'}
                       onChange={() => setSubmissionType('link')}
                     />
@@ -372,9 +394,9 @@ export const StudentSubmissions = () => {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
-              <button
-                type="submit"
+            <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <button 
+                type="submit" 
                 className="btn btn-primary"
                 disabled={submitting || tasks.length === 0}
               >

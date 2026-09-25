@@ -53,12 +53,11 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
       zIndex: 500,
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
       padding: '24px',
       overflowY: 'auto'
     }}>
       <div style={{
+        margin: 'auto',
         width: '100%',
         maxWidth: '820px',
         display: 'flex',
@@ -86,7 +85,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
         </div>
 
         {notification && (
-          <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="alert alert-danger mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <AlertTriangle size={20} color="#DE3B0B" />
             <span style={{ fontWeight: 700, fontSize: '14px' }}>{notification}</span>
           </div>

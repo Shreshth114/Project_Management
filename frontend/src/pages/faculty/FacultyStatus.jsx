@@ -6,6 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 import { submissionService } from '../../services/submissionService';
+import { taskService } from '../../services/taskService';
 
 export const FacultyStatus = () => {
   const { currentUser } = useAuth();
@@ -27,10 +28,16 @@ export const FacultyStatus = () => {
   const loadData = async (facultyId) => {
     try {
       setLoading(true);
-      const [teams, evaluations] = await Promise.all([
+      const [teams, evaluations, allTasks] = await Promise.all([
         academicService.getTeams({ guide_id: facultyId }).catch(() => []),
-        evaluationService.getAllEvaluations().catch(() => [])
+        evaluationService.getAllEvaluations().catch(() => []),
+        taskService.getTasks().catch(() => [])
       ]);
+
+      const taskMap = {};
+      (allTasks || []).forEach(t => {
+        taskMap[t.task_id] = t;
+      });
 
       const studentRoster = [];
 
@@ -38,29 +45,42 @@ export const FacultyStatus = () => {
         const teamSubs = await submissionService.getSubmissionsByTeam(team.team_id).catch(() => []);
         const hasSubmissions = teamSubs && teamSubs.length > 0;
         const latestSub = hasSubmissions ? teamSubs[teamSubs.length - 1] : null;
+        const taskObj = latestSub ? taskMap[latestSub.task_id] : null;
+        const taskTitle = taskObj ? taskObj.title : (latestSub ? `Task #${latestSub.task_id}` : '—');
 
         for (const m of team.members || []) {
-          const evalRec = (evaluations || []).find(
-            e => e.student_id === m.student_id || e.submission?.team_id === team.team_id
-          );
+          // Strictly evaluate per student_id (NOT by entire team_id)
+          const studentEvals = (evaluations || []).filter(e => Number(e.student_id) === Number(m.student_id));
+          const isEvaluated = studentEvals.length > 0;
 
           let submissionStatus = hasSubmissions ? 'SUBMITTED' : 'NOT_SUBMITTED';
-          let evalStatus = evalRec ? 'EVALUATED' : (hasSubmissions ? 'PENDING_EVALUATION' : 'NOT_EVALUATED');
+          let evalStatus = isEvaluated ? 'EVALUATED' : (hasSubmissions ? 'PENDING_EVALUATION' : 'NOT_EVALUATED');
           let submissionDate = latestSub?.submitted_at ? new Date(latestSub.submitted_at).toLocaleDateString() : '—';
-          let progress = hasSubmissions ? 100 : 0;
+          let progress = isEvaluated ? 100 : (hasSubmissions ? 60 : 0);
+
+          const totalMarks = isEvaluated
+            ? studentEvals.reduce((sum, e) => sum + Number(e.awarded_marks || 0), 0)
+            : null;
+          const feedback = studentEvals.find(e => e.feedback)?.feedback || '';
 
           studentRoster.push({
             usn: m.usn,
             name: m.name,
             email: m.email,
+            student_id: m.student_id,
             groupName: team.team_code,
             groupTitle: team.subject?.subject_name || 'Academic Project',
             groupId: team.team_id,
             submissionStatus,
             evalStatus,
             submissionDate,
+            taskTitle,
+            taskType: taskObj?.task_type || 'Milestone',
+            totalMarks,
+            feedback,
             progress,
-            evalRec
+            evalRec: studentEvals[0] || null,
+            studentEvals
           });
         }
       }
@@ -75,12 +95,15 @@ export const FacultyStatus = () => {
 
   const filteredStudents = allStudents.filter(s => {
     const matchesSearch = (s.usn && s.usn.toLowerCase().includes(usnSearch.toLowerCase())) ||
-                          (s.name && s.name.toLowerCase().includes(usnSearch.toLowerCase()));
+                          (s.name && s.name.toLowerCase().includes(usnSearch.toLowerCase())) ||
+                          (s.taskTitle && s.taskTitle.toLowerCase().includes(usnSearch.toLowerCase())) ||
+                          (s.groupName && s.groupName.toLowerCase().includes(usnSearch.toLowerCase()));
     
     let matchesStatus = true;
     if (statusFilter === 'SUBMITTED') matchesStatus = s.submissionStatus === 'SUBMITTED';
     else if (statusFilter === 'NOT_SUBMITTED') matchesStatus = s.submissionStatus === 'NOT_SUBMITTED';
     else if (statusFilter === 'PENDING') matchesStatus = s.evalStatus === 'PENDING_EVALUATION';
+    else if (statusFilter === 'EVALUATED') matchesStatus = s.evalStatus === 'EVALUATED';
 
     return matchesSearch && matchesStatus;
   });
@@ -92,35 +115,36 @@ export const FacultyStatus = () => {
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student Submission & Rubric Evaluation Matrix</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Search students by USN to track submission status, submission dates, progress, and rubric scores.
+          Search students by USN to track submission status, submitted assignments, submission dates, progress, and rubric scores.
         </p>
       </div>
 
       {/* Search & Filter Bar */}
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
             <Search size={18} color="#3A1F6F" />
             <input
               type="text"
               className="form-input"
-              placeholder="Search student by USN or Name (e.g. 1MS21CS042)..."
+              placeholder="Search student by USN, Name, Group, or Assignment..."
               value={usnSearch}
               onChange={(e) => setUsnSearch(e.target.value)}
             />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Filter size={16} color="#3A1F6F" />
             <select
               className="form-select"
-              style={{ width: '220px' }}
+              style={{ width: '100%', maxWidth: '220px' }}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="ALL">All Submission Statuses</option>
               <option value="SUBMITTED">✓ Submitted</option>
               <option value="PENDING">○ Pending Evaluation</option>
+              <option value="EVALUATED">✓ Evaluated</option>
               <option value="NOT_SUBMITTED">✕ Not Submitted</option>
             </select>
           </div>
@@ -136,6 +160,7 @@ export const FacultyStatus = () => {
                 <th>Student USN</th>
                 <th>Full Name</th>
                 <th>Group Name</th>
+                <th>Assignment / Deliverable</th>
                 <th>Status (Submission Date & Progress)</th>
                 <th>Faculty Rubric Evaluation</th>
                 <th>Action</th>
@@ -149,6 +174,21 @@ export const FacultyStatus = () => {
                     <td data-label="Full Name" style={{ fontWeight: 600 }}>{s.name}</td>
                     <td data-label="Group Name" style={{ fontWeight: 700, color: '#3A1F6F' }}>{s.groupName}</td>
 
+                    <td data-label="Assignment / Deliverable">
+                      {s.submissionStatus === 'SUBMITTED' ? (
+                        <div>
+                          <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
+                            {s.taskTitle}
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#55636B' }}>
+                            ({s.taskType})
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ color: '#8A9198', fontSize: '13px' }}>—</span>
+                      )}
+                    </td>
+
                     <td data-label="Status">
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <Badge variant={s.submissionStatus === 'SUBMITTED' ? 'success' : 'danger'}>
@@ -161,9 +201,16 @@ export const FacultyStatus = () => {
                     </td>
 
                     <td data-label="Rubric Evaluation">
-                      <Badge variant={s.evalStatus === 'EVALUATED' ? 'success' : s.evalStatus === 'PENDING_EVALUATION' ? 'warning' : 'info'}>
-                        {s.evalStatus === 'EVALUATED' ? '✓ Evaluated' : s.evalStatus === 'PENDING_EVALUATION' ? '○ Pending Review' : '✕ Not Evaluated'}
-                      </Badge>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <Badge variant={s.evalStatus === 'EVALUATED' ? 'success' : s.evalStatus === 'PENDING_EVALUATION' ? 'warning' : 'info'}>
+                          {s.evalStatus === 'EVALUATED' ? '✓ Evaluated' : s.evalStatus === 'PENDING_EVALUATION' ? '○ Pending Review' : '✕ Not Evaluated'}
+                        </Badge>
+                        {s.evalStatus === 'EVALUATED' && s.totalMarks !== null && (
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#107C41', marginTop: '1px' }}>
+                            Score: {s.totalMarks} Marks
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     <td data-label="Action">
@@ -181,7 +228,7 @@ export const FacultyStatus = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
                     No students found under your allocated project teams.
                   </td>
                 </tr>
@@ -196,7 +243,7 @@ export const FacultyStatus = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '540px' }}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Award size={18} />
                 <span>Student Compliance Details ({inspectingStudent.usn})</span>
               </h3>
@@ -221,9 +268,21 @@ export const FacultyStatus = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
+                <div><strong>Assignment / Deliverable:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{inspectingStudent.taskTitle}</span></div>
                 <div><strong>Submission Status:</strong> <Badge variant={inspectingStudent.submissionStatus === 'SUBMITTED' ? 'success' : 'danger'}>{inspectingStudent.submissionStatus}</Badge></div>
                 <div><strong>Submission Date:</strong> {inspectingStudent.submissionDate}</div>
-                <div><strong>Evaluation Status:</strong> <Badge variant={inspectingStudent.evalStatus === 'EVALUATED' ? 'success' : 'warning'}>{inspectingStudent.evalStatus}</Badge></div>
+                <div><strong>Evaluation Status:</strong> <Badge variant={inspectingStudent.evalStatus === 'EVALUATED' ? 'success' : inspectingStudent.evalStatus === 'PENDING_EVALUATION' ? 'warning' : 'info'}>{inspectingStudent.evalStatus === 'EVALUATED' ? '✓ Evaluated' : inspectingStudent.evalStatus === 'PENDING_EVALUATION' ? '○ Pending Review' : '✕ Not Evaluated'}</Badge></div>
+                {inspectingStudent.evalStatus === 'EVALUATED' && inspectingStudent.totalMarks !== null && (
+                  <div><strong>Awarded Marks:</strong> <span style={{ color: '#107C41', fontWeight: 800 }}>{inspectingStudent.totalMarks} Marks</span></div>
+                )}
+                {inspectingStudent.feedback && (
+                  <div>
+                    <strong>Faculty Feedback:</strong>
+                    <div style={{ marginTop: '4px', padding: '8px 12px', background: '#F8F9FA', borderRadius: '4px', fontStyle: 'italic', color: '#55636B', borderLeft: '3px solid #3A1F6F' }}>
+                      "{inspectingStudent.feedback}"
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ marginTop: '20px', textAlign: 'right' }}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, CheckCircle, FolderPlus, BookOpen, Mail, Phone, Shield, Award, Edit, UserCheck } from 'lucide-react';
+import { User, Plus, CheckCircle, FolderPlus, BookOpen, Mail, Shield, Award, Edit, UserCheck, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -50,28 +50,39 @@ export const StudentProfile = () => {
   const activeSubjectCode = team?.subject?.subject_code || 'N/A';
   const activeGroupCode = team?.team_code || 'Not Enrolled';
 
-  // Projects list state (stored in local component state)
+  // Projects list state
   const [extraProjects, setExtraProjects] = useState([]);
 
-  // Sync projects with loaded team data from database
-  useEffect(() => {
-    if (team) {
-      setExtraProjects([
-        {
-          id: team.team_id || 'proj-1',
-          title: activeTitle,
-          groupName: activeGroupCode,
-          subject: activeTitle,
-          subjectCode: activeSubjectCode,
-          guide: activeGuide,
-          coordinator: activeCoordinator,
-          status: 'Active'
-        }
-      ]);
-    } else {
-      setExtraProjects([]);
+  const getEnrolmentKey = () => `rit_extra_enrolments_${currentUser?.student_id || currentUser?.usn || currentUser?.user_id || 'guest'}`;
+
+  const loadCustomEnrolments = () => {
+    try {
+      const raw = localStorage.getItem(getEnrolmentKey());
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
     }
-  }, [team, activeGuide, activeCoordinator, activeTitle, activeSubjectCode, activeGroupCode]);
+  };
+
+  // Sync projects with loaded team data from database + persisted custom enrolments
+  useEffect(() => {
+    const custom = loadCustomEnrolments();
+    if (team) {
+      const baseProject = {
+        id: team.team_id || 'proj-1',
+        title: activeTitle,
+        groupName: activeGroupCode,
+        subject: activeTitle,
+        subjectCode: activeSubjectCode,
+        guide: activeGuide,
+        coordinator: activeCoordinator,
+        status: 'Active'
+      };
+      setExtraProjects([baseProject, ...custom]);
+    } else {
+      setExtraProjects(custom);
+    }
+  }, [team, activeGuide, activeCoordinator, activeTitle, activeSubjectCode, activeGroupCode, currentUser]);
 
   // Form states for adding another project
   const [newTitle, setNewTitle] = useState('');
@@ -82,6 +93,9 @@ export const StudentProfile = () => {
 
   const handleAddProject = (e) => {
     e.preventDefault();
+    const matchedSubject = subjectsList.find(s => (s.subject_code || s.code) === newSubjectCode);
+    const assignedCoord = matchedSubject?.coordinator || activeCoordinator;
+
     const proj = {
       id: `proj-${Date.now()}`,
       title: newTitle || `${newSubject} Project`,
@@ -89,14 +103,34 @@ export const StudentProfile = () => {
       subject: newSubject,
       subjectCode: newSubjectCode,
       guide: newGuide,
+      coordinator: assignedCoord,
       status: 'Enrolled'
     };
 
-    setExtraProjects([...extraProjects, proj]);
+    const existingCustom = loadCustomEnrolments();
+    const updatedCustom = [...existingCustom, proj];
+    try {
+      localStorage.setItem(getEnrolmentKey(), JSON.stringify(updatedCustom));
+    } catch (err) {
+      console.warn("Could not save enrolment:", err);
+    }
+
+    setExtraProjects(prev => [...prev, proj]);
     setNewTitle('');
     setNewGroupName('');
     setSuccess(`New project for ${newSubjectCode} added successfully!`);
     setTimeout(() => setSuccess(''), 3500);
+  };
+
+  const handleRemoveProject = (projId) => {
+    const existingCustom = loadCustomEnrolments();
+    const updatedCustom = existingCustom.filter(p => p.id !== projId);
+    try {
+      localStorage.setItem(getEnrolmentKey(), JSON.stringify(updatedCustom));
+    } catch (err) {
+      console.warn("Could not update enrolment:", err);
+    }
+    setExtraProjects(prev => prev.filter(p => p.id !== projId));
   };
 
   if (loading) return <div>Loading profile...</div>;
@@ -173,15 +207,9 @@ export const StudentProfile = () => {
           </div>
 
           <Card title="Contact & Institutional Credentials">
-            <div className="grid-2">
-              <div>
-                <label className="form-label">Official College Email</label>
-                <input type="text" className="form-input" value={currentUser.email || ''} disabled />
-              </div>
-              <div>
-                <label className="form-label">Registered Contact Phone</label>
-                <input type="text" className="form-input" value={currentUser.phone || 'Not Provided'} disabled />
-              </div>
+            <div>
+              <label className="form-label">Official College Email</label>
+              <input type="text" className="form-input" value={currentUser.email || ''} disabled />
             </div>
           </Card>
         </>
@@ -202,11 +230,31 @@ export const StudentProfile = () => {
                   borderLeft: '5px solid #3A1F6F'
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     {p.title}
                   </h3>
-                  <Badge variant="purple">{p.status}</Badge>
+                  <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Badge variant={p.status === 'Active' ? 'warning' : 'info'}>{p.status}</Badge>
+                    {p.status === 'Enrolled' && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProject(p.id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#8A9198',
+                          cursor: 'pointer',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        title="Remove enrolment"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid-4" style={{ fontSize: '13px', color: '#55636B' }}>

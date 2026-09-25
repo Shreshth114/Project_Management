@@ -138,7 +138,7 @@ export const CoordinatorProfile = () => {
             <div style={{ fontSize: '13px', color: '#55636B', marginTop: '2px' }}>
               Email: <strong>{currentUser?.email}</strong> | Designation: <strong>Coordinator / Faculty</strong>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               <Badge variant="magenta">Subject Coordinator</Badge>
               <Badge variant="purple">Faculty Member</Badge>
             </div>

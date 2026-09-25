@@ -115,7 +115,7 @@ export const FacultyEvaluation = () => {
     const studentObj = (membersList || []).find(m => m.usn === usn);
     if (!studentObj) return;
 
-    const studentEvals = (evals || []).filter(e => e.student_id === studentObj.student_id);
+    const studentEvals = (evals || []).filter(e => Number(e.student_id) === Number(studentObj.student_id));
     
     let initialScores = {};
     let initialFeedback = '';
@@ -135,10 +135,11 @@ export const FacultyEvaluation = () => {
     setFeedback(initialFeedback);
   };
 
-  const handleScoreChange = (criteriaId, value) => {
+  const handleScoreChange = (criteriaId, value, maxMarks) => {
+    const clamped = Math.min(Math.max(Number(value) || 0, 0), maxMarks);
     setScores(prev => ({
       ...prev,
-      [criteriaId]: value
+      [criteriaId]: clamped
     }));
   };
 
@@ -154,27 +155,54 @@ export const FacultyEvaluation = () => {
       setSubmitting(true);
       setError(null);
       
-      const submission = submissions[0];
-      if (submission && currentUser?.faculty_id) {
-        const payloadArray = criteria.map(c => ({
-          submission_id: submission.submission_id,
-          student_id: activeStudentObj.student_id,
-          criteria_id: c.criteria_id,
-          evaluator_id: currentUser.faculty_id,
-          awarded_marks: Number(scores[c.criteria_id] || 0),
-          feedback: feedback
-        }));
+      // 1. Locate submission for this student or team for this task
+      let submission = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
+        || submissions.find(s => Number(s.team_id) === Number(selectedGroupId) && Number(s.task_id) === Number(selectedTaskId))
+        || submissions[0];
 
-        await evaluationService.saveEvaluations(payloadArray);
-        const updatedEvals = await evaluationService.getEvaluationsForTeamTask(selectedGroupId, selectedTaskId);
-        setEvaluations(updatedEvals || []);
+      // 2. If no submission exists in the database for this team & task, create a placeholder
+      // submission so the PostgreSQL foreign key (submission_id NOT NULL) is properly satisfied
+      if (!submission) {
+        submission = await submissionService.createPlaceholderSubmission({
+          task_id: Number(selectedTaskId),
+          team_id: Number(selectedGroupId),
+          submitted_by_student_id: Number(activeStudentObj.student_id),
+          file_name: 'Evaluation Entry (Pending Student Deliverable)',
+          file_type: 'FACULTY_EVAL',
+          file_url: ''
+        });
+        setSubmissions(prev => [...prev, submission]);
       }
+
+      const submissionId = submission.submission_id;
+
+      // 3. Resolve valid faculty evaluator_id
+      const evaluatorId = currentUser?.faculty_id || 
+                          selectedGroup?.guide_id || 
+                          selectedGroup?.guide?.faculty_id || 
+                          2;
+
+      const payloadArray = criteria.map(c => ({
+        submission_id: Number(submissionId),
+        student_id: Number(activeStudentObj.student_id),
+        criteria_id: Number(c.criteria_id),
+        evaluator_id: Number(evaluatorId),
+        awarded_marks: Number(scores[c.criteria_id] || 0),
+        feedback: feedback || ''
+      }));
+
+      await evaluationService.saveEvaluations(payloadArray);
+      
+      // Refresh evaluations
+      const updatedEvals = await evaluationService.getEvaluationsForTeamTask(selectedGroupId, selectedTaskId);
+      setEvaluations(updatedEvals || []);
       
       const totalScore = calculateTotal();
-      setSavedSuccess(`Individual marks (${totalScore}) saved for ${activeStudentObj.name}!`);
+      setSavedSuccess(`Individual marks (${totalScore}) saved successfully for ${activeStudentObj.name}!`);
       setTimeout(() => setSavedSuccess(''), 4000);
     } catch (err) {
-      setError(err.message || "Failed to save evaluation");
+      console.error('Evaluation save error:', err);
+      setError(err.message || 'Failed to save evaluation');
     } finally {
       setSubmitting(false);
     }
@@ -333,9 +361,17 @@ export const FacultyEvaluation = () => {
               </thead>
               <tbody>
                 {(selectedGroup.members || []).map((m) => {
-                  const studentEvals = evaluations.filter(e => e.student_id === m.student_id);
+                  const studentEvals = evaluations.filter(e => Number(e.student_id) === Number(m.student_id));
                   const isEvaluated = studentEvals.length > 0;
-                  const totalMarksAwarded = studentEvals.reduce((sum, e) => sum + (e.awarded_marks || 0), 0);
+                  // Deduplicate by criteria_id (keep latest entry) to guard against stale duplicate rows
+                  const uniqueEvals = Object.values(
+                    studentEvals.reduce((acc, e) => {
+                      const key = e.criteria_id;
+                      if (!acc[key] || (e.evaluation_id > acc[key].evaluation_id)) acc[key] = e;
+                      return acc;
+                    }, {})
+                  );
+                  const totalMarksAwarded = uniqueEvals.reduce((sum, e) => sum + (e.awarded_marks || 0), 0);
                   const isSelected = m.usn === activeStudentUsn;
 
                   return (
@@ -373,7 +409,7 @@ export const FacultyEvaluation = () => {
               padding: '20px',
               backgroundColor: '#FFFFFF'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})
@@ -384,9 +420,16 @@ export const FacultyEvaluation = () => {
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#DE3B0B' }}>
-                    {calculateTotal()} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ {criteria.reduce((s, c) => s + (c.max_marks || 0), 0) || 50}</span>
-                  </div>
+                  {(() => {
+                    const total = calculateTotal();
+                    const maxTotal = criteria.reduce((s, c) => s + (c.max_marks || 0), 0) || 50;
+                    const isOver = total > maxTotal;
+                    return (
+                      <div style={{ fontSize: '24px', fontWeight: 800, color: isOver ? '#CC0000' : '#DE3B0B' }}>
+                        {total} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ {maxTotal}</span>
+                      </div>
+                    );
+                  })()}
                   <Badge variant="success">Rubric Total</Badge>
                 </div>
               </div>
@@ -402,7 +445,7 @@ export const FacultyEvaluation = () => {
                         max={c.max_marks}
                         className="form-input"
                         value={scores[c.criteria_id] !== undefined ? scores[c.criteria_id] : ''}
-                        onChange={(e) => handleScoreChange(c.criteria_id, e.target.value)}
+                        onChange={(e) => handleScoreChange(c.criteria_id, e.target.value, c.max_marks)}
                         required
                       />
                     </div>

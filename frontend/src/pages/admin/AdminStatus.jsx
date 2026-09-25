@@ -21,7 +21,7 @@ export const AdminStatus = () => {
       const [fetchedSubjects, fetchedTeams, fetchedSubmissions] = await Promise.all([
         academicService.getSubjects().catch(() => []),
         academicService.getTeams().catch(() => []),
-        submissionService.getSubmissions().catch(() => [])
+        submissionService.getAllSubmissions().catch(() => [])
       ]);
 
       setSubjects(fetchedSubjects || []);

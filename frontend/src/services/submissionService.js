@@ -10,6 +10,20 @@ export const submissionService = {
     return data;
   },
 
+  async getAllSubmissions() {
+    const { data, error } = await supabase
+      .from('submission')
+      .select(`
+        *, 
+        student(*),
+        team(*)
+      `)
+      .order('submitted_at', { ascending: false });
+      
+    if (error) throw error;
+    return data || [];
+  },
+
   async getAllSubmissionsForFaculty(facultyId) {
     const { data, error } = await supabase
       .from('submission')
@@ -24,17 +38,27 @@ export const submissionService = {
     return data;
   },
 
-  async submitTask(payload) {
-    // Prevent duplicate submissions for the same milestone task by the team
-    const { data: existing } = await supabase
+  async submitTask(payload, isIndividual = false) {
+    // Prevent duplicate submissions:
+    // For individual tasks: prevent duplicate for this student
+    // For group tasks: prevent duplicate for this team
+    let query = supabase
       .from('submission')
       .select('submission_id')
-      .eq('task_id', payload.task_id)
-      .eq('team_id', payload.team_id)
-      .maybeSingle();
+      .eq('task_id', payload.task_id);
+
+    if (isIndividual) {
+      query = query.eq('submitted_by_student_id', payload.student_id);
+    } else {
+      query = query.eq('team_id', payload.team_id);
+    }
+
+    const { data: existing } = await query.maybeSingle();
 
     if (existing) {
-      throw new Error('This milestone deliverable has already been submitted and cannot be resubmitted.');
+      throw new Error(isIndividual
+        ? 'You have already submitted this individual deliverable and cannot resubmit.'
+        : 'This milestone deliverable has already been submitted and cannot be resubmitted.');
     }
 
     const { data, error } = await supabase
@@ -49,6 +73,37 @@ export const submissionService = {
       })
       .select()
       .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async createPlaceholderSubmission(payload) {
+    // Check if a submission already exists for this team and task
+    const { data: existing } = await supabase
+      .from('submission')
+      .select('*')
+      .eq('team_id', payload.team_id)
+      .eq('task_id', payload.task_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      return existing;
+    }
+
+    const { data, error } = await supabase
+      .from('submission')
+      .insert({
+        task_id: payload.task_id,
+        team_id: payload.team_id,
+        submitted_by_student_id: payload.submitted_by_student_id,
+        file_name: payload.file_name || 'Evaluation Record (Pending Student Deliverable)',
+        file_type: payload.file_type || 'SYSTEM',
+        file_url: payload.file_url || ''
+      })
+      .select()
+      .single();
+
     if (error) throw error;
     return data;
   },

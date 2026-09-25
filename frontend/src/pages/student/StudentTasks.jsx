@@ -26,7 +26,7 @@ export const StudentTasks = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Assigned Project Tasks & Milestones</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
@@ -44,9 +44,9 @@ export const StudentTasks = () => {
             const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
             return (
               <Card key={task.task_id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <div className="mobile-col" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                  <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <Badge variant={task.task_type === 'INDIVIDUAL' ? 'info' : 'navy'}>
                         {task.task_type === 'INDIVIDUAL' ? '👤 INDIVIDUAL TASK' : '👥 GROUP TASK'}
                       </Badge>
@@ -54,11 +54,11 @@ export const StudentTasks = () => {
                       <Badge variant="warning">Pending</Badge>
                     </div>
 
-                    <p style={{ fontSize: '14px', color: '#444', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '14px', color: '#444', marginBottom: '12px', lineHeight: 1.5 }}>
                       {task.description}
                     </p>
 
-                    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#666' }}>
+                    <div className="mobile-col" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#666' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Calendar size={14} color="#B82226" />
                         <span>Deadline: <strong style={{ color: '#243143' }}>{new Date(task.deadline).toLocaleDateString()}</strong></span>
@@ -71,7 +71,8 @@ export const StudentTasks = () => {
                   </div>
 
                   <button 
-                    className="btn btn-primary"
+                    className="btn btn-primary mobile-w-100"
+                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
                     onClick={() => setActiveTab('submissions')}
                   >
                     <Upload size={16} />

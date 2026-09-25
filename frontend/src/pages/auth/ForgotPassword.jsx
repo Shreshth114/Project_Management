@@ -41,12 +41,12 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'column',
       background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
       padding: '20px'
     }}>
       <div style={{
+        margin: 'auto',
         width: '100%',
         maxWidth: '460px',
         backgroundColor: '#FFFFFF',
@@ -84,7 +84,7 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
             <ArrowLeft size={18} />
           </button>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
             <RitLogo size="large" light={true} />
           </div>
 
@@ -98,7 +98,7 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
 
         {/* Body */}
         <div style={{ padding: '28px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+          <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <KeyRound size={20} color="#8E00A8" />
             <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', margin: 0 }}>
               Reset Your Password
@@ -109,14 +109,14 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
           </p>
 
           {success && (
-            <div className="alert alert-success" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
+            <div className="alert alert-success mobile-wrap" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
               <CheckCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <span style={{ fontSize: '13px' }}>{success}</span>
             </div>
           )}
 
           {error && (
-            <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
+            <div className="alert alert-danger mobile-wrap" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
               <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <span style={{ fontSize: '13px' }}>{error}</span>
             </div>
