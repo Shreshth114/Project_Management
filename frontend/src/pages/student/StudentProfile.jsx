@@ -77,8 +77,8 @@ export const StudentProfile = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newSubject, setNewSubject] = useState('Technical Seminar & Paper');
-  const [newSubjectCode, setNewSubjectCode] = useState('');
-  const [newGuide, setNewGuide] = useState('');
+  const [newSubjectCode, setNewSubjectCode] = useState('21CSS82');
+  const [newGuide, setNewGuide] = useState('Faculty Guide');
 
   const handleAddProject = (e) => {
     e.preventDefault();
@@ -149,7 +149,7 @@ export const StudentProfile = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
                 <div><strong>Subject Code:</strong> {activeSubjectCode}</div>
                 <div><strong>Academic Batch:</strong> {currentUser.batch || 'Current Academic Year'}</div>
-                
+
                 <div>
                   <strong>Allocated Guide:</strong>{' '}
                   <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{activeGuide}</span>
@@ -192,7 +192,7 @@ export const StudentProfile = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {extraProjects.length > 0 ? (
             extraProjects.map((p) => (
-              <div 
+              <div
                 key={p.id}
                 style={{
                   border: '1px solid #E5E5E5',
