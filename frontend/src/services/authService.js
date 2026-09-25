@@ -426,7 +426,9 @@ export const authService = {
     // 2. Trigger Supabase official password recovery
     // Do not append `#reset-password` here, as it might conflict with PKCE flow url formats.
     // We let Supabase handle the redirect, and our app catches `type=recovery` in the URL.
-    const redirectTo = typeof window !== 'undefined' ? window.location.origin + '/' : 'http://localhost:5173/';
+    const redirectTo = typeof window !== 'undefined' 
+      ? window.location.origin + (import.meta.env.BASE_URL || '/')
+      : undefined;
     
     const { data, error } = await supabase.auth.resetPasswordForEmail(emailToUse, {
       redirectTo
