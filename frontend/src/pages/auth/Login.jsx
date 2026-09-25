@@ -48,12 +48,12 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: 'column',
       background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
       padding: '20px'
     }}>
       <div style={{
+        margin: 'auto',
         width: '100%',
         maxWidth: '460px',
         backgroundColor: '#FFFFFF',

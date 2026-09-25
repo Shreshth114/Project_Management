@@ -53,12 +53,11 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
       zIndex: 500,
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
       padding: '24px',
       overflowY: 'auto'
     }}>
       <div style={{
+        margin: 'auto',
         width: '100%',
         maxWidth: '820px',
         display: 'flex',
