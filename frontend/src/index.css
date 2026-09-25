@@ -68,8 +68,8 @@
 html, body {
   width: 100%;
   max-width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  /* Removed height:100% and overflow:hidden to allow native browser scrolling on auth pages */
 }
 
 body {
@@ -816,5 +816,17 @@ small, .text-small {
   .alert {
     width: 100%;
     box-sizing: border-box;
+  }
+
+  /* Force Dashboard layout to use native scrolling instead of fixed inner-scroll on mobile */
+  .app-layout, .app-body {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+  }
+  
+  .main-content {
+    height: auto !important;
+    overflow-y: visible !important;
   }
 }

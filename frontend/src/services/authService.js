@@ -2,6 +2,9 @@ import { supabase } from '../lib/supabase';
 
 export const authService = {
   async hashPassword(password) {
+    if (typeof crypto === 'undefined' || !crypto.subtle) {
+      throw new Error("Secure connection (HTTPS) is required to process passwords locally.");
+    }
     const msgBuffer = new TextEncoder().encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -115,10 +118,15 @@ export const authService = {
     // 3. Attempt Supabase Auth signUp first
     let authUserId = null;
     try {
+      const emailRedirectTo = typeof window !== 'undefined' 
+        ? window.location.origin + (import.meta.env.BASE_URL || '/')
+        : undefined;
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password: newUser.password,
         options: {
+          emailRedirectTo,
           data: {
             name: newUser.name,
             usn: newUser.usn,
@@ -128,13 +136,18 @@ export const authService = {
       });
       if (!authError && authData?.user?.id) {
         authUserId = authData.user.id;
+      } else if (authError) {
+        // If Supabase fails to sign up, throw so we don't accidentally create an orphaned local user
+        // and fall back to manual hashing which causes crypto.subtle issues on non-HTTPS.
+        throw new Error(authError.message);
       }
     } catch (err) {
       console.warn("Supabase auth signUp notice:", err.message);
+      return { success: false, message: "Registration failed: " + err.message };
     }
 
-    // 4. Hash password securely
-    const pwdHash = await this.hashPassword(newUser.password);
+    // 4. Use Supabase managed flag for password_hash
+    const pwdHash = 'managed_by_supabase_auth';
 
     // 5. Insert into public.users
     const { data: userRecord, error: userError } = await supabase
