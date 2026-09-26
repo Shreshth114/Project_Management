@@ -223,7 +223,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
             <button 
               type="submit" 
-              className="btn btn-magenta btn-block" 
+              className="btn btn-primary btn-block" 
               style={{ marginTop: '16px', padding: '12px' }} 
               disabled={isSubmitting}
             >

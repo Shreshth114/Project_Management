@@ -1175,3 +1175,12 @@ small, .text-small {
 body, .card, .portal-header, .portal-sidebar, .main-content, .mobile-drawer, .form-input, .form-select, .form-textarea, .btn, .portal-table th, .portal-table td, .modal-dialog, .badge {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+/* Utility classes for responsive display */
+.desktop-only { display: flex; }
+.mobile-only { display: none; }
+
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: flex !important; }
+}

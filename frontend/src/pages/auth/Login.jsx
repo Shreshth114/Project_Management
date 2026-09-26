@@ -57,6 +57,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
     }}>
       {/* Theme Toggle Button */}
       <button
+        className="desktop-only"
         onClick={toggleTheme}
         style={{
           position: 'absolute',
@@ -96,8 +97,34 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           textAlign: 'center',
           borderBottom: '4px solid var(--rit-orange-red)',
           borderTopLeftRadius: '7px',
-          borderTopRightRadius: '7px'
+          borderTopRightRadius: '7px',
+          position: 'relative'
         }}>
+          {/* Mobile Theme Toggle */}
+          <button 
+            className="theme-toggle-btn mobile-only"
+            onClick={toggleTheme}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px',
+              color: '#FFFFFF',
+              transition: 'all 0.2s',
+              zIndex: 10
+            }}
+            title={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <div className="mobile-wrap login-item-anim login-delay-0" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
             <RitLogo size="large" light={true} />
           </div>

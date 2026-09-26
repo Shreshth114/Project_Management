@@ -54,8 +54,8 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
-          <ul style={{ listStyle: 'none' }}>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px 0' }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
