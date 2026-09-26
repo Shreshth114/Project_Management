@@ -199,7 +199,7 @@ export const AdminMasterEdit = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Admin Master Editing & System Control Studio</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Admin Master Editing & System Control Studio</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Central control page to edit deadlines, assign coordinators, write official circulars, and manage system messages.
         </p>
@@ -442,9 +442,16 @@ export const AdminMasterEdit = () => {
       {/* BLOCK 4: MASTER MESSAGES & CIRCULARS MANAGER */}
       <Card title="Master System Messages Log & Deletion Manager (Database Access)">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading messages log...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading messages log...</div>
+          </div>
         ) : messagesList.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>No messages logged in database.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No messages logged in database.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container responsive-table-stack">
             <table className="portal-table">
@@ -462,23 +469,23 @@ export const AdminMasterEdit = () => {
                   const id = msg.message_id || msg.id;
                   return (
                     <tr key={id}>
-                      <td data-label="Sender" style={{ fontWeight: 700, color: '#3A1F6F' }}>
+                      <td data-label="Sender" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                         {msg.sender?.email || msg.sender_id || 'User'}
                       </td>
                       <td data-label="Recipient" style={{ fontSize: '13px' }}>
                         {msg.receiver?.email || msg.receiver_id || 'User'}
                       </td>
-                      <td data-label="Message Body" style={{ fontSize: '13px', color: '#333' }}>
+                      <td data-label="Message Body" style={{ fontSize: '13px', color: 'var(--text-main)' }}>
                         {msg.message_text}
                       </td>
-                      <td data-label="Timestamp" style={{ fontSize: '11px', color: '#55636B' }}>
+                      <td data-label="Timestamp" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                         {msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'N/A'}
                       </td>
                       <td data-label="Action">
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
-                          style={{ color: '#DE3B0B' }}
+                          style={{ color: 'var(--rit-orange-red)' }}
                           onClick={() => handleDeleteSystemMessage(id)}
                           title="Admin Master Deletion"
                         >

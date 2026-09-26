@@ -17,6 +17,15 @@ export const FacultyDashboard = () => {
   const [tasksCount, setTasksCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const navigateToEvaluation = (groupId, taskId) => {
+    if (!setActiveTab) return;
+    const url = new URL(window.location);
+    if (groupId) url.searchParams.set('groupId', groupId);
+    if (taskId) url.searchParams.set('taskId', taskId);
+    window.history.pushState({}, '', url);
+    setActiveTab('evaluation');
+  };
+
   useEffect(() => {
     if (currentUser?.faculty_id) {
       loadFacultyData(currentUser.faculty_id);
@@ -45,6 +54,8 @@ export const FacultyDashboard = () => {
             teamSubs.forEach(sub => {
               allSubmissions.push({
                 id: sub.submission_id,
+                groupId: team.team_id || team.id,
+                taskId: sub.task_id || sub.id,
                 groupCode: team.team_code,
                 taskTitle: allTasks.find(t => t.task_id === sub.task_id)?.title || `Milestone ${sub.task_id}`,
                 fileName: sub.file_name,
@@ -75,93 +86,104 @@ export const FacultyDashboard = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Banner */}
       <div style={{
-        backgroundColor: '#243143',
-        color: '#FFFFFF',
+        backgroundColor: 'var(--bg-sidebar)',
+        color: 'var(--text-inverse)',
         padding: '24px',
         borderRadius: '6px',
         borderLeft: '6px solid #B82226'
       }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', margin: 0 }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-inverse)', margin: 0 }}>
           Faculty Advisor Workspace — {currentUser?.name || 'Faculty Member'}
         </h1>
-        <p style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
           Department of Computer Science & Engineering | Academic Year 2025–2026
         </p>
       </div>
 
       {/* Metrics Row */}
       <div className="grid-4">
-        <Card title="Assigned Groups">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{myGroups.length} Batches</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Advised Students: {totalAdvisedStudents}</div>
-        </Card>
+        <div className="stagger-1">
+          <Card title="Assigned Groups">
+            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-main)' }}>{myGroups.length} Batches</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Advised Students: {totalAdvisedStudents}</div>
+          </Card>
+        </div>
 
-        <Card title="Uploaded Deliverables">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#A68E24' }}>{pendingSubmissions.length} Items</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Team uploads recorded</div>
-        </Card>
+        <div className="stagger-2">
+          <Card title="Uploaded Deliverables">
+          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-warning-text)' }}>{pendingSubmissions.length} Items</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Team uploads recorded</div>
+          </Card>
+        </div>
 
-        <Card title="Evaluations Completed">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>{evaluatedCount} Records</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Rubric marks stored in database</div>
-        </Card>
+        <div className="stagger-3">
+          <Card title="Evaluations Completed">
+          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-success-text)' }}>{evaluatedCount} Records</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Rubric marks stored in database</div>
+          </Card>
+        </div>
 
-        <Card title="Published Milestones">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasksCount} Tasks</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Department curriculum tasks</div>
-        </Card>
+        <div className="stagger-4">
+          <Card title="Published Milestones">
+            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-info-text)' }}>{tasksCount} Tasks</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Department curriculum tasks</div>
+          </Card>
+        </div>
       </div>
 
       {/* Submissions Needing Action & Group Roster */}
       <div className="grid-2">
-        <Card 
-          title="Deliverables Awaiting Review" 
-          action={
-            <button className="btn btn-primary btn-sm" onClick={() => setActiveTab('evaluation')}>
-              Go to Mark Rubrics
-            </button>
-          }
-        >
+        <div className="stagger-3">
+          <Card 
+            title="Deliverables Awaiting Review" 
+            action={
+              <button className="btn btn-primary btn-sm" onClick={() => navigateToEvaluation(null, null)}>
+                Go to Mark Rubrics
+              </button>
+            }
+          >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {pendingSubmissions.length > 0 ? (
               pendingSubmissions.slice(0, 4).map((sub) => (
                 <div 
                   key={sub.id}
                   style={{
-                    border: '1px solid #E5E5E5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '14px',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '14px' }}>
                       {sub.groupCode} - {sub.taskTitle}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       File: {sub.fileName} ({sub.fileSize}) | Submitted: {sub.submittedAt}
                     </div>
                   </div>
                   <button 
                     className="btn btn-secondary btn-sm"
-                    onClick={() => setActiveTab('evaluation')}
+                    onClick={() => navigateToEvaluation(sub.groupId, sub.taskId)}
                   >
                     Evaluate
                   </button>
                 </div>
               ))
             ) : (
-              <div style={{ fontSize: '13px', color: '#8A9198', padding: '16px 0', textAlign: 'center' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-disabled)', padding: '16px 0', textAlign: 'center' }}>
                 No deliverables currently awaiting evaluation.
               </div>
             )}
           </div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card title="Assigned Project Groups Roster">
+        <div className="stagger-4">
+          <Card title="Assigned Project Groups Roster">
           <div className="table-container">
             <table className="portal-table">
               <thead>
@@ -175,14 +197,14 @@ export const FacultyDashboard = () => {
                 {myGroups.length > 0 ? (
                   myGroups.map((g) => (
                     <tr key={g.team_id}>
-                      <td style={{ fontWeight: 700, color: '#243143' }}>{g.team_code}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{g.team_code}</td>
                       <td>{g.subject?.subject_name || g.subject?.subject_code || 'Project'}</td>
                       <td><Badge variant="purple">{g.members?.length || 0} Students</Badge></td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} style={{ textAlign: 'center', color: '#8A9198', padding: '16px' }}>
+                    <td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '16px' }}>
                       No project groups have been allocated to you yet.
                     </td>
                   </tr>
@@ -191,6 +213,7 @@ export const FacultyDashboard = () => {
             </table>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

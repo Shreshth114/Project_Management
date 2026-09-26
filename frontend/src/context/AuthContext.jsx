@@ -19,10 +19,18 @@ export const AuthProvider = ({ children }) => {
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'login';
   });
+  
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true';
+  });
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
+  
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', isSidebarCollapsed);
+  }, [isSidebarCollapsed]);
   
   const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -472,6 +480,8 @@ export const AuthProvider = ({ children }) => {
         activeTab,
         isAuthLoading,
         setActiveTab,
+        isSidebarCollapsed,
+        setIsSidebarCollapsed,
         login,
         registerUser,
         assignFacultyAsCoordinator,

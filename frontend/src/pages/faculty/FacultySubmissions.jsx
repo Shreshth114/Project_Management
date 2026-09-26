@@ -14,6 +14,15 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigateToEvaluation = (groupId, taskId) => {
+    if (!setActiveTab) return;
+    const url = new URL(window.location);
+    if (groupId) url.searchParams.set('groupId', groupId);
+    if (taskId) url.searchParams.set('taskId', taskId);
+    window.history.pushState({}, '', url);
+    setActiveTab('evaluation');
+  };
+
   useEffect(() => {
     const resolveAndLoad = async () => {
       let fId = currentUser?.faculty_id;
@@ -98,6 +107,8 @@ export const FacultySubmissions = ({ readOnly = false }) => {
 
       allSubmissions.push({
         id: `supabase-${sub.submission_id || sub.id}`,
+        groupId: sub.team?.team_id || sub.team_id,
+        taskId: sub.task_id || sub.id,
         groupCode,
         taskTitle,
         modeOfSubmission: modeLabel,
@@ -117,8 +128,11 @@ export const FacultySubmissions = ({ readOnly = false }) => {
 
   if (loading) {
     return (
-      <div style={{ padding: '30px', textAlign: 'center', color: '#55636B' }}>
-        <p>Loading student deliverables queue...</p>
+      <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading student deliverables queue...</div>
+          </div>
       </div>
     );
   }
@@ -126,7 +140,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Submitted Student Deliverables Queue</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Submitted Student Deliverables Queue</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Review technical documents, reports, and repositories uploaded by assigned project groups.
         </p>
@@ -151,13 +165,13 @@ export const FacultySubmissions = ({ readOnly = false }) => {
               {allSubmissions.length > 0 ? (
                 allSubmissions.map((sub) => (
                   <tr key={sub.id}>
-                    <td data-label="Group Name" style={{ fontWeight: 800, color: '#DE3B0B' }}>{sub.groupCode}</td>
+                    <td data-label="Group Name" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{sub.groupCode}</td>
                     <td data-label="Task Component" style={{ fontWeight: 600 }}>{sub.taskTitle}</td>
                     {/* Added Mode of Submission column */}
                     <td data-label="Mode of Submission">
                       <Badge variant="purple">{sub.modeOfSubmission}</Badge>
                     </td>
-                    <td data-label="Deliverable File" style={{ color: '#3A1F6F', fontWeight: 600 }}>
+                    <td data-label="Deliverable File" style={{ color: 'var(--text-heading)', fontWeight: 600 }}>
                       {sub.fileUrl && sub.fileUrl !== '#' ? (
                         <button 
                           type="button"
@@ -165,7 +179,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                           style={{ 
                             background: 'none', 
                             border: 'none', 
-                            color: '#3A1F6F', 
+                            color: 'var(--text-heading)', 
                             fontWeight: 700, 
                             textDecoration: 'underline', 
                             cursor: 'pointer',
@@ -177,20 +191,20 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                           }}
                           title="Click to view/download deliverable"
                         >
-                          <FileText size={16} color="#DE3B0B" />
+                          <FileText size={16} color="var(--rit-orange-red)" />
                           <span>{sub.fileName} ({sub.fileSize})</span>
                         </button>
                       ) : (
-                        <span style={{ color: '#8A9198' }}>{sub.fileName} ({sub.fileSize})</span>
+                        <span style={{ color: 'var(--text-disabled)' }}>{sub.fileName} ({sub.fileSize})</span>
                       )}
                     </td>
-                    <td data-label="Submitted By" style={{ fontWeight: 700, color: '#3A1F6F' }}>{sub.submittedBy}</td>
-                    <td data-label="Submission Time" style={{ fontSize: '12px', color: '#55636B' }}>{sub.submittedAt}</td>
+                    <td data-label="Submitted By" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{sub.submittedBy}</td>
+                    <td data-label="Submission Time" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{sub.submittedAt}</td>
                     <td data-label="Status"><Badge variant="success">✓ {sub.status}</Badge></td>
                     <td data-label="Action">
                       <button 
                         className={`btn ${readOnly ? 'btn-secondary' : 'btn-primary'} btn-sm`}
-                        onClick={() => setActiveTab('evaluation')}
+                        onClick={() => navigateToEvaluation(sub.groupId, sub.taskId)}
                       >
                         {readOnly ? 'View Evaluations' : 'Evaluate & Mark'}
                       </button>
@@ -199,8 +213,12 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: '#8A9198' }}>
-                    No student submissions uploaded yet.
+                  <td colSpan={8} style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <div className="empty-state" style={{ margin: '0 auto', border: 'none', background: 'transparent' }}>
+                      <FileText className="empty-state-icon" />
+                      <div className="empty-state-title">No Submissions Found</div>
+                      <div className="empty-state-text">There are no student submissions uploaded yet.</div>
+                    </div>
                   </td>
                 </tr>
               )}

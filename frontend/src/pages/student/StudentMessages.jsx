@@ -148,8 +148,8 @@ export const StudentMessages = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student ↔ Faculty Direct Messaging</h1>
+      <div className="stagger-1">
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Student ↔ Faculty Direct Messaging</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Communication channel exclusively between student project teams and assigned Faculty Evaluators.
         </p>
@@ -171,13 +171,14 @@ export const StudentMessages = () => {
 
       <div className="grid-2">
         {/* Messages List */}
-        <Card title="Official Message History">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="stagger-2">
+          <Card title="Official Message History">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {messagesList.map((m) => (
               <div 
                 key={m.id}
                 style={{
-                  border: '1px solid #E5E5E5',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   padding: '14px',
                   backgroundColor: m.isUnread ? '#FDF8F5' : '#FFFFFF',
@@ -185,19 +186,19 @@ export const StudentMessages = () => {
                 }}
               >
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <div style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '14px' }}>
+                  <div style={{ fontWeight: 800, color: 'var(--text-heading)', fontSize: '14px' }}>
                     {m.subject}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#55636B' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                     {m.timestamp}
                   </div>
                 </div>
 
-                <div style={{ fontSize: '12px', color: '#B8115B', fontWeight: 700, marginBottom: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--rit-magenta)', fontWeight: 700, marginBottom: '6px' }}>
                   From: {m.sender} ➔ To: {m.recipient}
                 </div>
 
-                <div style={{ fontSize: '13px', color: '#243143', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.5' }}>
                   {m.content}
                 </div>
 
@@ -217,16 +218,18 @@ export const StudentMessages = () => {
             ))}
 
             {messagesList.length === 0 && !loading && (
-              <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
                 No direct messages between student and faculty recorded yet.
               </div>
             )}
           </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Compose Form */}
-        <Card title="Dispatch Message to Faculty Evaluator">
-          <form onSubmit={handleSend}>
+        <div className="stagger-3">
+          <Card title="Dispatch Message to Faculty Evaluator">
+            <form onSubmit={handleSend}>
             <div className="form-group">
               <label className="form-label">Select Faculty Recipient</label>
               <select
@@ -279,7 +282,8 @@ export const StudentMessages = () => {
               <span>DISPATCH MESSAGE TO FACULTY</span>
             </button>
           </form>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

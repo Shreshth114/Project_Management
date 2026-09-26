@@ -27,7 +27,7 @@ export const RoleSelectionModal = () => {
           height: '56px', 
           borderRadius: '50%', 
           backgroundColor: '#E8F1FB', 
-          color: '#114C94', 
+          color: 'var(--badge-info-text)', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
@@ -36,7 +36,7 @@ export const RoleSelectionModal = () => {
           <Shield size={28} />
         </div>
 
-        <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#243143', marginBottom: '6px' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
           Welcome back, {currentUser?.name}
         </h2>
         <p className="text-muted" style={{ fontSize: '14px', marginBottom: '24px' }}>
@@ -54,7 +54,7 @@ export const RoleSelectionModal = () => {
               padding: '20px',
               cursor: 'pointer',
               textAlign: 'center',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: 'var(--bg-surface)',
               transition: 'all 0.2s ease-in-out'
             }}
             onMouseEnter={(e) => {
@@ -66,11 +66,11 @@ export const RoleSelectionModal = () => {
               e.currentTarget.style.backgroundColor = '#FFFFFF';
             }}
           >
-            <div style={{ color: '#B82226', marginBottom: '10px' }}>
+            <div style={{ color: 'var(--badge-danger-text)', marginBottom: '10px' }}>
               <UserCheck size={32} style={{ margin: '0 auto' }} />
             </div>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>Faculty Workspace</h3>
-            <p style={{ fontSize: '12px', color: '#666' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Faculty Workspace</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               View assigned project groups, evaluate submissions, give rubrics marks & advice.
             </p>
             <button className="btn btn-primary btn-sm btn-block" style={{ marginTop: '14px' }}>
@@ -87,7 +87,7 @@ export const RoleSelectionModal = () => {
                 padding: '20px',
                 cursor: 'pointer',
                 textAlign: 'center',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: 'var(--bg-surface)',
                 transition: 'all 0.2s ease-in-out'
               }}
               onMouseEnter={(e) => {
@@ -99,11 +99,11 @@ export const RoleSelectionModal = () => {
                 e.currentTarget.style.backgroundColor = '#FFFFFF';
               }}
             >
-              <div style={{ color: '#243143', marginBottom: '10px' }}>
+              <div style={{ color: 'var(--text-main)', marginBottom: '10px' }}>
                 <ClipboardList size={32} style={{ margin: '0 auto' }} />
               </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>Coordinator Workspace</h3>
-              <p style={{ fontSize: '12px', color: '#666' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>Coordinator Workspace</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 Define milestone deadlines, set evaluation criteria, manage department groups.
               </p>
               <button className="btn btn-navy btn-sm btn-block" style={{ marginTop: '14px' }}>

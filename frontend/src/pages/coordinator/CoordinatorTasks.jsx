@@ -98,7 +98,7 @@ export const CoordinatorTasks = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Master Department Tasks & Milestones</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Master Department Tasks & Milestones</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Milestones and submission modes defined for all final year project batches.
           </p>
@@ -117,7 +117,7 @@ export const CoordinatorTasks = () => {
       )}
 
       {error && (
-        <div className="alert alert-danger" style={{ color: '#D32F2F', background: '#FFEBEE', padding: '10px 14px', borderRadius: '6px' }}>
+        <div className="alert alert-danger" style={{ color: 'var(--badge-danger-text)', background: 'var(--badge-danger-bg)', padding: '10px 14px', borderRadius: '6px' }}>
           {error}
         </div>
       )}
@@ -136,13 +136,13 @@ export const CoordinatorTasks = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                     <Badge variant="purple">{task.phase || 'Phase 2'}</Badge>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{task.title}</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>{task.title}</h3>
                     <Badge variant={isIndiv ? 'magenta' : 'info'}>
                       {isIndiv ? 'Mode B: Individual Submissions' : 'Mode A: Group Mode (1 Upload Reflected for All)'}
                     </Badge>
                   </div>
-                  <p style={{ fontSize: '14px', color: '#55636B', marginBottom: '12px', lineHeight: 1.4 }}>{task.description}</p>
-                  <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: '#55636B', flexWrap: 'wrap' }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px', lineHeight: 1.4 }}>{task.description}</p>
+                  <div style={{ display: 'flex', gap: '20px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                     <div><strong>Deadline:</strong> {deadlineStr}</div>
                     <div><strong>Max Marks:</strong> {computedMax} Marks</div>
                     <div><strong>Deliverable Format:</strong> {task.allowedTypes || 'PDF / Document / Link'}</div>
@@ -168,14 +168,14 @@ export const CoordinatorTasks = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '580px' }}>
             <div className="modal-header">
-              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Edit size={18} />
                 <span>Edit Milestone Task Requirements</span>
               </h3>
               <button 
                 type="button"
                 onClick={() => setEditingTask(null)}
-                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>

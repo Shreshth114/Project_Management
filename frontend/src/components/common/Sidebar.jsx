@@ -12,10 +12,11 @@ import {
   BookOpen,
   ShieldAlert,
   Settings,
-  History
+  History,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const getNavItemsByRole = (role) => {
   switch (role) {
@@ -26,7 +27,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'submissions', label: 'Submissions', icon: FileText },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'FACULTY':
@@ -37,7 +39,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'evaluation', label: 'Evaluation', icon: ClipboardCheck },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'COORDINATOR':
@@ -48,7 +51,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'groups', label: 'Groups / Students', icon: Users },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'ADMIN':
@@ -59,7 +63,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'logs', label: 'Logs', icon: History },
         { id: 'master-edit', label: 'Master Edit', icon: Settings },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     default:
@@ -67,8 +72,34 @@ export const getNavItemsByRole = (role) => {
   }
 };
 
+export const ProjectInfo = () => (
+  <div style={{
+    padding: '16px',
+    borderTop: '1px solid rgba(255,255,255,0.08)',
+    fontSize: '11px',
+    color: '#9F9F9F',
+    lineHeight: '1.7',
+    marginTop: 'auto'
+  }}>
+    <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+      Project Advisor
+    </div>
+    <div style={{ marginBottom: '12px', color: '#C0C0C0' }}>Krishna Raj P M</div>
+
+    <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+      Developed By
+    </div>
+    <div style={{ color: '#C0C0C0', lineHeight: '1.8' }}>
+      <div>Sanjana K R</div>
+      <div>Manaswini Uppuluri</div>
+      <div>Shreshth Agrawal</div>
+      <div>Vaishnavi Biswagar</div>
+    </div>
+  </div>
+);
+
 export const Sidebar = () => {
-  const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data } = useAuth();
+  const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data, isSidebarCollapsed, setIsSidebarCollapsed } = useAuth();
   const navItems = getNavItemsByRole(currentRole);
 
   const isAssignedCoordinator = currentUser?.is_coordinator ||
@@ -83,13 +114,38 @@ export const Sidebar = () => {
     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   return (
-    <aside className="portal-sidebar">
+    <aside className={`portal-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
 
-      {/* Role label */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {currentRole} WORKSPACE
-        </div>
+      {/* Role label & Collapse Toggle */}
+      <div style={{ 
+        padding: isSidebarCollapsed ? '16px 0' : '16px 20px', 
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isSidebarCollapsed ? 'center' : 'space-between'
+      }}>
+        {!isSidebarCollapsed && (
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {currentRole} WORKSPACE
+          </div>
+        )}
+        <button 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="btn btn-secondary btn-sm"
+          style={{ 
+            background: 'transparent', 
+            border: 'none', 
+            color: '#9F9F9F', 
+            padding: '4px',
+            minHeight: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
       </div>
 
       {/* Nav items */}
@@ -102,6 +158,7 @@ export const Sidebar = () => {
               <a
                 href={`#${item.id}`}
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                title={item.label}
                 onClick={(e) => {
                   e.preventDefault();
                   setActiveTab(item.id);
@@ -117,7 +174,7 @@ export const Sidebar = () => {
 
       {/* Switch workspace (faculty+coordinator only) */}
       {isTeacher && isAssignedCoordinator && (
-        <div style={{ padding: '0 16px 16px 16px' }}>
+        <div style={{ padding: isSidebarCollapsed ? '16px 8px' : '0 16px 16px 16px' }}>
           <button
             onClick={() => setShowModeSelectionLanding(true)}
             className="btn btn-secondary btn-block"
@@ -126,41 +183,18 @@ export const Sidebar = () => {
               gap: '8px', fontSize: '13px', padding: '10px',
               backgroundColor: 'rgba(255,255,255,0.1)',
               border: '1px solid rgba(255,255,255,0.2)',
-              color: '#FFFFFF'
+              color: 'var(--text-inverse)'
             }}
+            title="Switch Workspace"
           >
             <RefreshCw size={16} />
-            <span>Switch Workspace</span>
+            {!isSidebarCollapsed && <span>Switch Workspace</span>}
           </button>
         </div>
       )}
 
       {/* Project info — right below nav items */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        fontSize: '11px',
-        color: '#9F9F9F',
-        lineHeight: '1.7'
-      }}>
-        <div style={{ marginBottom: '2px' }}>VTU Academic Scheme</div>
-        <div style={{ marginBottom: '12px' }}>Batch: 2023–2027 (7th Sem)</div>
-
-        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
-          Project Advisor
-        </div>
-        <div style={{ marginBottom: '12px', color: '#C0C0C0' }}>Krishna Raj P M</div>
-
-        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
-          Developed By
-        </div>
-        <div style={{ color: '#C0C0C0', lineHeight: '1.8' }}>
-          <div>Sanjana K R</div>
-          <div>Manaswini Uppuluri</div>
-          <div>Shreshth Agrawal</div>
-          <div>Vaishnavi Biswagar</div>
-        </div>
-      </div>
+      {!isSidebarCollapsed && <ProjectInfo />}
 
     </aside>
   );
