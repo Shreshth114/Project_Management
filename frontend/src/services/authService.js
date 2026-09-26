@@ -63,12 +63,7 @@ export const authService = {
       .maybeSingle();
 
     if (userError || !userRecord) {
-<<<<<<< HEAD
-      console.error("DEBUG LOGIN - userError:", userError, "userRecord:", userRecord);
-      throw new Error(`Invalid login credentials. DB Error: ${userError?.message || 'User not found in public.users'}`);
-=======
       throw new Error(supabaseAuthError?.message || "Invalid login credentials.");
->>>>>>> 42aa41fe0f916cac8a034295b7fd8abf3510989e
     }
 
     if (userRecord.password_hash && userRecord.password_hash !== 'managed_by_supabase_auth') {
