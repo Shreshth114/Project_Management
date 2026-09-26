@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { academicService } from '../../services/academicService';
 import { submissionService } from '../../services/submissionService';
 import { taskService } from '../../services/taskService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const FacultySubmissions = ({ readOnly = false }) => {
   const { currentUser, setActiveTab, data, isAuthLoading } = useAuth();
@@ -116,7 +117,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
         fileSize: sub.file_type === 'link' ? 'Web Link' : (sub.file_size || 'Attached File'),
         fileUrl: sub.file_url,
         submittedBy: submittedByLabel,
-        submittedAt: sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'Recent',
+        submittedAt: sub.submitted_at ? formatDate(sub.submitted_at) : 'Recent',
         status: sub.status || 'COMPLETED',
         isModeA
       });

@@ -7,6 +7,7 @@ import { taskService } from '../../services/taskService';
 import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 import { supabase } from '../../lib/supabase';
+import { formatDate } from '../../utils/dateFormat';
 
 export const CoordinatorDashboard = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -140,7 +141,7 @@ export const CoordinatorDashboard = () => {
         <div className="stagger-4">
           <Card title="Next Milestone Deadline">
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--badge-danger-text)' }}>
-              {nextUpcomingTask ? new Date(nextUpcomingTask.deadline).toLocaleDateString() : 'None Scheduled'}
+              {nextUpcomingTask ? formatDate(nextUpcomingTask.deadline) : 'None Scheduled'}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
               {nextUpcomingTask?.title || 'All deadlines reached'}
@@ -180,7 +181,7 @@ export const CoordinatorDashboard = () => {
                       <div>
                         <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '14px' }}>{task.title}</div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                          Weightage: {totalMarks} Marks | Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : '—'}
+                          Weightage: {totalMarks} Marks | Deadline: {task.deadline ? formatDate(task.deadline) : '—'}
                         </div>
                       </div>
                       <Badge variant="purple">{task.task_type || 'GROUP'}</Badge>

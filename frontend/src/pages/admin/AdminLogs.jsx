@@ -3,6 +3,7 @@ import { Eye, X, Users, ShieldAlert, History } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
+import { formatDateTime } from '../../utils/dateFormat';
 
 export const AdminLogs = () => {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -82,7 +83,7 @@ export const AdminLogs = () => {
                       {log.log_id || log.id}
                     </td>
                     <td data-label="Timestamp" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Recent'}
+                      {log.timestamp ? formatDateTime(log.timestamp) : 'Recent'}
                     </td>
                     <td data-label="User / USN" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>
                       {log.user_id || log.user || 'System'}
@@ -137,7 +138,7 @@ export const AdminLogs = () => {
                   {inspectingLog.details || 'System event triggered.'}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>
-                  Recorded at: {inspectingLog.timestamp ? new Date(inspectingLog.timestamp).toLocaleString() : 'N/A'}
+                  Recorded at: {inspectingLog.timestamp ? formatDateTime(inspectingLog.timestamp) : 'N/A'}
                 </div>
               </div>
 

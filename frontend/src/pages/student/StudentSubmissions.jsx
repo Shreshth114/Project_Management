@@ -6,6 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { submissionService } from '../../services/submissionService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const StudentSubmissions = () => {
   const { currentUser } = useAuth();
@@ -255,7 +256,7 @@ export const StudentSubmissions = () => {
                     ? submissions.find(s => String(s.task_id) === String(task.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id))
                     : submissions.find(s => String(s.task_id) === String(task.task_id));
                   const isSubmitted = Boolean(sub);
-                  const deadlineStr = task.deadline ? (task.deadline.includes('T') ? new Date(task.deadline).toLocaleDateString() : task.deadline) : '—';
+                  const deadlineStr = task.deadline ? formatDate(task.deadline) : '—';
 
                   return (
                     <tr

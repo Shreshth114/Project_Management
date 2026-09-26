@@ -14,6 +14,7 @@ import { ProgressBar } from '../../components/common/ProgressBar';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { submissionService } from '../../services/submissionService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const StudentDashboard = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -190,7 +191,7 @@ export const StudentDashboard = () => {
             {pendingTasks && pendingTasks.length > 0 ? pendingTasks.slice(0, 3).map((task) => {
               const totalMarks = task.totalMarks || task.maxMarks || 
                 task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 50;
-              const deadlineStr = task.deadline ? (task.deadline.includes('T') ? new Date(task.deadline).toLocaleDateString() : task.deadline) : 'Upcoming';
+              const deadlineStr = task.deadline ? formatDate(task.deadline) : 'Upcoming';
               return (
                 <div 
                   key={task.id || task.task_id} 

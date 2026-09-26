@@ -6,6 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
 import { academicService } from '../../services/academicService';
 import { submissionService } from '../../services/submissionService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const StudentTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -114,7 +115,7 @@ export const StudentTasks = () => {
                     <div className="mobile-col" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-muted)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Calendar size={14} color="var(--badge-danger-text)" />
-                        <span>Deadline: <strong style={{ color: 'var(--text-main)' }}>{new Date(task.deadline).toLocaleDateString()}</strong></span>
+                        <span>Deadline: <strong style={{ color: 'var(--text-main)' }}>{formatDate(task.deadline)}</strong></span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Award size={14} color="var(--badge-warning-text)" />

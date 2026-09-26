@@ -9,6 +9,7 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { messageService } from '../../services/messageService';
+import { formatDate, formatDateTime } from '../../utils/dateFormat';
 
 export const AdminMasterEdit = () => {
   const { currentUser, assignFacultyAsCoordinator } = useAuth();
@@ -252,7 +253,7 @@ export const AdminMasterEdit = () => {
               >
                 {tasks.map(t => (
                   <option key={t.task_id} value={t.task_id}>
-                    {t.title} (Current: {t.deadline ? new Date(t.deadline).toLocaleDateString() : 'N/A'})
+                    {t.title} (Current: {t.deadline ? formatDate(t.deadline) : 'N/A'})
                   </option>
                 ))}
               </select>
@@ -479,7 +480,7 @@ export const AdminMasterEdit = () => {
                         {msg.message_text}
                       </td>
                       <td data-label="Timestamp" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'N/A'}
+                        {msg.sent_at ? formatDateTime(msg.sent_at) : 'N/A'}
                       </td>
                       <td data-label="Action">
                         <button
