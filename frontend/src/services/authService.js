@@ -37,16 +37,20 @@ export const authService = {
     }
 
     // 2. First attempt standard Supabase Auth signInWithPassword
+    let supabaseAuthError = null;
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password: password
       });
-      if (!error && data?.session) {
+      if (error) {
+        supabaseAuthError = error;
+      } else if (data?.session) {
         return { success: true, user: data.user, session: data.session };
       }
     } catch (authErr) {
       console.warn("Supabase auth signIn notice, checking users table:", authErr?.message);
+      supabaseAuthError = authErr;
     }
 
     // 3. Check public.users table for hashed password verification
@@ -57,7 +61,7 @@ export const authService = {
       .maybeSingle();
 
     if (userError || !userRecord) {
-      throw new Error("Invalid login credentials.");
+      throw new Error(supabaseAuthError?.message || "Invalid login credentials.");
     }
 
     if (userRecord.password_hash && userRecord.password_hash !== 'managed_by_supabase_auth') {
@@ -75,6 +79,13 @@ export const authService = {
     }
 
     // If managed by Supabase auth and signInWithPassword failed:
+    if (supabaseAuthError) {
+      // Provide a clearer message for unconfirmed emails
+      if (supabaseAuthError.message.toLowerCase().includes('email not confirmed')) {
+        throw new Error("Please check your inbox and confirm your email address before logging in.");
+      }
+      throw new Error(supabaseAuthError.message || "Invalid login credentials.");
+    }
     throw new Error("Invalid login credentials.");
   },
 
@@ -135,6 +146,10 @@ export const authService = {
         }
       });
       if (!authError && authData?.user?.id) {
+        // Detect Supabase fake user object (returned when email already exists in auth.users)
+        if (authData.user.identities && authData.user.identities.length === 0) {
+          throw new Error("This email is already registered in the system. If your registration was interrupted previously, please contact the administrator to reset your account.");
+        }
         authUserId = authData.user.id;
       } else if (authError) {
         // If Supabase fails to sign up, throw so we don't accidentally create an orphaned local user
@@ -289,7 +304,16 @@ export const authService = {
       }
     }
 
-    return { success: true };
+    let requiresEmailConfirmation = false;
+    if (authUserId) {
+      // Check if Supabase auth session was created. If not, it means email confirmation is required.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        requiresEmailConfirmation = true;
+      }
+    }
+
+    return { success: true, requiresEmailConfirmation };
   },
 
   async getUserProfile(userOrEmail) {

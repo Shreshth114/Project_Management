@@ -67,6 +67,34 @@ export const getNavItemsByRole = (role) => {
   }
 };
 
+export const ProjectInfo = () => (
+  <div style={{
+    padding: '16px',
+    borderTop: '1px solid rgba(255,255,255,0.08)',
+    fontSize: '11px',
+    color: '#9F9F9F',
+    lineHeight: '1.7'
+  }}>
+    <div style={{ marginBottom: '2px' }}>VTU Academic Scheme</div>
+    <div style={{ marginBottom: '12px' }}>Batch: 2023–2027 (7th Sem)</div>
+
+    <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+      Project Advisor
+    </div>
+    <div style={{ marginBottom: '12px', color: '#C0C0C0' }}>Krishna Raj P M</div>
+
+    <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
+      Developed By
+    </div>
+    <div style={{ color: '#C0C0C0', lineHeight: '1.8' }}>
+      <div>Sanjana K R</div>
+      <div>Manaswini Uppuluri</div>
+      <div>Shreshth Agrawal</div>
+      <div>Vaishnavi Biswagar</div>
+    </div>
+  </div>
+);
+
 export const Sidebar = () => {
   const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data } = useAuth();
   const navItems = getNavItemsByRole(currentRole);
@@ -136,31 +164,7 @@ export const Sidebar = () => {
       )}
 
       {/* Project info — right below nav items */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        fontSize: '11px',
-        color: '#9F9F9F',
-        lineHeight: '1.7'
-      }}>
-        <div style={{ marginBottom: '2px' }}>VTU Academic Scheme</div>
-        <div style={{ marginBottom: '12px' }}>Batch: 2023–2027 (7th Sem)</div>
-
-        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
-          Project Advisor
-        </div>
-        <div style={{ marginBottom: '12px', color: '#C0C0C0' }}>Krishna Raj P M</div>
-
-        <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
-          Developed By
-        </div>
-        <div style={{ color: '#C0C0C0', lineHeight: '1.8' }}>
-          <div>Sanjana K R</div>
-          <div>Manaswini Uppuluri</div>
-          <div>Shreshth Agrawal</div>
-          <div>Vaishnavi Biswagar</div>
-        </div>
-      </div>
+      <ProjectInfo />
 
     </aside>
   );

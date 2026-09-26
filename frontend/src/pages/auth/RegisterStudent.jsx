@@ -86,10 +86,14 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
       const res = await registerUser(newUser);
       if (res.success) {
-        setSuccess('Student Enrolment completed successfully! Redirecting to login...');
+        if (res.requiresEmailConfirmation) {
+          setSuccess('Enrolment successful! Please check your email inbox to verify your account before logging in.');
+        } else {
+          setSuccess('Student Enrolment completed successfully! Redirecting to login...');
+        }
         setTimeout(() => {
           onBackToLogin();
-        }, 1500);
+        }, res.requiresEmailConfirmation ? 4000 : 1500);
       } else {
         setError(res.message || 'Registration failed.');
       }

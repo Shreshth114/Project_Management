@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getNavItemsByRole } from './Sidebar';
+import { getNavItemsByRole, ProjectInfo } from './Sidebar';
 
 export const MobileDrawer = ({ isOpen, onClose }) => {
   const { currentRole, activeTab, setActiveTab, currentUser, switchTeacherRole } = useAuth();
@@ -78,6 +78,8 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
               );
             })}
           </ul>
+          
+          <ProjectInfo />
         </nav>
 
         <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', color: '#9F9F9F' }}>
