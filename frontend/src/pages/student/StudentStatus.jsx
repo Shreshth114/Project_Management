@@ -33,14 +33,19 @@ export const StudentStatus = () => {
     }
   };
 
-  if (loading) return <div>Loading status...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading status...</div>
+      </div>
+    );
 
   const totalScore = evaluations.reduce((sum, e) => sum + (e.awarded_marks || 0), 0);
   const maxPossible = evaluations.reduce((sum, e) => sum + (e.evaluation_criteria?.max_marks || 0), 0);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
+      <div className="stagger-1">
         <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Individual Academic Status & Marks Transcript</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Personal evaluation transcript signed off by your assigned Faculty Guide ({team?.guide?.name || 'Unassigned'}).
@@ -48,17 +53,19 @@ export const StudentStatus = () => {
       </div>
 
       {/* Workflow Legend */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
+      <div className="stagger-2">
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
           <strong>Workflow Status Legend:</strong>
           <span style={{ color: '#114C94', fontWeight: 700 }}>● Pending (#114C94)</span>
           <span style={{ color: '#A68E24', fontWeight: 700 }}>● In Progress (#A68E24)</span>
           <span style={{ color: '#038203', fontWeight: 700 }}>● Completed / Submitted (#038203)</span>
           <span style={{ color: '#FD0A0A', fontWeight: 700 }}>● Overdue / Error (#FD0A0A)</span>
         </div>
-      </Card>
+        </Card>
+      </div>
 
-      <div className="grid-3">
+      <div className="grid-3 stagger-3">
         <Card title="Individual Score">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>
             {evaluations.length > 0 ? `${totalScore} / ${maxPossible}` : 'Pending Evaluation'}
@@ -78,8 +85,9 @@ export const StudentStatus = () => {
         </Card>
       </div>
 
-      <Card title="Rubric Score Breakdown">
-        <div className="table-container">
+      <div className="stagger-4">
+        <Card title="Rubric Score Breakdown">
+          <div className="table-container">
           <table className="portal-table">
             <thead>
               <tr>
@@ -114,7 +122,8 @@ export const StudentStatus = () => {
             </tbody>
           </table>
         </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

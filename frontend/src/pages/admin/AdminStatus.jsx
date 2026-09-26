@@ -96,9 +96,16 @@ export const AdminStatus = () => {
 
       <Card title="Academic Subject Compliance Matrix">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading governance compliance data...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading governance compliance data...</div>
+          </div>
         ) : subjectMetrics.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>No subjects or teams found in database.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No subjects or teams found in database.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container responsive-table-stack">
             <table className="portal-table">

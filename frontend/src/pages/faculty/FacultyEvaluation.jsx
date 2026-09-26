@@ -57,8 +57,25 @@ export const FacultyEvaluation = () => {
       setGroups(teamList);
       setTasks(taskList);
       
-      if (teamList.length > 0) setSelectedGroupId(teamList[0].team_id || teamList[0].id);
-      if (taskList.length > 0) setSelectedTaskId(taskList[0].task_id || taskList[0].id);
+      const params = new URLSearchParams(window.location.search);
+      const urlGroupId = params.get('groupId');
+      const urlTaskId = params.get('taskId');
+      
+      if (teamList.length > 0) {
+        if (urlGroupId && teamList.some(t => String(t.team_id || t.id) === String(urlGroupId))) {
+          setSelectedGroupId(urlGroupId);
+        } else {
+          setSelectedGroupId(teamList[0].team_id || teamList[0].id);
+        }
+      }
+      
+      if (taskList.length > 0) {
+        if (urlTaskId && taskList.some(t => String(t.task_id || t.id) === String(urlTaskId))) {
+          setSelectedTaskId(urlTaskId);
+        } else {
+          setSelectedTaskId(taskList[0].task_id || taskList[0].id);
+        }
+      }
     } catch (err) {
       setError(err.message);
       setGroups(data?.groups || []);
@@ -213,7 +230,7 @@ export const FacultyEvaluation = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
+      <div className="stagger-1">
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Rubric Evaluation Portal</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Review submitted deliverables, then evaluate EVERY group member individually with separate marks.
@@ -229,8 +246,9 @@ export const FacultyEvaluation = () => {
       
       {error && <div style={{ color: 'red', padding: '10px', backgroundColor: '#FEE', borderRadius: '4px' }}>{error}</div>}
 
-      <Card>
-        <div className="grid-2">
+      <div className="stagger-2">
+        <Card>
+          <div className="grid-2">
           <div className="form-group" style={{ margin: 0 }}>
             <label className="form-label">Select Project Group</label>
             <select
@@ -261,12 +279,14 @@ export const FacultyEvaluation = () => {
             </select>
           </div>
         </div>
-      </Card>
+        </Card>
+      </div>
 
       {/* TOP SECTION: COMBINED GROUP PROJECT SUBMISSIONS */}
       {selectedGroup && (
-        <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${groupCode})`}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+        <div className="stagger-3">
+          <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${groupCode})`}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
                 {selectedGroup.title || selectedGroup.subject?.subject_name || 'Project'}
@@ -338,12 +358,14 @@ export const FacultyEvaluation = () => {
               </tbody>
             </table>
           </div>
-        </Card>
+          </Card>
+        </div>
       )}
 
       {selectedGroup && (
-        <Card title="2. INDIVIDUAL STUDENT EVALUATIONS (SEPARATE MARKS PER MEMBER)">
-          <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
+        <div className="stagger-4">
+          <Card title="2. INDIVIDUAL STUDENT EVALUATIONS (SEPARATE MARKS PER MEMBER)">
+            <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
             Deliverables are reflected across the team, but EVERY student is evaluated separately with individual marks.
           </p>
 
@@ -417,6 +439,41 @@ export const FacultyEvaluation = () => {
                   <div style={{ fontSize: '12px', color: '#55636B', marginTop: '2px' }}>
                     Group: {groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
                   </div>
+                  
+                  <div style={{ marginTop: '12px' }}>
+                    {(() => {
+                      const activeSub = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
+                        || submissions.find(s => Number(s.team_id) === Number(selectedGroupId) && Number(s.task_id) === Number(selectedTaskId))
+                        || submissions[0];
+                        
+                      if (activeSub && activeSub.file_url && activeSub.file_url !== '#') {
+                        return (
+                          <button 
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => submissionService.openSubmissionFile(activeSub.file_url, activeSub.file_name)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            title="Click to view/download deliverable"
+                          >
+                            <ExternalLink size={14} />
+                            <span>View Submission ({activeSub.file_name || 'File'})</span>
+                          </button>
+                        );
+                      } else if (activeSub) {
+                        return (
+                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: '#F0F0F0', borderRadius: '4px', border: '1px solid #E5E5E5' }}>
+                            Attached: {activeSub.file_name || 'Document'}
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: '#FFF3CD', color: '#856404', borderRadius: '4px', border: '1px solid #FFEEBA' }}>
+                            No submission uploaded yet
+                          </span>
+                        );
+                      }
+                    })()}
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
@@ -472,11 +529,12 @@ export const FacultyEvaluation = () => {
             </div>
           )}
           {activeStudentObj && criteria.length === 0 && (
-             <div style={{ padding: '20px', backgroundColor: '#FAFAFA', borderRadius: '4px' }}>
+            <div style={{ padding: '20px', backgroundColor: '#FAFAFA', borderRadius: '4px' }}>
                 No evaluation criteria defined for this task.
-             </div>
+            </div>
           )}
-        </Card>
+          </Card>
+        </div>
       )}
     </div>
   );

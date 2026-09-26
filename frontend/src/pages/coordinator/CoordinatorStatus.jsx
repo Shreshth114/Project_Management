@@ -57,7 +57,12 @@ export const CoordinatorStatus = () => {
     }
   };
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Department Compliance Matrix...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading Department Compliance Matrix...</div>
+      </div>
+    );
 
   const totalTeams = teams.length;
   const submittedTeamsCount = teams.filter(t => (submissionsByTeam[t.team_id] || []).length > 0).length;

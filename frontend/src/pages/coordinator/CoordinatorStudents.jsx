@@ -34,7 +34,12 @@ export const CoordinatorStudents = () => {
     (s.email && s.email.toLowerCase().includes(search.toLowerCase()))
   );
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Student Enrolments...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading Student Enrolments...</div>
+      </div>
+    );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

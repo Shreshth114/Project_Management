@@ -91,7 +91,12 @@ export const CoordinatorGroups = () => {
     (g.guide && g.guide.toLowerCase().includes(search.toLowerCase()))
   );
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Department Project Groups...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading Department Project Groups...</div>
+      </div>
+    );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

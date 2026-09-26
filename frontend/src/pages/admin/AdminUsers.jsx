@@ -128,7 +128,11 @@ export const AdminUsers = () => {
       {/* Active Project Teams Summary */}
       <Card title="Active Project Groups Summary">
         {teams.length === 0 ? (
-          <p style={{ padding: '12px', color: '#888' }}>No registered project teams found.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No registered project teams found.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container">
             <table className="portal-table">
@@ -158,9 +162,16 @@ export const AdminUsers = () => {
       {/* Full Accounts Table */}
       <Card title="All Registered Accounts Directory">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading accounts directory...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading accounts directory...</div>
+          </div>
         ) : filtered.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>No accounts matched the selected filter.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No accounts matched the selected filter.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container responsive-table-stack">
             <table className="portal-table">

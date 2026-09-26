@@ -125,7 +125,9 @@ export const DashboardLayout = () => {
         />
 
         <main className="main-content">
-          {renderActivePage()}
+          <div key={activeTab} className="page-anim">
+            {renderActivePage()}
+          </div>
         </main>
       </div>
 

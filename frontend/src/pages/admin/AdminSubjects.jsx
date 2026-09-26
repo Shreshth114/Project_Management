@@ -89,9 +89,16 @@ export const AdminSubjects = () => {
         <div style={{ gridColumn: 'span 2' }}>
           <Card title="Registered Academic Course Subjects & Coordinators">
             {loading ? (
-              <p>Loading subjects...</p>
+              <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading subjects...</div>
+          </div>
             ) : subjectsList.length === 0 ? (
-              <p>No subjects found. Add one below.</p>
+              <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No subjects found. Add one below.</div>
+          </div>
+          </div>
             ) : (
               <div className="table-container responsive-table-stack">
                 <table className="portal-table">

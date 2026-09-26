@@ -53,7 +53,7 @@ export const FacultyGroups = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
+      <div className="stagger-1">
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Evaluated Student Project Groups</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Detailed roster of project teams assigned for faculty evaluation.
@@ -69,9 +69,12 @@ export const FacultyGroups = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {myGroups.length > 0 ? (
-          myGroups.map((group) => (
-            <Card key={group.id || group.groupCode}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+          myGroups.map((group, index) => {
+            const staggerClass = `stagger-${Math.min(index + 2, 6)}`;
+            return (
+              <div key={group.id || group.groupCode} className={staggerClass}>
+                <Card>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Badge variant="purple">{group.groupCode}</Badge>
@@ -114,10 +117,13 @@ export const FacultyGroups = () => {
                 </table>
               </div>
             </Card>
-          ))
+            </div>
+            );
+          })
         ) : (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '32px 16px', color: '#8A9198' }}>
+          <div className="stagger-2">
+            <Card>
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: '#8A9198' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
                 No Groups Assigned Yet
               </h3>
@@ -126,6 +132,7 @@ export const FacultyGroups = () => {
               </p>
             </div>
           </Card>
+          </div>
         )}
       </div>
     </div>

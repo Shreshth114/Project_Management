@@ -133,11 +133,16 @@ export const StudentProfile = () => {
     setExtraProjects(prev => prev.filter(p => p.id !== projId));
   };
 
-  if (loading) return <div>Loading profile...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading profile...</div>
+      </div>
+    );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
+      <div className="stagger-1">
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student Profile & Project Enrolments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Overview of registered academic projects and additional course enrolments.
@@ -153,7 +158,7 @@ export const StudentProfile = () => {
 
       {currentUser && (
         <>
-          <div className="grid-3">
+          <div className="grid-3 stagger-2">
             <Card title="Student Credentials">
               <div style={{ textAlign: 'center', padding: '10px 0' }}>
                 <div style={{
@@ -206,18 +211,21 @@ export const StudentProfile = () => {
             </Card>
           </div>
 
-          <Card title="Contact & Institutional Credentials">
-            <div>
-              <label className="form-label">Official College Email</label>
+          <div className="stagger-3">
+            <Card title="Contact & Institutional Credentials">
+              <div>
+                <label className="form-label">Official College Email</label>
               <input type="text" className="form-input" value={currentUser.email || ''} disabled />
             </div>
-          </Card>
+            </Card>
+          </div>
         </>
       )}
 
       {/* Box 1: Current Working Projects */}
-      <Card title="Current Registered Academic Projects">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="stagger-4">
+        <Card title="Current Registered Academic Projects">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {extraProjects.length > 0 ? (
             extraProjects.map((p) => (
               <div 
@@ -271,10 +279,12 @@ export const StudentProfile = () => {
             </div>
           )}
         </div>
-      </Card>
+        </Card>
+      </div>
 
       {/* Box 2: Interactive Add Another Project Box */}
-      <Card title="Add Another Project / Course Enrolment">
+      <div className="stagger-5">
+        <Card title="Add Another Project / Course Enrolment">
         <form onSubmit={handleAddProject}>
           <div className="grid-2">
             <div className="form-group">
@@ -352,7 +362,8 @@ export const StudentProfile = () => {
             <span>ADD PROJECT ENROLMENT</span>
           </button>
         </form>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

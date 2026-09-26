@@ -49,84 +49,98 @@ export const AdminDashboard = () => {
       </div>
 
       <div className="grid-4">
-        <Card title="Registered System Users">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{stats.usersCount} Accounts</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
-        </Card>
+        <div className="stagger-1">
+          <Card title="Registered System Users">
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{stats.usersCount} Accounts</div>
+            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
+          </Card>
+        </div>
 
-        <Card title="Active Course Subjects">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{stats.subjectsCount} Subjects</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Major Project & Seminars</div>
-        </Card>
+        <div className="stagger-2">
+          <Card title="Active Course Subjects">
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{stats.subjectsCount} Subjects</div>
+            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Major Project & Seminars</div>
+          </Card>
+        </div>
 
-        <Card title="System Health Status">
-          <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>{stats.teamsCount} Teams</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Database sync active</div>
-        </Card>
+        <div className="stagger-3">
+          <Card title="System Health Status">
+            <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>{stats.teamsCount} Teams</div>
+            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Database sync active</div>
+          </Card>
+        </div>
 
-        <Card title="Audit Logs Recorded">
-          <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{auditLogs.length} Events</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Security & Upload logs</div>
-        </Card>
+        <div className="stagger-4">
+          <Card title="Audit Logs Recorded">
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{auditLogs.length} Events</div>
+            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Security & Upload logs</div>
+          </Card>
+        </div>
       </div>
 
       <div className="grid-2">
         {/* System User Directory Overview table (Department column removed per section 5 rule) */}
-        <Card 
-          title="System User Directory Overview"
-          action={
-            <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('users')}>
-              Manage All Users
-            </button>
-          }
-        >
-          <div className="table-container">
-            <table className="portal-table">
-              <thead>
-                <tr>
-                  <th>Username / USN</th>
-                  <th>Full Name</th>
-                  <th>Role Category</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.username}</td>
-                    <td style={{ fontWeight: 600 }}>{u.name}</td>
-                    <td><Badge variant="purple">{u.role}</Badge></td>
+        <div className="stagger-3">
+          <Card 
+            title="System User Directory Overview"
+            action={
+              <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab('users')}>
+                Manage All Users
+              </button>
+            }
+          >
+            <div className="table-container">
+              <table className="portal-table">
+                <thead>
+                  <tr>
+                    <th>Username / USN</th>
+                    <th>Full Name</th>
+                    <th>Role Category</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.username}</td>
+                      <td style={{ fontWeight: 600 }}>{u.name}</td>
+                      <td><Badge variant="purple">{u.role}</Badge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
 
-        <Card title="Recent System Activity Audit Log">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {auditLogs.length === 0 && (
-              <div style={{ color: '#666', fontSize: '13px' }}>No audit activity recorded.</div>
-            )}
-            {auditLogs.map((log) => (
-              <div 
-                key={log.log_id}
-                style={{
-                  border: '1px solid #E5E5E5',
-                  borderRadius: '4px',
-                  padding: '10px 12px',
-                  backgroundColor: '#FFFFFF',
-                  fontSize: '13px'
-                }}
-              >
-                <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                  <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
-                  <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
+        <div className="stagger-4">
+          <Card title="Recent System Activity Audit Log">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {auditLogs.length === 0 && (
+                <div className="empty-state">
+              <div className="empty-state-text">No audit activity recorded.</div>
+            </div>
+              )}
+              {auditLogs.map((log) => (
+                <div 
+                  key={log.log_id}
+                  style={{
+                    border: '1px solid #E5E5E5',
+                    borderRadius: '4px',
+                    padding: '10px 12px',
+                    backgroundColor: '#FFFFFF',
+                    fontSize: '13px'
+                  }}
+                >
+                  <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                    <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
+                    <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
+                  </div>
+                  <div style={{ color: '#55636B' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
                 </div>
-                <div style={{ color: '#55636B' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -17,6 +17,15 @@ export const FacultyDashboard = () => {
   const [tasksCount, setTasksCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const navigateToEvaluation = (groupId, taskId) => {
+    if (!setActiveTab) return;
+    const url = new URL(window.location);
+    if (groupId) url.searchParams.set('groupId', groupId);
+    if (taskId) url.searchParams.set('taskId', taskId);
+    window.history.pushState({}, '', url);
+    setActiveTab('evaluation');
+  };
+
   useEffect(() => {
     if (currentUser?.faculty_id) {
       loadFacultyData(currentUser.faculty_id);
@@ -45,6 +54,8 @@ export const FacultyDashboard = () => {
             teamSubs.forEach(sub => {
               allSubmissions.push({
                 id: sub.submission_id,
+                groupId: team.team_id || team.id,
+                taskId: sub.task_id || sub.id,
                 groupCode: team.team_code,
                 taskTitle: allTasks.find(t => t.task_id === sub.task_id)?.title || `Milestone ${sub.task_id}`,
                 fileName: sub.file_name,
@@ -91,37 +102,46 @@ export const FacultyDashboard = () => {
 
       {/* Metrics Row */}
       <div className="grid-4">
-        <Card title="Assigned Groups">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{myGroups.length} Batches</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Advised Students: {totalAdvisedStudents}</div>
-        </Card>
+        <div className="stagger-1">
+          <Card title="Assigned Groups">
+            <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{myGroups.length} Batches</div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Advised Students: {totalAdvisedStudents}</div>
+          </Card>
+        </div>
 
-        <Card title="Uploaded Deliverables">
+        <div className="stagger-2">
+          <Card title="Uploaded Deliverables">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#A68E24' }}>{pendingSubmissions.length} Items</div>
           <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Team uploads recorded</div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card title="Evaluations Completed">
+        <div className="stagger-3">
+          <Card title="Evaluations Completed">
           <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>{evaluatedCount} Records</div>
           <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Rubric marks stored in database</div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card title="Published Milestones">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasksCount} Tasks</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Department curriculum tasks</div>
-        </Card>
+        <div className="stagger-4">
+          <Card title="Published Milestones">
+            <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasksCount} Tasks</div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Department curriculum tasks</div>
+          </Card>
+        </div>
       </div>
 
       {/* Submissions Needing Action & Group Roster */}
       <div className="grid-2">
-        <Card 
-          title="Deliverables Awaiting Review" 
-          action={
-            <button className="btn btn-primary btn-sm" onClick={() => setActiveTab('evaluation')}>
-              Go to Mark Rubrics
-            </button>
-          }
-        >
+        <div className="stagger-3">
+          <Card 
+            title="Deliverables Awaiting Review" 
+            action={
+              <button className="btn btn-primary btn-sm" onClick={() => navigateToEvaluation(null, null)}>
+                Go to Mark Rubrics
+              </button>
+            }
+          >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {pendingSubmissions.length > 0 ? (
               pendingSubmissions.slice(0, 4).map((sub) => (
@@ -147,7 +167,7 @@ export const FacultyDashboard = () => {
                   </div>
                   <button 
                     className="btn btn-secondary btn-sm"
-                    onClick={() => setActiveTab('evaluation')}
+                    onClick={() => navigateToEvaluation(sub.groupId, sub.taskId)}
                   >
                     Evaluate
                   </button>
@@ -159,9 +179,11 @@ export const FacultyDashboard = () => {
               </div>
             )}
           </div>
-        </Card>
+          </Card>
+        </div>
 
-        <Card title="Assigned Project Groups Roster">
+        <div className="stagger-4">
+          <Card title="Assigned Project Groups Roster">
           <div className="table-container">
             <table className="portal-table">
               <thead>
@@ -191,6 +213,7 @@ export const FacultyDashboard = () => {
             </table>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );
