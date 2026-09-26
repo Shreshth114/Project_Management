@@ -15,7 +15,7 @@ import {
   History
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const getNavItemsByRole = (role) => {
   switch (role) {
@@ -96,7 +96,7 @@ export const ProjectInfo = () => (
 );
 
 export const Sidebar = () => {
-  const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data } = useAuth();
+  const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data, isSidebarCollapsed, setIsSidebarCollapsed } = useAuth();
   const navItems = getNavItemsByRole(currentRole);
 
   const isAssignedCoordinator = currentUser?.is_coordinator ||
@@ -111,13 +111,38 @@ export const Sidebar = () => {
     (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   return (
-    <aside className="portal-sidebar">
+    <aside className={`portal-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
 
-      {/* Role label */}
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {currentRole} WORKSPACE
-        </div>
+      {/* Role label & Collapse Toggle */}
+      <div style={{ 
+        padding: isSidebarCollapsed ? '16px 0' : '16px 20px', 
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: isSidebarCollapsed ? 'center' : 'space-between'
+      }}>
+        {!isSidebarCollapsed && (
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#9F9F9F', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {currentRole} WORKSPACE
+          </div>
+        )}
+        <button 
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="btn btn-secondary btn-sm"
+          style={{ 
+            background: 'transparent', 
+            border: 'none', 
+            color: '#9F9F9F', 
+            padding: '4px',
+            minHeight: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
       </div>
 
       {/* Nav items */}
@@ -130,6 +155,7 @@ export const Sidebar = () => {
               <a
                 href={`#${item.id}`}
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                title={item.label}
                 onClick={(e) => {
                   e.preventDefault();
                   setActiveTab(item.id);
@@ -145,7 +171,7 @@ export const Sidebar = () => {
 
       {/* Switch workspace (faculty+coordinator only) */}
       {isTeacher && isAssignedCoordinator && (
-        <div style={{ padding: '0 16px 16px 16px' }}>
+        <div style={{ padding: isSidebarCollapsed ? '16px 8px' : '0 16px 16px 16px' }}>
           <button
             onClick={() => setShowModeSelectionLanding(true)}
             className="btn btn-secondary btn-block"
@@ -156,15 +182,16 @@ export const Sidebar = () => {
               border: '1px solid rgba(255,255,255,0.2)',
               color: '#FFFFFF'
             }}
+            title="Switch Workspace"
           >
             <RefreshCw size={16} />
-            <span>Switch Workspace</span>
+            {!isSidebarCollapsed && <span>Switch Workspace</span>}
           </button>
         </div>
       )}
 
       {/* Project info — right below nav items */}
-      <ProjectInfo />
+      {!isSidebarCollapsed && <ProjectInfo />}
 
     </aside>
   );

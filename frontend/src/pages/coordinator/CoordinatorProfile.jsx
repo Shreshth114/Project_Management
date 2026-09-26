@@ -149,7 +149,10 @@ export const CoordinatorProfile = () => {
       {/* Coordinated Subjects Overview */}
       <Card title="Coordinated Subjects & Guided Batches Overview">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading coordinated subjects...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading coordinated subjects...</div>
+          </div>
         ) : coordinatorProjects.length === 0 ? (
           <p style={{ padding: '16px', color: '#888' }}>
             No project groups or subject allocations registered for this coordinator in the database.

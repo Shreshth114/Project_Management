@@ -11,6 +11,14 @@ export const StudentTasks = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const navigateToSubmissions = (taskId) => {
+    if (!setActiveTab) return;
+    const url = new URL(window.location);
+    url.searchParams.set('taskId', taskId);
+    window.history.pushState({}, '', url);
+    setActiveTab('submissions');
+  };
+
   useEffect(() => {
     // In a full implementation, we'd filter tasks by the student's assigned subject or team.
     // For this milestone, we fetch all tasks.
@@ -21,12 +29,17 @@ export const StudentTasks = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading Tasks...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading Tasks...</div>
+      </div>
+    );
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="stagger-1 mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Assigned Project Tasks & Milestones</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
@@ -38,13 +51,19 @@ export const StudentTasks = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {error && <div style={{ color: 'red' }}>Error: {error}</div>}
         {tasks.length === 0 && !error ? (
-          <p>No tasks found.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No tasks found.</div>
+          </div>
+          </div>
         ) : (
-          tasks.map((task) => {
+          tasks.map((task, index) => {
             const totalMarks = task.evaluation_criteria?.reduce((sum, c) => sum + (c.max_marks || 0), 0) || 0;
+            const staggerClass = `stagger-${Math.min(index + 2, 6)}`;
             return (
-              <Card key={task.task_id}>
-                <div className="mobile-col" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+              <div key={task.task_id} className={staggerClass}>
+                <Card>
+                  <div className="mobile-col" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
                   <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <Badge variant={task.task_type === 'INDIVIDUAL' ? 'info' : 'navy'}>
@@ -73,13 +92,14 @@ export const StudentTasks = () => {
                   <button 
                     className="btn btn-primary mobile-w-100"
                     style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-                    onClick={() => setActiveTab('submissions')}
+                    onClick={() => navigateToSubmissions(task.task_id || task.id)}
                   >
                     <Upload size={16} />
                     <span>Go to Submissions</span>
                   </button>
                 </div>
-              </Card>
+                </Card>
+              </div>
             );
           })
         )}

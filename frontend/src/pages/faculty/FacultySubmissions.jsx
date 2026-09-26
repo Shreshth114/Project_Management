@@ -14,6 +14,15 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigateToEvaluation = (groupId, taskId) => {
+    if (!setActiveTab) return;
+    const url = new URL(window.location);
+    if (groupId) url.searchParams.set('groupId', groupId);
+    if (taskId) url.searchParams.set('taskId', taskId);
+    window.history.pushState({}, '', url);
+    setActiveTab('evaluation');
+  };
+
   useEffect(() => {
     const resolveAndLoad = async () => {
       let fId = currentUser?.faculty_id;
@@ -98,6 +107,8 @@ export const FacultySubmissions = ({ readOnly = false }) => {
 
       allSubmissions.push({
         id: `supabase-${sub.submission_id || sub.id}`,
+        groupId: sub.team?.team_id || sub.team_id,
+        taskId: sub.task_id || sub.id,
         groupCode,
         taskTitle,
         modeOfSubmission: modeLabel,
@@ -118,7 +129,10 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   if (loading) {
     return (
       <div style={{ padding: '30px', textAlign: 'center', color: '#55636B' }}>
-        <p>Loading student deliverables queue...</p>
+        <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading student deliverables queue...</div>
+          </div>
       </div>
     );
   }
@@ -190,7 +204,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                     <td data-label="Action">
                       <button 
                         className={`btn ${readOnly ? 'btn-secondary' : 'btn-primary'} btn-sm`}
-                        onClick={() => setActiveTab('evaluation')}
+                        onClick={() => navigateToEvaluation(sub.groupId, sub.taskId)}
                       >
                         {readOnly ? 'View Evaluations' : 'Evaluate & Mark'}
                       </button>

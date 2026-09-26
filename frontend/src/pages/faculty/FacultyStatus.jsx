@@ -108,7 +108,12 @@ export const FacultyStatus = () => {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading student evaluation matrix...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading student evaluation matrix...</div>
+      </div>
+    );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

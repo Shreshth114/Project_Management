@@ -52,7 +52,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
       background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
       padding: '20px'
     }}>
-      <div style={{
+      <div className="login-card-anim" style={{
         margin: 'auto',
         width: '100%',
         maxWidth: '460px',
@@ -69,26 +69,28 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           textAlign: 'center',
           borderBottom: '4px solid #E63B00'
         }}>
-          <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+          <div className="mobile-wrap login-item-anim login-delay-0" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
             <RitLogo size="large" light={true} />
           </div>
 
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '8px 0 0 0' }}>
+          <h2 className="login-item-anim login-delay-0" style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '8px 0 0 0' }}>
             Academic Project Governance Portal
           </h2>
-          <p style={{ fontSize: '12px', color: '#D1D5DB', marginTop: '4px' }}>
+          <p className="login-item-anim login-delay-1" style={{ fontSize: '12px', color: '#D1D5DB', marginTop: '4px' }}>
             M. S. Ramaiah Institute of Technology — Autonomous College under VTU
           </p>
         </div>
 
         {/* Form Body */}
         <div style={{ padding: '28px 24px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', marginBottom: '4px' }}>
-            Portal Sign In
-          </h3>
-          <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
-            Please authenticate using your official college email.
-          </p>
+          <div className="login-item-anim login-delay-1">
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', marginBottom: '4px' }}>
+              Portal Sign In
+            </h3>
+            <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
+              Please authenticate using your official college email.
+            </p>
+          </div>
 
           {error && (
             <div className="alert alert-danger mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -98,7 +100,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           )}
 
           <form onSubmit={handleLogin}>
-            <div className="form-group">
+            <div className="form-group login-item-anim login-delay-2">
               <label className="form-label">College Email</label>
               <input
                 type="text"
@@ -111,7 +113,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group login-item-anim login-delay-3">
               <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
                 <a 
@@ -133,14 +135,16 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '20px', padding: '12px' }} disabled={isLoading}>
-              <LogIn size={16} />
-              <span>{isLoading ? 'Authenticating...' : 'LOGIN TO PORTAL'}</span>
-            </button>
+            <div className="login-item-anim login-delay-4">
+              <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '20px', padding: '12px' }} disabled={isLoading}>
+                <LogIn size={16} />
+                <span>{isLoading ? 'Authenticating...' : 'LOGIN TO PORTAL'}</span>
+              </button>
+            </div>
           </form>
 
           {/* Dual Registration Options */}
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E5E5E5', textAlign: 'center' }}>
+          <div className="login-item-anim login-delay-5" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E5E5E5', textAlign: 'center' }}>
             <div style={{ fontSize: '13px', color: '#55636B', marginBottom: '10px', fontWeight: 600 }}>
               First Time User? Register Below:
             </div>

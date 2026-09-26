@@ -148,7 +148,7 @@ export const StudentMessages = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
+      <div className="stagger-1">
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student ↔ Faculty Direct Messaging</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Communication channel exclusively between student project teams and assigned Faculty Evaluators.
@@ -171,8 +171,9 @@ export const StudentMessages = () => {
 
       <div className="grid-2">
         {/* Messages List */}
-        <Card title="Official Message History">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="stagger-2">
+          <Card title="Official Message History">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {messagesList.map((m) => (
               <div 
                 key={m.id}
@@ -222,11 +223,13 @@ export const StudentMessages = () => {
               </div>
             )}
           </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Compose Form */}
-        <Card title="Dispatch Message to Faculty Evaluator">
-          <form onSubmit={handleSend}>
+        <div className="stagger-3">
+          <Card title="Dispatch Message to Faculty Evaluator">
+            <form onSubmit={handleSend}>
             <div className="form-group">
               <label className="form-label">Select Faculty Recipient</label>
               <select
@@ -279,7 +282,8 @@ export const StudentMessages = () => {
               <span>DISPATCH MESSAGE TO FACULTY</span>
             </button>
           </form>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

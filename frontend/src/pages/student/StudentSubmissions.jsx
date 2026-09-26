@@ -39,8 +39,15 @@ export const StudentSubmissions = () => {
       
       const allTasks = await taskService.getTasks().catch(() => []);
       setTasks(allTasks || []);
+      
+      const urlTaskId = new URLSearchParams(window.location.search).get('taskId');
+      
       if (allTasks && allTasks.length > 0) {
-        setSelectedTaskId(allTasks[0].task_id);
+        if (urlTaskId && allTasks.some(t => String(t.task_id || t.id) === String(urlTaskId))) {
+          setSelectedTaskId(urlTaskId);
+        } else {
+          setSelectedTaskId(allTasks[0].task_id);
+        }
       }
       
       if (studentTeam?.team_id) {
@@ -129,7 +136,12 @@ export const StudentSubmissions = () => {
     }
   };
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Submissions...</div>;
+  if (loading) return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Loading Submissions...</div>
+      </div>
+    );
 
   const groupCode = team?.team_code || 'Not Enrolled';
   const groupTitle = team?.subject?.subject_name || (team ? 'Academic Project' : 'No Enrolled Project');
@@ -139,7 +151,7 @@ export const StudentSubmissions = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
-      <div style={{
+      <div className="stagger-1" style={{
         backgroundColor: '#3A1F6F',
         color: '#FFFFFF',
         padding: '24px',
@@ -183,8 +195,9 @@ export const StudentSubmissions = () => {
       )}
 
       {/* DYNAMIC DELIVERABLES TABLE FROM REAL TASKS */}
-      <Card title={`Project Deliverables & Milestones (${groupCode})`}>
-        <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
+      <div className="stagger-2">
+        <Card title={`Project Deliverables & Milestones (${groupCode})`}>
+          <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
           Milestones published by the department coordinator. Submissions made by any member reflect for all team members.
         </p>
 
@@ -301,10 +314,11 @@ export const StudentSubmissions = () => {
             </tbody>
           </table>
         </div>
-      </Card>
+        </Card>
+      </div>
 
       {/* Component Upload Form Section */}
-      <div id="upload-section">
+      <div id="upload-section" className="stagger-3">
         <Card title="Submit Milestone Deliverable">
           <form onSubmit={handleSubmit}>
             <div className="grid-2">

@@ -442,9 +442,16 @@ export const AdminMasterEdit = () => {
       {/* BLOCK 4: MASTER MESSAGES & CIRCULARS MANAGER */}
       <Card title="Master System Messages Log & Deletion Manager (Database Access)">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading messages log...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading messages log...</div>
+          </div>
         ) : messagesList.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>No messages logged in database.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No messages logged in database.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container responsive-table-stack">
             <table className="portal-table">

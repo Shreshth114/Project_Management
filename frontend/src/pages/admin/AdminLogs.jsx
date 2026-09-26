@@ -52,9 +52,16 @@ export const AdminLogs = () => {
 
       <Card title="System Activity & Submission Event Log">
         {loading ? (
-          <p style={{ padding: '16px' }}>Loading audit trail...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading audit trail...</div>
+          </div>
         ) : auditLogs.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>No audit activities recorded in database yet.</p>
+          <div className="empty-state">
+            <div className="empty-state">
+            <div className="empty-state-text">No audit activities recorded in database yet.</div>
+          </div>
+          </div>
         ) : (
           <div className="table-container responsive-table-stack">
             <table className="portal-table">
