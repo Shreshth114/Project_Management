@@ -37,6 +37,7 @@ export const authService = {
     }
 
     // 2. First attempt standard Supabase Auth signInWithPassword
+    let supabaseAuthError = null;
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
@@ -45,7 +46,9 @@ export const authService = {
       if (!error && data?.session) {
         return { success: true, user: data.user, session: data.session };
       }
+      if (error) supabaseAuthError = error;
     } catch (authErr) {
+      supabaseAuthError = authErr;
       console.warn("Supabase auth signIn notice, checking users table:", authErr?.message);
     }
 
@@ -57,7 +60,8 @@ export const authService = {
       .maybeSingle();
 
     if (userError || !userRecord) {
-      throw new Error("Invalid login credentials.");
+      console.error("DEBUG LOGIN - userError:", userError, "userRecord:", userRecord);
+      throw new Error(`Invalid login credentials. DB Error: ${userError?.message || 'User not found in public.users'}`);
     }
 
     if (userRecord.password_hash && userRecord.password_hash !== 'managed_by_supabase_auth') {
@@ -70,12 +74,13 @@ export const authService = {
         };
         return { success: true, user: appUser, session: { user: appUser } };
       } else {
-        throw new Error("Invalid login credentials.");
+        console.error("DEBUG LOGIN - Hash mismatch!");
+        throw new Error("Invalid login credentials. (Hash mismatch)");
       }
     }
 
     // If managed by Supabase auth and signInWithPassword failed:
-    throw new Error("Invalid login credentials.");
+    throw new Error("Invalid login credentials. (Managed by Supabase Auth but auth failed)");
   },
 
   async logout() {
