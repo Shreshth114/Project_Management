@@ -8,7 +8,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer }) => {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#243143', margin: 0 }}>{title}</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>{title}</h3>
           <button 
             className="btn btn-secondary btn-sm" 
             onClick={onClose}

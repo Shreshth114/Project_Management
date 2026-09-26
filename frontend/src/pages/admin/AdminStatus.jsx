@@ -67,7 +67,7 @@ export const AdminStatus = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>College-Wide Academic Project Governance Status</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)' }}>College-Wide Academic Project Governance Status</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Monitoring real-time compliance metrics across all registered academic project subjects.
         </p>
@@ -75,22 +75,22 @@ export const AdminStatus = () => {
 
       <div className="grid-4">
         <Card title="Active Courses">
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#3A1F6F' }}>{subjects.length} Subjects</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Registered in Database</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-heading)' }}>{subjects.length} Subjects</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Registered in Database</div>
         </Card>
         <Card title="Enrolled Groups">
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#2B7094' }}>{teams.length} Groups</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Across all departments</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-info-text)' }}>{teams.length} Groups</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Across all departments</div>
         </Card>
         <Card title="Guide Allocations">
-          <div style={{ fontSize: '24px', fontWeight: 700, color: guideAllocationRate >= 80 ? '#038203' : '#DE3B0B' }}>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: guideAllocationRate >= 80 ? '#038203' : 'var(--rit-orange-red)' }}>
             {guideAllocationRate}% Allocated
           </div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{totalAssignedGuides} of {teams.length} with Guide</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{totalAssignedGuides} of {teams.length} with Guide</div>
         </Card>
         <Card title="Total Submissions">
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#728C5E' }}>{submissions.length} Records</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Logged in Database</div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-success-text)' }}>{submissions.length} Records</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Logged in Database</div>
         </Card>
       </div>
 
@@ -123,8 +123,8 @@ export const AdminStatus = () => {
               <tbody>
                 {subjectMetrics.map((item) => (
                   <tr key={item.id || item.code}>
-                    <td data-label="Course Title" style={{ fontWeight: 700, color: '#243143' }}>{item.name}</td>
-                    <td data-label="Course Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{item.code}</td>
+                    <td data-label="Course Title" style={{ fontWeight: 700, color: 'var(--text-main)' }}>{item.name}</td>
+                    <td data-label="Course Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{item.code}</td>
                     <td data-label="Coordinator" style={{ fontWeight: 600 }}>{item.coordinator}</td>
                     <td data-label="Total Groups">{item.totalTeams} Groups</td>
                     <td data-label="Milestone Submissions">

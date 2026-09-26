@@ -80,8 +80,8 @@ export const CoordinatorDashboard = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Banner Box */}
       <div style={{
-        backgroundColor: '#243143',
-        color: '#FFFFFF',
+        backgroundColor: 'var(--bg-sidebar)',
+        color: 'var(--text-inverse)',
         padding: '24px',
         borderRadius: '6px',
         borderLeft: '6px solid #B82226',
@@ -92,16 +92,16 @@ export const CoordinatorDashboard = () => {
         gap: '12px'
       }}>
         <div>
-          <div style={{ fontSize: '12px', color: '#9F9F9F', fontWeight: 700, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
             DEPARTMENT PROJECT COORDINATION GOVERNANCE
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-inverse)', marginTop: '4px' }}>
             Project Coordinator Control Panel
           </h1>
-          <div style={{ fontSize: '13px', color: '#D1D5DB', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             Coordinator: <strong>{currentUser?.name || 'Academic Coordinator'}</strong>
             {subjectInfo && (
-              <span style={{ marginLeft: '12px', color: '#A5B4FC' }}>
+              <span style={{ marginLeft: '12px', color: 'var(--text-sidebar)' }}>
                 | Subject: <strong>{subjectInfo.subject_name} ({subjectInfo.subject_code})</strong>
               </span>
             )}
@@ -118,31 +118,31 @@ export const CoordinatorDashboard = () => {
       <div className="grid-4">
         <div className="stagger-1">
           <Card title="Department Groups">
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#243143' }}>{allTeams.length} Batches</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Enrolled in system</div>
+            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-main)' }}>{allTeams.length} Batches</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Enrolled in system</div>
           </Card>
         </div>
 
         <div className="stagger-2">
           <Card title="Published Milestones">
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#114C94' }}>{tasks.length} Milestones</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Active department tasks</div>
+            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-info-text)' }}>{tasks.length} Milestones</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Active department tasks</div>
           </Card>
         </div>
 
         <div className="stagger-3">
           <Card title="Evaluations Completed">
-            <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>{evaluations.length} Records</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Evaluations recorded in database</div>
+            <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-success-text)' }}>{evaluations.length} Records</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Evaluations recorded in database</div>
           </Card>
         </div>
 
         <div className="stagger-4">
           <Card title="Next Milestone Deadline">
-            <div style={{ fontSize: '20px', fontWeight: 700, color: '#B82226' }}>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--badge-danger-text)' }}>
               {nextUpcomingTask ? new Date(nextUpcomingTask.deadline).toLocaleDateString() : 'None Scheduled'}
             </div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
               {nextUpcomingTask?.title || 'All deadlines reached'}
             </div>
           </Card>
@@ -168,18 +168,18 @@ export const CoordinatorDashboard = () => {
                     <div 
                       key={task.task_id}
                       style={{
-                        border: '1px solid #E5E5E5',
+                        border: '1px solid var(--border-subtle)',
                         borderRadius: '4px',
                         padding: '14px',
-                        backgroundColor: '#FFFFFF',
+                        backgroundColor: 'var(--bg-surface)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: 700, color: '#243143', fontSize: '14px' }}>{task.title}</div>
-                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '14px' }}>{task.title}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                           Weightage: {totalMarks} Marks | Deadline: {task.deadline ? new Date(task.deadline).toLocaleDateString() : '—'}
                         </div>
                       </div>
@@ -188,7 +188,7 @@ export const CoordinatorDashboard = () => {
                   );
                 })
               ) : (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
                   No milestone tasks created yet. Click "+ New Milestone" to publish a task.
                 </div>
               )}
@@ -211,14 +211,14 @@ export const CoordinatorDashboard = () => {
                   {guideAllocations.length > 0 ? (
                     guideAllocations.map((alloc) => (
                       <tr key={alloc.name}>
-                        <td style={{ fontWeight: 700, color: '#243143' }}>{alloc.name}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{alloc.name}</td>
                         <td>{alloc.count} {alloc.count === 1 ? 'Batch' : 'Batches'}</td>
-                        <td><Badge variant="success">Active Allocation</Badge></td>
+                        <td><span style={{ color: 'var(--badge-success-text)', fontWeight: 600 }}>● Active Allocation</span></td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                      <td colSpan={3} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
                         No faculty guide allocations registered in database.
                       </td>
                     </tr>

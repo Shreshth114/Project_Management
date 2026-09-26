@@ -128,7 +128,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
 
   if (loading) {
     return (
-      <div style={{ padding: '30px', textAlign: 'center', color: '#55636B' }}>
+      <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-muted)' }}>
         <div className="loading-container">
             <div className="loading-spinner"></div>
             <div className="loading-text">Loading student deliverables queue...</div>
@@ -140,7 +140,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Submitted Student Deliverables Queue</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Submitted Student Deliverables Queue</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Review technical documents, reports, and repositories uploaded by assigned project groups.
         </p>
@@ -165,13 +165,13 @@ export const FacultySubmissions = ({ readOnly = false }) => {
               {allSubmissions.length > 0 ? (
                 allSubmissions.map((sub) => (
                   <tr key={sub.id}>
-                    <td data-label="Group Name" style={{ fontWeight: 800, color: '#DE3B0B' }}>{sub.groupCode}</td>
+                    <td data-label="Group Name" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{sub.groupCode}</td>
                     <td data-label="Task Component" style={{ fontWeight: 600 }}>{sub.taskTitle}</td>
                     {/* Added Mode of Submission column */}
                     <td data-label="Mode of Submission">
                       <Badge variant="purple">{sub.modeOfSubmission}</Badge>
                     </td>
-                    <td data-label="Deliverable File" style={{ color: '#3A1F6F', fontWeight: 600 }}>
+                    <td data-label="Deliverable File" style={{ color: 'var(--text-heading)', fontWeight: 600 }}>
                       {sub.fileUrl && sub.fileUrl !== '#' ? (
                         <button 
                           type="button"
@@ -179,7 +179,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                           style={{ 
                             background: 'none', 
                             border: 'none', 
-                            color: '#3A1F6F', 
+                            color: 'var(--text-heading)', 
                             fontWeight: 700, 
                             textDecoration: 'underline', 
                             cursor: 'pointer',
@@ -191,15 +191,15 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                           }}
                           title="Click to view/download deliverable"
                         >
-                          <FileText size={16} color="#DE3B0B" />
+                          <FileText size={16} color="var(--rit-orange-red)" />
                           <span>{sub.fileName} ({sub.fileSize})</span>
                         </button>
                       ) : (
-                        <span style={{ color: '#8A9198' }}>{sub.fileName} ({sub.fileSize})</span>
+                        <span style={{ color: 'var(--text-disabled)' }}>{sub.fileName} ({sub.fileSize})</span>
                       )}
                     </td>
-                    <td data-label="Submitted By" style={{ fontWeight: 700, color: '#3A1F6F' }}>{sub.submittedBy}</td>
-                    <td data-label="Submission Time" style={{ fontSize: '12px', color: '#55636B' }}>{sub.submittedAt}</td>
+                    <td data-label="Submitted By" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{sub.submittedBy}</td>
+                    <td data-label="Submission Time" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{sub.submittedAt}</td>
                     <td data-label="Status"><Badge variant="success">✓ {sub.status}</Badge></td>
                     <td data-label="Action">
                       <button 
@@ -213,7 +213,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: '#8A9198' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-disabled)' }}>
                     No student submissions uploaded yet.
                   </td>
                 </tr>

@@ -49,15 +49,15 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
         margin: 'auto',
         width: '100%',
         maxWidth: '460px',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
         overflow: 'hidden'
       }}>
         {/* Header Banner */}
         <div style={{
-          backgroundColor: '#242044',
-          color: '#FFFFFF',
+          backgroundColor: 'var(--bg-sidebar)',
+          color: 'var(--text-inverse)',
           padding: '24px',
           textAlign: 'center',
           borderBottom: '4px solid #E63B00',
@@ -72,7 +72,7 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
               left: '20px',
               background: 'rgba(255,255,255,0.15)',
               border: 'none',
-              color: '#FFF',
+              color: 'var(--text-inverse)',
               padding: '8px',
               borderRadius: '4px',
               cursor: 'pointer',
@@ -88,10 +88,10 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
             <RitLogo size="large" light={true} />
           </div>
 
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '4px 0 0 0' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-inverse)', margin: '4px 0 0 0' }}>
             Account Password Recovery
           </h2>
-          <p style={{ fontSize: '12px', color: '#D1D5DB', marginTop: '4px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             M. S. Ramaiah Institute of Technology
           </p>
         </div>
@@ -100,11 +100,11 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
         <div style={{ padding: '28px 24px' }}>
           <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <KeyRound size={20} color="#8E00A8" />
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', margin: 0 }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
               Reset Your Password
             </h3>
           </div>
-          <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
             Enter your registered college email and we'll send you a link to reset your password.
           </p>
 
@@ -151,7 +151,7 @@ export const ForgotPassword = ({ onBackToLogin, onNavigateReset }) => {
             <button
               type="button"
               onClick={onBackToLogin}
-              style={{ background: 'none', border: 'none', color: '#8E00A8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-heading)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
             >
               ← Remembered password? Return to Sign In
             </button>

@@ -88,7 +88,7 @@ export const AdminUsers = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Master Account Directory & Governance</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Master Account Directory & Governance</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             System administration directory for Students, Faculty, Coordinators, and Admins.
           </p>
@@ -147,9 +147,9 @@ export const AdminUsers = () => {
               <tbody>
                 {teams.map((t) => (
                   <tr key={t.team_id}>
-                    <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{t.teamCode}</td>
+                    <td style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{t.teamCode}</td>
                     <td style={{ fontWeight: 600 }}>{t.subjectName || t.subjectCode || 'Major Project'}</td>
-                    <td style={{ fontWeight: 600, color: '#3A1F6F' }}>{t.guideName || 'Unassigned'}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{t.guideName || 'Unassigned'}</td>
                     <td><Badge variant="purple">{t.studentCount} Students</Badge></td>
                   </tr>
                 ))}
@@ -215,7 +215,7 @@ export const AdminUsers = () => {
 
                   return (
                     <tr key={u.id || u.user_id}>
-                      <td data-label="Username / USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>
+                      <td data-label="Username / USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>
                         {u.usn || u.username}
                       </td>
                       <td data-label="Full Name" style={{ fontWeight: 600 }}>{u.name}</td>
@@ -225,7 +225,7 @@ export const AdminUsers = () => {
                         <Badge variant={categoryVariant}>{categoryLabel}</Badge>
                       </td>
 
-                      <td data-label="Subject / Project Group" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
+                      <td data-label="Subject / Project Group" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
                         {subjectGroupLabel}
                       </td>
 
@@ -257,25 +257,25 @@ export const AdminUsers = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '560px' }}>
             <div className="modal-header">
-              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Shield size={18} />
                 <span>Account Governance & Credentials</span>
               </h3>
               <button 
                 onClick={() => setInspectingUser(null)}
-                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
                   <div>
-                    <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                    <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                       {inspectingUser.name}
                     </h4>
-                    <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       {inspectingUser.email}
                     </div>
                   </div>
@@ -284,13 +284,13 @@ export const AdminUsers = () => {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-                <div><strong>Username / USN:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{inspectingUser.usn || inspectingUser.username}</span></div>
-                <div><strong>System User ID:</strong> <span style={{ color: '#55636B', fontFamily: 'monospace' }}>#{inspectingUser.id || inspectingUser.user_id}</span></div>
+                <div><strong>Username / USN:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{inspectingUser.usn || inspectingUser.username}</span></div>
+                <div><strong>System User ID:</strong> <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace' }}>#{inspectingUser.id || inspectingUser.user_id}</span></div>
                 <div><strong>Assigned Subject / Course:</strong> <span>{inspectingUser.subjectName ? `${inspectingUser.subjectName} (${inspectingUser.subjectCode || 'Active'})` : (inspectingUser.role === 'ADMIN' ? 'System Administration' : 'Not Assigned')}</span></div>
                 
                 {inspectingUser.role === 'STUDENT' && (
                   <>
-                    <div><strong>Project Team Code:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{inspectingUser.teamCode || 'No Team Assigned'}</span></div>
+                    <div><strong>Project Team Code:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{inspectingUser.teamCode || 'No Team Assigned'}</span></div>
                     <div><strong>Allocated Guide:</strong> <span>{inspectingUser.guideName || 'Not Assigned'}</span></div>
                   </>
                 )}
@@ -300,7 +300,7 @@ export const AdminUsers = () => {
                     <div><strong>Coordinator Privileges:</strong> <Badge variant={inspectingUser.isCoordinator ? 'success' : 'secondary'}>{inspectingUser.isCoordinator ? 'Yes (Department Coordinator)' : 'No (Standard Guide)'}</Badge></div>
                     <div>
                       <strong>Mentored Project Batches:</strong>
-                      <div style={{ marginTop: '4px', fontSize: '13px', color: '#3A1F6F', fontWeight: 600 }}>
+                      <div style={{ marginTop: '4px', fontSize: '13px', color: 'var(--text-heading)', fontWeight: 600 }}>
                         {teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).length > 0
                           ? teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).map(t => `${t.teamCode} (${t.studentCount} students)`).join(', ')
                           : 'No project batches currently assigned'}
@@ -311,7 +311,7 @@ export const AdminUsers = () => {
 
                 <div>
                   <strong>System Access Privileges:</strong>
-                  <div style={{ marginTop: '4px', padding: '8px 12px', background: '#F8F9FA', borderRadius: '4px', fontSize: '13px', color: '#55636B' }}>
+                  <div style={{ marginTop: '4px', padding: '8px 12px', background: 'var(--bg-page)', borderRadius: '4px', fontSize: '13px', color: 'var(--text-muted)' }}>
                     {inspectingUser.role === 'ADMIN' 
                       ? 'Full administrative governance, database synchronization, master edit access, and user lifecycle control.'
                       : inspectingUser.isCoordinator 

@@ -55,15 +55,15 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
         margin: 'auto',
         width: '100%',
         maxWidth: '460px',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
         overflow: 'hidden'
       }}>
         {/* Header Banner */}
         <div style={{
-          backgroundColor: '#242044',
-          color: '#FFFFFF',
+          backgroundColor: 'var(--bg-sidebar)',
+          color: 'var(--text-inverse)',
           padding: '24px',
           textAlign: 'center',
           borderBottom: '4px solid #E63B00',
@@ -78,7 +78,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
               left: '20px',
               background: 'rgba(255,255,255,0.15)',
               border: 'none',
-              color: '#FFF',
+              color: 'var(--text-inverse)',
               padding: '8px',
               borderRadius: '4px',
               cursor: 'pointer',
@@ -94,10 +94,10 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
             <RitLogo size="large" light={true} />
           </div>
 
-          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '4px 0 0 0' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-inverse)', margin: '4px 0 0 0' }}>
             Set New Password
           </h2>
-          <p style={{ fontSize: '12px', color: '#D1D5DB', marginTop: '4px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             Create a new password for your account.
           </p>
         </div>
@@ -106,11 +106,11 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
         <div style={{ padding: '28px 24px' }}>
           <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <Lock size={20} color="#8E00A8" />
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '4px' }}>
               Reset Password
             </h3>
           </div>
-          <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
             Create a new password for your account.
           </p>
 
@@ -169,7 +169,7 @@ export const ResetPassword = ({ onBackToLogin, initialError }) => {
             <button
               type="button"
               onClick={onBackToLogin}
-              style={{ background: 'none', border: 'none', color: '#8E00A8', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-heading)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
             >
               ← {success ? 'Return to Sign In' : 'Cancel and Return to Sign In'}
             </button>

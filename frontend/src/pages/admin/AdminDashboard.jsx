@@ -34,16 +34,16 @@ export const AdminDashboard = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{
-        backgroundColor: '#3A1F6F',
-        color: '#FFFFFF',
+        backgroundColor: 'var(--bg-sidebar)',
+        color: 'var(--text-inverse)',
         padding: '24px',
         borderRadius: '6px',
         borderLeft: '6px solid #DE3B0B'
       }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-inverse)', margin: 0 }}>
           System Administrator Control Dashboard
         </h1>
-        <p style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
           Academic Governance & Institutional Database Administration — MSRIT
         </p>
       </div>
@@ -51,29 +51,29 @@ export const AdminDashboard = () => {
       <div className="grid-4">
         <div className="stagger-1">
           <Card title="Registered System Users">
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#3A1F6F' }}>{stats.usersCount} Accounts</div>
-            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-heading)' }}>{stats.usersCount} Accounts</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Students, Faculty, Coordinators</div>
           </Card>
         </div>
 
         <div className="stagger-2">
           <Card title="Active Course Subjects">
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2B7094' }}>{stats.subjectsCount} Subjects</div>
-            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Major Project & Seminars</div>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--badge-info-text)' }}>{stats.subjectsCount} Subjects</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Major Project & Seminars</div>
           </Card>
         </div>
 
         <div className="stagger-3">
           <Card title="System Health Status">
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>{stats.teamsCount} Teams</div>
-            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Database sync active</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--badge-success-text)' }}>{stats.teamsCount} Teams</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Database sync active</div>
           </Card>
         </div>
 
         <div className="stagger-4">
           <Card title="Audit Logs Recorded">
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#DE3B0B' }}>{auditLogs.length} Events</div>
-            <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Security & Upload logs</div>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>{auditLogs.length} Events</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Security & Upload logs</div>
           </Card>
         </div>
       </div>
@@ -101,7 +101,7 @@ export const AdminDashboard = () => {
                 <tbody>
                   {users.map((u) => (
                     <tr key={u.id}>
-                      <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{u.username}</td>
+                      <td style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{u.username}</td>
                       <td style={{ fontWeight: 600 }}>{u.name}</td>
                       <td><Badge variant="purple">{u.role}</Badge></td>
                     </tr>
@@ -124,18 +124,18 @@ export const AdminDashboard = () => {
                 <div 
                   key={log.log_id}
                   style={{
-                    border: '1px solid #E5E5E5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '10px 12px',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     fontSize: '13px'
                   }}
                 >
                   <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <strong style={{ color: '#DE3B0B' }}>[{log.action}]</strong>
-                    <span style={{ fontSize: '11px', color: '#8A9198' }}>{log.timestamp}</span>
+                    <strong style={{ color: 'var(--rit-orange-red)' }}>[{log.action}]</strong>
+                    <span style={{ fontSize: '11px', color: 'var(--text-disabled)' }}>{log.timestamp}</span>
                   </div>
-                  <div style={{ color: '#55636B' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
+                  <div style={{ color: 'var(--text-muted)' }}>{log.details || 'No details recorded'} (User ID: {log.user_id})</div>
                 </div>
               ))}
             </div>

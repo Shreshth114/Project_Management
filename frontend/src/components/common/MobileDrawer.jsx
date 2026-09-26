@@ -27,13 +27,13 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
           backgroundColor: '#1E2837'
         }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '15px', color: '#FFF' }}>MSRIT Portal</div>
-            <div style={{ fontSize: '12px', color: '#9F9F9F' }}>{currentRole} Menu</div>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-inverse)' }}>MSRIT Portal</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-sidebar)' }}>{currentRole} Menu</div>
           </div>
           <button 
             className="btn btn-secondary btn-sm" 
             onClick={onClose}
-            style={{ padding: '4px 8px', background: 'transparent', border: 'none', color: '#FFF' }}
+            style={{ padding: '4px 8px', background: 'transparent', border: 'none', color: 'var(--text-inverse)' }}
           >
             <X size={20} />
           </button>
@@ -82,7 +82,7 @@ export const MobileDrawer = ({ isOpen, onClose }) => {
           <ProjectInfo />
         </nav>
 
-        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', color: '#9F9F9F' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', color: 'var(--text-sidebar)' }}>
           <div>Logged in as: <strong>{currentUser?.name}</strong></div>
           <div>USN/ID: {currentUser?.username}</div>
         </div>

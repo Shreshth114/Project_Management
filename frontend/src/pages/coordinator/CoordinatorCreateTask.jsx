@@ -110,7 +110,7 @@ export const CoordinatorCreateTask = () => {
           <ArrowLeft size={16} />
         </button>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Create & Publish Milestone Task</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Create & Publish Milestone Task</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Define Task Name, Category, Submission Deadline, and Assessment Components.
           </p>
@@ -171,11 +171,11 @@ export const CoordinatorCreateTask = () => {
             border: '2px solid #3A1F6F',
             borderRadius: '6px',
             padding: '20px',
-            backgroundColor: '#F8F9FA',
+            backgroundColor: 'var(--bg-page)',
             marginBottom: '24px'
           }}>
             <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                 Assessment Components & Rubrics
               </h3>
 
@@ -198,13 +198,13 @@ export const CoordinatorCreateTask = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     padding: '12px 14px',
                     borderRadius: '4px',
-                    border: '1px solid #E5E5E5'
+                    border: '1px solid var(--border-subtle)'
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#3A1F6F', width: '100%', maxWidth: '24px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-heading)', width: '100%', maxWidth: '24px' }}>
                     #{index + 1}
                   </span>
 
@@ -229,14 +229,14 @@ export const CoordinatorCreateTask = () => {
                       style={{ width: '100%', maxWidth: '70px', textAlign: 'center' }}
                       required
                     />
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#55636B' }}>Marks</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>Marks</span>
                   </div>
 
                   {assessmentItems.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(item.id)}
-                      style={{ background: 'none', border: 'none', color: '#DE3B0B', cursor: 'pointer', padding: '4px' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--rit-orange-red)', cursor: 'pointer', padding: '4px' }}
                       title="Remove assessment component"
                     >
                       <Trash2 size={16} />
@@ -257,7 +257,7 @@ export const CoordinatorCreateTask = () => {
                 <span>Add More Assessment Criteria</span>
               </button>
 
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#DE3B0B' }}>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>
                 Total Assessment Marks: {calculateTotalMarks()} Marks
               </div>
             </div>

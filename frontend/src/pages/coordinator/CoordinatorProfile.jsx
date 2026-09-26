@@ -90,7 +90,7 @@ export const CoordinatorProfile = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Subject Coordinator Profile & Portfolio</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Subject Coordinator Profile & Portfolio</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Coordinator credentials, subject allocations, and guided project groups.
           </p>
@@ -120,8 +120,8 @@ export const CoordinatorProfile = () => {
             width: '60px',
             height: '60px',
             borderRadius: '50%',
-            backgroundColor: '#B8115B',
-            color: '#FFFFFF',
+            backgroundColor: 'var(--rit-magenta)',
+            color: 'var(--text-inverse)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -132,10 +132,10 @@ export const CoordinatorProfile = () => {
           </div>
 
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
               {currentUser?.name || 'Subject Coordinator'}
             </h2>
-            <div style={{ fontSize: '13px', color: '#55636B', marginTop: '2px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
               Email: <strong>{currentUser?.email}</strong> | Designation: <strong>Coordinator / Faculty</strong>
             </div>
             <div className="mobile-wrap" style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
@@ -154,7 +154,7 @@ export const CoordinatorProfile = () => {
             <div className="loading-text">Loading coordinated subjects...</div>
           </div>
         ) : coordinatorProjects.length === 0 ? (
-          <p style={{ padding: '16px', color: '#888' }}>
+          <p style={{ padding: '16px', color: 'var(--text-muted)' }}>
             No project groups or subject allocations registered for this coordinator in the database.
           </p>
         ) : (
@@ -173,10 +173,10 @@ export const CoordinatorProfile = () => {
               <tbody>
                 {coordinatorProjects.map((p) => (
                   <tr key={p.id}>
-                    <td data-label="Subject Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{p.subjectCode}</td>
+                    <td data-label="Subject Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{p.subjectCode}</td>
                     <td data-label="Subject Name" style={{ fontWeight: 600 }}>{p.subjectName}</td>
-                    <td data-label="Project Name" style={{ fontSize: '13px', color: '#3A1F6F' }}>{p.projectName}</td>
-                    <td data-label="Group Name" style={{ fontWeight: 700, color: '#DE3B0B' }}>{p.groupName}</td>
+                    <td data-label="Project Name" style={{ fontSize: '13px', color: 'var(--text-heading)' }}>{p.projectName}</td>
+                    <td data-label="Group Name" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>{p.groupName}</td>
                     <td data-label="Total Projects">{p.numProjects} Project</td>
                     <td data-label="Students Enrolled">{p.numGroupsGuiding} Students</td>
                   </tr>

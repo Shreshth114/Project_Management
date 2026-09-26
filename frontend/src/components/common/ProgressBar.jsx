@@ -10,7 +10,7 @@ export const ProgressBar = ({ progress = 0, showLabel = true, height = 10 }) => 
       {showLabel && (
         <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px', fontWeight: 600 }}>
           <span>Overall Project Progress</span>
-          <span style={{ color: '#B82226' }}>{progress}%</span>
+          <span style={{ color: 'var(--badge-danger-text)' }}>{progress}%</span>
         </div>
       )}
       <div className="progress-container" style={{ height: `${height}px` }}>

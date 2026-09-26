@@ -143,7 +143,7 @@ export const StudentProfile = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="stagger-1">
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student Profile & Project Enrolments</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Student Profile & Project Enrolments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Overview of registered academic projects and additional course enrolments.
         </p>
@@ -165,8 +165,8 @@ export const StudentProfile = () => {
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  backgroundColor: '#243143',
-                  color: '#FFFFFF',
+                  backgroundColor: 'var(--bg-sidebar)',
+                  color: 'var(--text-inverse)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -176,8 +176,8 @@ export const StudentProfile = () => {
                 }}>
                   {currentUser.name?.charAt(0) || 'S'}
                 </div>
-                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#243143' }}>{currentUser.name || 'Student'}</h2>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#B82226', margin: '4px 0' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>{currentUser.name || 'Student'}</h2>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--badge-danger-text)', margin: '4px 0' }}>
                   USN: {currentUser.usn || currentUser.student_id || 'N/A'}
                 </div>
                 <Badge variant="navy">{currentUser.batch || 'Current Academic Year'}</Badge>
@@ -191,11 +191,11 @@ export const StudentProfile = () => {
                 
                 <div>
                   <strong>Allocated Guide:</strong>{' '}
-                  <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{activeGuide}</span>
+                  <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{activeGuide}</span>
                 </div>
 
 
-                <div><strong>Assigned Coordinator:</strong> <span style={{ color: '#B8115B', fontWeight: 700 }}>{activeCoordinator}</span></div>
+                <div><strong>Assigned Coordinator:</strong> <span style={{ color: 'var(--rit-magenta)', fontWeight: 700 }}>{activeCoordinator}</span></div>
                 <div><strong>Group Association:</strong> {activeGroupCode}</div>
                 <div><strong>Leader Status:</strong> {team ? 'Group Member' : 'Not Enrolled'}</div>
               </div>
@@ -206,7 +206,7 @@ export const StudentProfile = () => {
                 <div><strong>Group Title:</strong> {activeTitle}</div>
                 <div><strong>Domain:</strong> {team?.domain || 'Computer Science & Engineering'}</div>
                 <div><strong>Submission Mode:</strong> <Badge variant="navy">Digital</Badge></div>
-                <div><strong>Overall Status:</strong> <Badge variant={team ? 'success' : 'secondary'}>{team ? 'Active' : 'Pending Allocation'}</Badge></div>
+                <div><strong>Overall Status:</strong> <span style={{ color: team ? 'var(--badge-success-text)' : 'var(--text-muted)', fontWeight: 600 }}>{team ? '● Active' : '○ Pending Allocation'}</span></div>
               </div>
             </Card>
           </div>
@@ -231,19 +231,19 @@ export const StudentProfile = () => {
               <div 
                 key={p.id}
                 style={{
-                  border: '1px solid #E5E5E5',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   padding: '16px',
-                  backgroundColor: '#FFFFFF',
-                  borderLeft: '5px solid #3A1F6F'
+                  backgroundColor: 'var(--bg-surface)',
+                  borderLeft: '5px solid var(--text-heading)'
                 }}
               >
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                     {p.title}
                   </h3>
                   <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Badge variant={p.status === 'Active' ? 'warning' : 'info'}>{p.status}</Badge>
+                    <span style={{ color: p.status === 'Active' ? 'var(--badge-warning-text)' : 'var(--badge-info-text)', fontWeight: 600 }}>● {p.status}</span>
                     {p.status === 'Enrolled' && (
                       <button
                         type="button"
@@ -251,7 +251,7 @@ export const StudentProfile = () => {
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#8A9198',
+                          color: 'var(--text-disabled)',
                           cursor: 'pointer',
                           padding: '2px',
                           display: 'flex',
@@ -265,16 +265,16 @@ export const StudentProfile = () => {
                   </div>
                 </div>
 
-                <div className="grid-4" style={{ fontSize: '13px', color: '#55636B' }}>
-                  <div><strong>Group Name:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{p.groupName}</span></div>
+                <div className="grid-4" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <div><strong>Group Name:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{p.groupName}</span></div>
                   <div><strong>Subject:</strong> {p.subject}</div>
-                  <div><strong>Allocated Guide:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{p.guide}</span></div>
-                  <div><strong>Assigned Coordinator:</strong> <span style={{ color: '#B8115B', fontWeight: 700 }}>{p.coordinator || activeCoordinator}</span></div>
+                  <div><strong>Allocated Guide:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{p.guide}</span></div>
+                  <div><strong>Assigned Coordinator:</strong> <span style={{ color: 'var(--rit-magenta)', fontWeight: 700 }}>{p.coordinator || activeCoordinator}</span></div>
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ textAlign: 'center', padding: '16px', color: '#8A9198', fontSize: '14px' }}>
+            <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-disabled)', fontSize: '14px' }}>
               No academic project teams currently registered in the database for this student account.
             </div>
           )}

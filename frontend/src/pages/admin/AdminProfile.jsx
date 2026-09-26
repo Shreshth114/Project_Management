@@ -34,7 +34,7 @@ export const AdminProfile = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>System Admin Profile & Infrastructure</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>System Admin Profile & Infrastructure</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Master administrator credentials, system statistics, and governance infrastructure.
         </p>
@@ -47,8 +47,8 @@ export const AdminProfile = () => {
             width: '64px',
             height: '64px',
             borderRadius: '50%',
-            backgroundColor: '#DE3B0B',
-            color: '#FFFFFF',
+            backgroundColor: 'var(--rit-orange-red)',
+            color: 'var(--text-inverse)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -59,28 +59,28 @@ export const AdminProfile = () => {
           </div>
 
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
               {currentUser?.name || 'Academic Administrator'}
             </h2>
             
-            <div className="grid-3" style={{ marginTop: '12px', fontSize: '13px', color: '#55636B' }}>
+            <div className="grid-3" style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
               <div>
                 <strong>Admin Name:</strong>{' '}
-                <span style={{ color: '#3A1F6F', fontWeight: 700 }}>
+                <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>
                   {currentUser?.name || 'Academic Admin Office'}
                 </span>
               </div>
 
               <div>
                 <strong>Admin Email:</strong>{' '}
-                <span style={{ color: '#DE3B0B', fontWeight: 700 }}>
+                <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>
                   {currentUser?.email || 'admin@msrit.edu'}
                 </span>
               </div>
 
               <div>
                 <strong>Account Role:</strong>{' '}
-                <span style={{ color: '#B8115B', fontWeight: 800 }}>
+                <span style={{ color: 'var(--rit-magenta)', fontWeight: 800 }}>
                   SYSTEM ADMINISTRATOR
                 </span>
               </div>
@@ -97,40 +97,40 @@ export const AdminProfile = () => {
       {/* System Information & Infrastructure Metrics Box */}
       <Card title="Live Infrastructure Database Metrics">
         <div className="grid-4">
-          <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#728C5E', marginBottom: '6px' }}>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '14px', backgroundColor: 'var(--bg-page)' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-success-text)', marginBottom: '6px' }}>
               <Server size={18} />
               <strong style={{ fontSize: '13px' }}>Database Health</strong>
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#728C5E' }}>100% Operational</div>
-            <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px' }}>Supabase PostgreSQL Connected</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--badge-success-text)' }}>100% Operational</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Supabase PostgreSQL Connected</div>
           </div>
 
-          <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3A1F6F', marginBottom: '6px' }}>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '14px', backgroundColor: 'var(--bg-page)' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-heading)', marginBottom: '6px' }}>
               <BookOpen size={18} />
               <strong style={{ fontSize: '13px' }}>Active Subjects</strong>
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#3A1F6F' }}>{stats.subjectsCount} Subjects</div>
-            <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px' }}>Course Titles Registered</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)' }}>{stats.subjectsCount} Subjects</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Course Titles Registered</div>
           </div>
 
-          <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B8115B', marginBottom: '6px' }}>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '14px', backgroundColor: 'var(--bg-page)' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rit-magenta)', marginBottom: '6px' }}>
               <Database size={18} />
               <strong style={{ fontSize: '13px' }}>Registered Accounts</strong>
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#B8115B' }}>{stats.usersCount} Accounts</div>
-            <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px' }}>Students, Faculty & Admins</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--rit-magenta)' }}>{stats.usersCount} Accounts</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Students, Faculty & Admins</div>
           </div>
 
-          <div style={{ border: '1px solid #E5E5E5', borderRadius: '4px', padding: '14px', backgroundColor: '#F8F9FA' }}>
-            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DE3B0B', marginBottom: '6px' }}>
+          <div style={{ border: '1px solid var(--border-subtle)', borderRadius: '4px', padding: '14px', backgroundColor: 'var(--bg-page)' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rit-orange-red)', marginBottom: '6px' }}>
               <Activity size={18} />
               <strong style={{ fontSize: '13px' }}>Audit Trail Logs</strong>
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: '#DE3B0B' }}>{logsCount} Events</div>
-            <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px' }}>Security & Activity Records</div>
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>{logsCount} Events</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>Security & Activity Records</div>
           </div>
         </div>
       </Card>

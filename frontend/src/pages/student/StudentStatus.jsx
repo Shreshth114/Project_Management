@@ -46,7 +46,7 @@ export const StudentStatus = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="stagger-1">
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#243143' }}>Individual Academic Status & Marks Transcript</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)' }}>Individual Academic Status & Marks Transcript</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Personal evaluation transcript signed off by your assigned Faculty Guide ({team?.guide?.name || 'Unassigned'}).
         </p>
@@ -57,29 +57,29 @@ export const StudentStatus = () => {
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
           <strong>Workflow Status Legend:</strong>
-          <span style={{ color: '#114C94', fontWeight: 700 }}>● Pending (#114C94)</span>
-          <span style={{ color: '#A68E24', fontWeight: 700 }}>● In Progress (#A68E24)</span>
-          <span style={{ color: '#038203', fontWeight: 700 }}>● Completed / Submitted (#038203)</span>
-          <span style={{ color: '#FD0A0A', fontWeight: 700 }}>● Overdue / Error (#FD0A0A)</span>
+          <span style={{ color: 'var(--badge-info-text)', fontWeight: 700 }}>● Pending (#114C94)</span>
+          <span style={{ color: 'var(--badge-warning-text)', fontWeight: 700 }}>● In Progress (#A68E24)</span>
+          <span style={{ color: 'var(--badge-success-text)', fontWeight: 700 }}>● Completed / Submitted (#038203)</span>
+          <span style={{ color: 'var(--badge-danger-text)', fontWeight: 700 }}>● Overdue / Error (#FD0A0A)</span>
         </div>
         </Card>
       </div>
 
       <div className="grid-3 stagger-3">
         <Card title="Individual Score">
-          <div style={{ fontSize: '28px', fontWeight: 700, color: '#038203' }}>
+          <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-success-text)' }}>
             {evaluations.length > 0 ? `${totalScore} / ${maxPossible}` : 'Pending Evaluation'}
           </div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Evaluated by {team?.guide?.name || 'Assigned Guide'}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Evaluated by {team?.guide?.name || 'Assigned Guide'}</div>
         </Card>
 
         <Card title="Group Submission Status">
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#038203' }}>✓ In Progress</div>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>Team: {team?.team_code}</div>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--badge-success-text)' }}>✓ In Progress</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Team: {team?.team_code}</div>
         </Card>
 
         <Card title="Guide Feedback">
-          <p style={{ fontSize: '13px', color: '#243143', fontStyle: 'italic' }}>
+          <p style={{ fontSize: '13px', color: 'var(--text-main)', fontStyle: 'italic' }}>
             "{evaluations[evaluations.length - 1]?.feedback || 'No feedback yet.'}"
           </p>
         </Card>
@@ -102,20 +102,20 @@ export const StudentStatus = () => {
                 <tr key={e.evaluation_id}>
                   <td>{e.evaluation_criteria?.criteria_name || 'General Criteria'}</td>
                   <td>{e.evaluation_criteria?.max_marks || '-'}</td>
-                  <td style={{ fontWeight: 700, color: '#038203' }}>{e.awarded_marks}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--badge-success-text)' }}>{e.awarded_marks}</td>
                   <td><Badge variant="success">Evaluated</Badge></td>
                 </tr>
               ))}
               {evaluations.length === 0 && (
                 <tr>
-                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>No evaluations recorded yet.</td>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>No evaluations recorded yet.</td>
                 </tr>
               )}
               {evaluations.length > 0 && (
-                <tr style={{ backgroundColor: '#F8F9FA' }}>
+                <tr style={{ backgroundColor: 'var(--bg-page)' }}>
                   <td><strong>TOTAL AGGREGATE SCORE</strong></td>
                   <td><strong>{maxPossible}</strong></td>
-                  <td style={{ fontWeight: 700, fontSize: '18px', color: '#B82226' }}>{totalScore} / {maxPossible}</td>
+                  <td style={{ fontWeight: 700, fontSize: '18px', color: 'var(--badge-danger-text)' }}>{totalScore} / {maxPossible}</td>
                   <td><Badge variant="success">Completed</Badge></td>
                 </tr>
               )}

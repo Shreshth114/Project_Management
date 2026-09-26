@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Login } from './pages/auth/Login';
 import { RegisterStudent } from './pages/auth/RegisterStudent';
 import { RegisterFaculty } from './pages/auth/RegisterFaculty';
@@ -34,7 +35,7 @@ const MainContent = () => {
 
   if (isAuthLoading) {
     return (
-      <div className="loading-container" style={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+      <div className="loading-container" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-page)' }}>
         <div className="loading-spinner"></div>
         <p className="loading-text">Loading Academic Project Governance Portal...</p>
       </div>
@@ -84,8 +85,10 @@ const MainContent = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <MainContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

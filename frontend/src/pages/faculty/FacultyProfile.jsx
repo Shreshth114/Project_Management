@@ -75,7 +75,7 @@ export const FacultyProfile = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Profile & Academic Portfolio</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Faculty Profile & Academic Portfolio</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Faculty identification, institutional credentials, and assigned project courses.
           </p>
@@ -87,7 +87,7 @@ export const FacultyProfile = () => {
             type="button"
             className="btn btn-secondary"
             onClick={() => switchTeacherRole('COORDINATOR')}
-            className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #DE3B0B', color: '#DE3B0B', fontWeight: 700 }}
+            className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #DE3B0B', color: 'var(--rit-orange-red)', fontWeight: 700 }}
           >
             <RefreshCw size={15} />
             <span>SWITCH TO COORDINATOR WORKSPACE</span>
@@ -110,8 +110,8 @@ export const FacultyProfile = () => {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              backgroundColor: '#3A1F6F',
-              color: '#FFFFFF',
+              backgroundColor: 'var(--bg-sidebar)',
+              color: 'var(--text-inverse)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -121,10 +121,10 @@ export const FacultyProfile = () => {
               {currentUser?.name?.charAt(0) || 'F'}
             </div>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                 {currentUser?.name || 'Faculty Member'}
               </h2>
-              <div style={{ fontSize: '13px', color: '#55636B', marginTop: '2px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
                 Department of Computer Science & Engineering
               </div>
               <div className="mobile-wrap" style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
@@ -137,7 +137,7 @@ export const FacultyProfile = () => {
 
         <Card title="Institutional Credentials">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-            <div><strong>Official Email:</strong> <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{currentUser?.email || 'N/A'}</span></div>
+            <div><strong>Official Email:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 600 }}>{currentUser?.email || 'N/A'}</span></div>
             <div><strong>Academic Designation:</strong> Associate Professor</div>
             <div><strong>College Portal Username:</strong> {currentUser?.username || currentUser?.email}</div>
             <div><strong>Coordinator Access:</strong> {isAssignedCoordinator ? <Badge variant="success">Authorized</Badge> : <Badge variant="secondary">Standard Faculty</Badge>}</div>
@@ -153,28 +153,28 @@ export const FacultyProfile = () => {
               <div 
                 key={sub.id} 
                 style={{ 
-                  border: '1px solid #E5E5E5', 
+                  border: '1px solid var(--border-subtle)', 
                   borderRadius: '6px', 
                   padding: '16px', 
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'var(--bg-surface)',
                   borderLeft: '5px solid #3A1F6F'
                 }}
               >
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                     {sub.subjectName}
                   </h3>
                   <Badge variant="purple">{sub.mode} Mode</Badge>
                 </div>
-                <div className="grid-3" style={{ fontSize: '13px', color: '#55636B' }}>
+                <div className="grid-3" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   <div><strong>Course Code:</strong> {sub.subjectCode}</div>
-                  <div><strong>Group / Team Name:</strong> <span style={{ color: '#DE3B0B', fontWeight: 700 }}>{sub.groupName}</span></div>
+                  <div><strong>Group / Team Name:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{sub.groupName}</span></div>
                   <div><strong>Status:</strong> Active Evaluation</div>
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
               No active subjects or guided groups assigned to this faculty member yet.
             </div>
           )}

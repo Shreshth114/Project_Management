@@ -77,7 +77,7 @@ export const AdminSubjects = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Course Subjects & Coordinator Assignments</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Course Subjects & Coordinator Assignments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Configure project course titles, VTU credit schemes, and assign subject coordinators.
         </p>
@@ -114,13 +114,13 @@ export const AdminSubjects = () => {
                   <tbody>
                     {subjectsList.map((s, idx) => (
                       <tr key={s.subject_id || idx}>
-                        <td data-label="Subject Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.subject_code || s.code}</td>
+                        <td data-label="Subject Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.subject_code || s.code}</td>
                         <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
                         <td data-label="Credits">{s.credits || 6} Credits</td>
-                        <td data-label="Coordinator" style={{ fontWeight: 700, color: s.coordinator ? '#3A1F6F' : '#888' }}>
+                        <td data-label="Coordinator" style={{ fontWeight: 700, color: s.coordinator ? 'var(--text-heading)' : 'var(--text-disabled)' }}>
                           {s.coordinator || <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Not Assigned</span>}
                         </td>
-                        <td data-label="Status"><Badge variant={s.status === 'Active' ? 'success' : 'purple'}>{s.status || 'Active'}</Badge></td>
+                        <td data-label="Status"><span style={{ color: s.status === 'Active' || !s.status ? 'var(--badge-success-text)' : 'var(--badge-purple-text)', fontWeight: 600 }}>● {s.status || 'Active'}</span></td>
                       </tr>
                     ))}
                   </tbody>
