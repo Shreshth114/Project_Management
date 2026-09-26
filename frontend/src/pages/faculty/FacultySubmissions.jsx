@@ -213,8 +213,12 @@ export const FacultySubmissions = ({ readOnly = false }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: 'var(--text-disabled)' }}>
-                    No student submissions uploaded yet.
+                  <td colSpan={8} style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <div className="empty-state" style={{ margin: '0 auto', border: 'none', background: 'transparent' }}>
+                      <FileText className="empty-state-icon" />
+                      <div className="empty-state-title">No Submissions Found</div>
+                      <div className="empty-state-text">There are no student submissions uploaded yet.</div>
+                    </div>
                   </td>
                 </tr>
               )}

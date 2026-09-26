@@ -85,7 +85,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
         maxWidth: '460px',
         backgroundColor: 'var(--bg-surface)',
         borderRadius: '8px',
-        border: '1px solid var(--border-subtle)',
+        border: theme === 'dark' ? '1px solid var(--border-subtle)' : 'none',
         boxShadow: 'var(--shadow-lg)'
       }}>
         {/* Header Banner */}

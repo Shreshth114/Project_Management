@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bell, 
   Menu, 
@@ -31,17 +31,34 @@ export const Header = ({ onToggleMobileDrawer }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  const profileDropdownRef = useRef(null);
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         setShowNotifications(false);
+        setShowDropdown(false);
       }
     };
-    if (showNotifications) {
+    if (showNotifications || showDropdown) {
       document.addEventListener('keydown', handleEscape);
     }
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [showNotifications]);
+  }, [showNotifications, showDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   // Check if faculty is assigned as coordinator by Admin
   const isAssignedCoordinator = currentUser?.is_coordinator ||
@@ -278,7 +295,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
         </div>
 
         {/* User Profile Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div ref={profileDropdownRef} style={{ position: 'relative' }}>
           <button 
             onClick={() => setShowDropdown(!showDropdown)}
             style={{
