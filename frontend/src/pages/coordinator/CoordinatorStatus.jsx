@@ -72,7 +72,7 @@ export const CoordinatorStatus = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Coordinator Department Compliance Matrix</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Coordinator Department Compliance Matrix</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Tracking Group Submissions, Member Component Assignments, and Faculty Evaluations.
         </p>
@@ -80,23 +80,23 @@ export const CoordinatorStatus = () => {
 
       <div className="grid-4">
         <Card title="Total Project Batches">
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>{totalTeams} Batches</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Enrolled in department</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>{totalTeams} Batches</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Enrolled in department</div>
         </Card>
 
         <Card title="Batches with Uploads">
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#728C5E' }}>{submittedTeamsCount} Batches</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Deliverables recorded</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--badge-success-text)' }}>{submittedTeamsCount} Batches</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Deliverables recorded</div>
         </Card>
 
         <Card title="Pending Deliverables">
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#DA8B3E' }}>{pendingTeamsCount} Batches</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Awaiting initial uploads</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--badge-warning-text)' }}>{pendingTeamsCount} Batches</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Awaiting initial uploads</div>
         </Card>
 
         <Card title="Rubric Evaluations Stored">
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#114C94' }}>{totalEvaluationsCount} Records</div>
-          <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>Evaluations by guides</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--badge-info-text)' }}>{totalEvaluationsCount} Records</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Evaluations by guides</div>
         </Card>
       </div>
 
@@ -125,8 +125,8 @@ export const CoordinatorStatus = () => {
 
                   return (
                     <tr key={g.team_id}>
-                      <td data-label="Batch Code" style={{ fontWeight: 800, color: '#DE3B0B' }}>{g.team_code}</td>
-                      <td data-label="Project Title" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
+                      <td data-label="Batch Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{g.team_code}</td>
+                      <td data-label="Project Title" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
                         {g.subject?.subject_name || 'Academic Project'}
                       </td>
                       <td data-label="Guide" style={{ fontWeight: 600 }}>
@@ -157,7 +157,7 @@ export const CoordinatorStatus = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
                     No project teams registered yet.
                   </td>
                 </tr>
@@ -172,28 +172,28 @@ export const CoordinatorStatus = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '640px' }}>
             <div className="modal-header">
-              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FolderCheck size={18} />
                 <span>Group Status & Member Roster ({inspectingGroupStatus.team_code})</span>
               </h3>
               <button 
                 onClick={() => setInspectingGroupStatus(null)}
-                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
-                <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                   {inspectingGroupStatus.subject?.subject_name || 'Academic Project'}
                 </h4>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Guide: <strong>{inspectingGroupStatus.guide?.name || 'Unassigned'}</strong>
                 </div>
               </div>
 
-              <h5 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+              <h5 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '8px' }}>
                 Member Breakdown:
               </h5>
 
@@ -211,7 +211,7 @@ export const CoordinatorStatus = () => {
                       const evalRec = evaluations.find(e => e.student_id === m.student_id);
                       return (
                         <tr key={m.student_id || m.usn}>
-                          <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                          <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{m.usn}</td>
                           <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
                           <td data-label="Evaluation Status">
                             <Badge variant={evalRec ? 'success' : 'warning'}>

@@ -49,7 +49,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: '#F8F9FA',
+      backgroundColor: 'var(--bg-page)',
       zIndex: 500,
       display: 'flex',
       flexDirection: 'column',
@@ -68,25 +68,25 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
         <div style={{
           textAlign: 'center',
           background: 'linear-gradient(90deg, #3A1F6F 0%, #9D1B55 50%, #DE3B0B 100%)',
-          color: '#FFFFFF',
+          color: 'var(--text-inverse)',
           padding: '36px 28px',
           borderRadius: '6px',
           boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
         }}>
-          <Badge variant="magenta" style={{ marginBottom: '12px', backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
+          <Badge variant="magenta" style={{ marginBottom: '12px', backgroundColor: 'var(--bg-surface)', color: 'var(--rit-magenta)' }}>
             FACULTY & COORDINATOR PORTAL
           </Badge>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-inverse)', margin: 0 }}>
             How would you like to continue?
           </h1>
-          <p style={{ fontSize: '14px', color: '#FFFFFF', opacity: 0.9, marginTop: '6px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-inverse)', opacity: 0.9, marginTop: '6px' }}>
             Welcome back, {currentUser?.name || 'Faculty Member'}. Please select an interface.
           </p>
         </div>
 
         {notification && (
           <div className="alert alert-danger mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <AlertTriangle size={20} color="#DE3B0B" />
+            <AlertTriangle size={20} color="var(--rit-orange-red)" />
             <span style={{ fontWeight: 700, fontSize: '14px' }}>{notification}</span>
           </div>
         )}
@@ -107,8 +107,8 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                   width: '48px',
                   height: '48px',
                   borderRadius: '8px',
-                  backgroundColor: '#F2EEFA',
-                  color: '#3A1F6F',
+                  backgroundColor: 'var(--badge-purple-bg)',
+                  color: 'var(--text-heading)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -117,7 +117,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                   <Award size={26} />
                 </div>
 
-                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                   Faculty
                 </h2>
                 <p className="text-muted" style={{ fontSize: '13px', marginTop: '8px', lineHeight: 1.5 }}>
@@ -151,8 +151,8 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                   width: '48px',
                   height: '48px',
                   borderRadius: '8px',
-                  backgroundColor: '#FBF0F5',
-                  color: '#9D1B55',
+                  backgroundColor: 'var(--badge-magenta-bg)',
+                  color: 'var(--rit-magenta)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -162,7 +162,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#242044', margin: 0 }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
                     Coordinator
                   </h2>
                   <Badge variant={isAssignedCoordinator ? 'magenta' : 'info'}>
@@ -177,7 +177,7 @@ export const FacultyModeSelectionPage = ({ onSelectMode }) => {
                 </p>
 
                 {assignedCoordinatorSubjects.length > 0 && (
-                  <div style={{ marginTop: '10px', fontSize: '12px', color: '#3A1F6F', fontWeight: 700 }}>
+                  <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-heading)', fontWeight: 700 }}>
                     Assigned Subjects: {assignedCoordinatorSubjects.map(s => `${s.code || s.subject_code} (${s.name || s.subject_name || ''})`).join(', ')}
                   </div>
                 )}

@@ -123,7 +123,7 @@ export const CoordinatorMessages = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Coordinator System Updates & Circulars</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Coordinator System Updates & Circulars</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Dispatch official circulars and task update notifications to all enrolled student project teams.
         </p>
@@ -152,31 +152,31 @@ export const CoordinatorMessages = () => {
                 <div 
                   key={msg.id}
                   style={{
-                    border: '1px solid #E5E5E5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '14px',
-                    backgroundColor: '#FDF0F2',
+                    backgroundColor: 'var(--badge-danger-bg)',
                     borderLeft: '4px solid #DE3B0B'
                   }}
                 >
                   <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>
                       📢 COORDINATOR CIRCULAR
                     </span>
-                    <span style={{ fontSize: '11px', color: '#8A9198' }}>{msg.timestamp}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-disabled)' }}>{msg.timestamp}</span>
                   </div>
 
-                  <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '14px', marginBottom: '4px' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '14px', marginBottom: '4px' }}>
                     {msg.subject}
                   </div>
 
-                  <div style={{ fontSize: '13px', color: '#55636B', lineHeight: '1.5' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
                     {msg.content}
                   </div>
                 </div>
               ))
             ) : (
-              <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
                 No circulars dispatched yet. Use the form to send your first update.
               </div>
             )}
@@ -223,7 +223,7 @@ export const CoordinatorMessages = () => {
               />
             </div>
 
-            <div style={{ fontSize: '12px', color: '#55636B', marginBottom: '12px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
               {targetAudience === 'STUDENTS' 
                 ? `This will be sent to all ${teams.reduce((acc, t) => acc + (t.members?.length || 0), 0)} enrolled students across ${teams.length} project groups under your subject.`
                 : `This will be sent to ${faculties.length} faculty members assigned to your subject.`}

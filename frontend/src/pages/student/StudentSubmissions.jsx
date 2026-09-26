@@ -152,8 +152,8 @@ export const StudentSubmissions = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Banner */}
       <div className="stagger-1" style={{
-        backgroundColor: '#3A1F6F',
-        color: '#FFFFFF',
+        backgroundColor: 'var(--bg-sidebar)',
+        color: 'var(--text-inverse)',
         padding: '24px',
         borderRadius: '6px',
         borderBottom: '4px solid #DE3B0B',
@@ -164,18 +164,18 @@ export const StudentSubmissions = () => {
         gap: '12px'
       }}>
         <div>
-          <div style={{ fontSize: '12px', color: '#E0D6F5', fontWeight: 700, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
             COORDINATOR-CONFIGURED SUBMISSION GOVERNANCE
           </div>
-          <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-inverse)', marginTop: '4px' }}>
             {groupTitle}
           </h1>
-          <div style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             Group Code: <strong>{groupCode}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
           </div>
         </div>
 
-        <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
+        <Badge variant="magenta" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--rit-magenta)' }}>
           Group Mode: 1 Submission Reflected for All Team Members
         </Badge>
       </div>
@@ -226,7 +226,7 @@ export const StudentSubmissions = () => {
 
                   return (
                     <tr key={task.task_id}>
-                      <td data-label="Milestone Title" style={{ fontWeight: 700, color: '#3A1F6F' }}>
+                      <td data-label="Milestone Title" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                         {task.title}
                       </td>
 
@@ -234,7 +234,7 @@ export const StudentSubmissions = () => {
                         <Badge variant="purple">{task.task_type || 'GROUP'}</Badge>
                       </td>
 
-                      <td data-label="Deadline" style={{ fontSize: '13px', color: '#55636B' }}>
+                      <td data-label="Deadline" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                         {deadlineStr}
                       </td>
 
@@ -253,7 +253,7 @@ export const StudentSubmissions = () => {
                               style={{ 
                                 background: 'none', 
                                 border: 'none', 
-                                color: '#DE3B0B', 
+                                color: 'var(--rit-orange-red)', 
                                 fontWeight: 600, 
                                 display: 'inline-flex', 
                                 alignItems: 'center', 
@@ -269,20 +269,20 @@ export const StudentSubmissions = () => {
                               <ExternalLink size={13} />
                             </button>
                           ) : (
-                            <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{sub.file_name || 'Attached File'}</span>
+                            <span style={{ color: 'var(--text-heading)', fontWeight: 600 }}>{sub.file_name || 'Attached File'}</span>
                           )
                         ) : (
-                          <span style={{ color: '#8A9198', fontSize: '13px' }}>Not submitted yet</span>
+                          <span style={{ color: 'var(--text-disabled)', fontSize: '13px' }}>Not submitted yet</span>
                         )}
                       </td>
 
-                      <td data-label="Submitted By" style={{ fontSize: '13px', color: '#55636B' }}>
+                      <td data-label="Submitted By" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                         {sub?.student?.name || (isSubmitted ? 'Team Member' : '—')}
                       </td>
 
                       <td data-label="Action">
                         {isSubmitted ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#198754', fontWeight: 700, fontSize: '13px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--badge-success-text)', fontWeight: 700, fontSize: '13px' }}>
                             <FileCheck size={14} />
                             <span>Completed</span>
                           </span>
@@ -306,7 +306,7 @@ export const StudentSubmissions = () => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#8A9198', padding: '20px' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '20px' }}>
                     No milestones or tasks published by the coordinator yet.
                   </td>
                 </tr>

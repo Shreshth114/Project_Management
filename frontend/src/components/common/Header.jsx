@@ -5,9 +5,12 @@ import {
   RefreshCw, 
   ChevronDown,
   LogOut,
-  X
+  X,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { RitLogo } from './RitLogo';
 import { Badge } from './Badge';
 
@@ -22,6 +25,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
     data,
     setShowModeSelectionLanding
   } = useAuth();
+  
+  const { theme, toggleTheme } = useTheme();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -92,12 +97,12 @@ export const Header = ({ onToggleMobileDrawer }) => {
       </div>
 
       <div className="mobile-hide" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span style={{ fontWeight: 800, fontSize: '15px', color: '#FFFFFF' }}>
+        <span style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-inverse)' }}>
           {formatTitle(activeTab)}
         </span>
 
         {currentUser?.department && (
-          <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>
+          <Badge variant="magenta" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--rit-magenta)' }}>
             {currentUser.department} Dept
           </Badge>
         )}
@@ -126,6 +131,27 @@ export const Header = ({ onToggleMobileDrawer }) => {
           </div>
         )}
 
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '6px',
+            color: 'var(--text-inverse)',
+            transition: 'color 0.2s'
+          }}
+          title={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+
         {/* Notifications & System Circulars Dropdown */}
         <div style={{ position: 'relative' }}>
           <button
@@ -148,7 +174,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               top: '0px',
               right: '0px',
               backgroundColor: '#DE3B0B',
-              color: '#FFFFFF',
+              color: 'var(--text-inverse)',
               fontSize: '10px',
               fontWeight: 800,
               width: '16px',
@@ -179,18 +205,18 @@ export const Header = ({ onToggleMobileDrawer }) => {
               position: 'absolute',
               top: '44px',
               right: '0px',
-              backgroundColor: '#FFFFFF',
-              color: '#242044',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-main)',
               borderRadius: '6px',
               boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-              border: '1px solid #E5E5E5',
+              border: '1px solid var(--border-subtle)',
               width: '340px',
               zIndex: 300,
               overflow: 'hidden'
             }}>
               <div style={{
                 background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
-                color: '#FFFFFF',
+                color: 'var(--text-inverse)',
                 padding: '12px 16px',
                 display: 'flex',
                 alignItems: 'center',
@@ -202,7 +228,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
                 </div>
                 <button 
                   onClick={() => setShowNotifications(false)}
-                  style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', flexShrink: 0, marginLeft: '10px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer', flexShrink: 0, marginLeft: '10px' }}
                 >
                   <X size={15} />
                 </button>
@@ -213,13 +239,13 @@ export const Header = ({ onToggleMobileDrawer }) => {
                   <div style={{
                     padding: '40px 20px',
                     textAlign: 'center',
-                    backgroundColor: '#FAFAFA'
+                    backgroundColor: 'var(--bg-page)'
                   }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#243143', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
                       No new notifications
                     </div>
-                    <div style={{ fontSize: '12px', color: '#8A9198' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-disabled)' }}>
                       You're all caught up!
                     </div>
                   </div>
@@ -229,19 +255,19 @@ export const Header = ({ onToggleMobileDrawer }) => {
                       key={item.id}
                       style={{
                         padding: '10px 16px',
-                        borderBottom: '1px solid #F0F0F0',
-                        backgroundColor: '#FFFFFF'
+                        borderBottom: '1px solid var(--border-subtle)',
+                        backgroundColor: 'var(--bg-surface)'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#DE3B0B' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>
                           📢 OFFICIAL CIRCULAR
                         </span>
-                        <span style={{ fontSize: '10px', color: '#8A9198' }}>{item.timestamp}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-disabled)' }}>{item.timestamp}</span>
                       </div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#3A1F6F' }}>{item.subject}</div>
-                      <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
-                      <div style={{ fontSize: '10px', color: '#8A9198', marginTop: '4px' }}>From: Admin Office</div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-heading)' }}>{item.subject}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-disabled)', marginTop: '4px' }}>From: Admin Office</div>
                     </div>
                   ))
                 )}
@@ -258,7 +284,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
             style={{
               background: 'none',
               border: 'none',
-              color: '#FFFFFF',
+              color: 'var(--text-inverse)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -272,7 +298,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               height: '32px',
               borderRadius: '50%',
               backgroundColor: '#B8115B',
-              color: '#FFFFFF',
+              color: 'var(--text-inverse)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -283,7 +309,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
             </div>
             <div className="mobile-hide" style={{ textAlign: 'left', lineHeight: 1.2 }}>
               <div style={{ fontSize: '13px', fontWeight: 700 }}>{currentUser?.name || 'User'}</div>
-              <div style={{ fontSize: '11px', color: '#E0D6F5' }}>{activeRole}</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-sidebar)' }}>{activeRole}</div>
             </div>
             <ChevronDown className="mobile-hide" size={14} color="#D1D5DB" />
           </button>
@@ -293,19 +319,19 @@ export const Header = ({ onToggleMobileDrawer }) => {
               position: 'absolute',
               top: '44px',
               right: 0,
-              backgroundColor: '#FFFFFF',
-              color: '#242044',
+              backgroundColor: 'var(--bg-surface)',
+              color: 'var(--text-main)',
               borderRadius: '4px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              border: '1px solid #E5E5E5',
+              border: '1px solid var(--border-subtle)',
               width: '210px',
               maxWidth: 'calc(100vw - 32px)',
               zIndex: 250,
               padding: '8px 0'
             }}>
-              <div style={{ padding: '8px 16px', borderBottom: '1px solid #E5E5E5' }}>
-                <div style={{ fontWeight: 700, fontSize: '13px', color: '#3A1F6F', wordBreak: 'break-word' }}>{currentUser?.name}</div>
-                <div style={{ fontSize: '12px', color: '#55636B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
+              <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-heading)', wordBreak: 'break-word' }}>{currentUser?.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
               </div>
 
               <button 
@@ -316,7 +342,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
                   padding: '10px 16px',
                   background: 'none',
                   border: 'none',
-                  color: '#DE3B0B',
+                  color: 'var(--rit-orange-red)',
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -336,7 +362,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
 
     {/* Mobile Segmented Mode Switcher */}
     {isTeacher && isAssignedCoordinator && (
-      <div className="desktop-hide" style={{ padding: '10px 16px', backgroundColor: '#FFFFFF', borderBottom: '1px solid #EAEAEA', zIndex: 100 }}>
+      <div className="desktop-hide" style={{ padding: '10px 16px', backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)', zIndex: 100 }}>
         <div className="segmented-control dark">
           <button
             className={`segmented-btn ${activeRole === 'FACULTY' ? 'active' : ''}`}

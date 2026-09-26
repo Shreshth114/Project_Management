@@ -116,15 +116,15 @@ export const RegisterStudent = ({ onBackToLogin }) => {
         margin: 'auto',
         width: '100%',
         maxWidth: '640px',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         borderRadius: '8px',
         boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
         overflow: 'hidden'
       }}>
         {/* Header */}
         <div style={{
-          backgroundColor: '#242044',
-          color: '#FFFFFF',
+          backgroundColor: 'var(--bg-sidebar)',
+          color: 'var(--text-inverse)',
           padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -137,7 +137,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
             style={{
               background: 'rgba(255,255,255,0.15)',
               border: 'none',
-              color: '#FFF',
+              color: 'var(--text-inverse)',
               padding: '8px',
               borderRadius: '4px',
               cursor: 'pointer',
@@ -148,10 +148,10 @@ export const RegisterStudent = ({ onBackToLogin }) => {
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-inverse)', margin: 0 }}>
               Student Registration Portal
             </h2>
-            <div style={{ fontSize: '12px', color: '#D1D5DB' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-sidebar)' }}>
               Select Course Subject, Academic Batch & Allocated Faculty Guide
             </div>
           </div>

@@ -231,7 +231,7 @@ export const FacultyEvaluation = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="stagger-1">
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Rubric Evaluation Portal</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Faculty Rubric Evaluation Portal</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Review submitted deliverables, then evaluate EVERY group member individually with separate marks.
         </p>
@@ -288,10 +288,10 @@ export const FacultyEvaluation = () => {
           <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${groupCode})`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                 {selectedGroup.title || selectedGroup.subject?.subject_name || 'Project'}
               </h2>
-              <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                 Domain: <strong>{selectedGroup.domain || 'Cloud & Distributed Systems'}</strong> | Faculty Guide: <strong>{selectedGroup.guide?.name || selectedGroup.guide || 'Faculty Guide'}</strong>
               </div>
             </div>
@@ -300,7 +300,7 @@ export const FacultyEvaluation = () => {
             </Badge>
           </div>
 
-          <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '10px' }}>
             Group Deliverables & Component Submissions:
           </h4>
 
@@ -322,7 +322,7 @@ export const FacultyEvaluation = () => {
 
                   return (
                     <tr key={compKey}>
-                      <td data-label="Component" style={{ fontWeight: 700, color: '#3A1F6F' }}>{comp.title}</td>
+                      <td data-label="Component" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{comp.title}</td>
                       <td data-label="Status">
                         <Badge variant={isCompleted ? 'success' : 'warning'}>
                           {isCompleted ? '✓ Submitted' : '○ Pending'}
@@ -331,25 +331,25 @@ export const FacultyEvaluation = () => {
                       <td data-label="File/Link">
                         {isCompleted ? (
                           compKey === 'deploymentLink' || comp.url ? (
-                            <a href={comp.url || '#'} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600 }}>
+                            <a href={comp.url || '#'} target="_blank" rel="noreferrer" style={{ color: 'var(--rit-orange-red)', fontWeight: 600 }}>
                               {comp.url || 'Deployment Link'}
                             </a>
                           ) : (
-                            <span style={{ color: '#3A1F6F', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize || '3.2 MB'})</span>
+                            <span style={{ color: 'var(--text-heading)', fontWeight: 600 }}>{comp.fileName} ({comp.fileSize || '3.2 MB'})</span>
                           )
                         ) : (
-                          <span style={{ color: '#8A9198' }}>Pending Upload</span>
+                          <span style={{ color: 'var(--text-disabled)' }}>Pending Upload</span>
                         )}
                       </td>
 
-                      <td data-label="Submission Origin" style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F6F' }}>
+                      <td data-label="Submission Origin" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
                         {isGroupMode 
                           ? `${groupCode} (Group Submission)`
                           : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${groupCode}]` : `${selectedGroup.leaderName || 'Leader'} [${groupCode}]`)
                         }
                       </td>
 
-                      <td data-label="Date" style={{ fontSize: '12px', color: '#55636B' }}>
+                      <td data-label="Date" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                         {comp.submittedAt || '—'}
                       </td>
                     </tr>
@@ -398,9 +398,9 @@ export const FacultyEvaluation = () => {
 
                   return (
                     <tr key={m.usn} style={{ backgroundColor: isSelected ? '#FDF0F2' : 'transparent' }}>
-                      <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                      <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{m.usn}</td>
                       <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
-                      <td data-label="Marks Awarded" style={{ fontWeight: 700, fontSize: '15px', color: '#DE3B0B' }}>
+                      <td data-label="Marks Awarded" style={{ fontWeight: 700, fontSize: '15px', color: 'var(--rit-orange-red)' }}>
                         {isEvaluated ? `${totalMarksAwarded} Marks` : 'Not Evaluated'}
                       </td>
                       <td data-label="Status">
@@ -429,14 +429,14 @@ export const FacultyEvaluation = () => {
               border: '2px solid #DE3B0B',
               borderRadius: '6px',
               padding: '20px',
-              backgroundColor: '#FFFFFF'
+              backgroundColor: 'var(--bg-surface)'
             }}>
-              <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
+              <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
                 <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})
                   </h3>
-                  <div style={{ fontSize: '12px', color: '#55636B', marginTop: '2px' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
                     Group: {groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
                   </div>
                   
@@ -461,13 +461,13 @@ export const FacultyEvaluation = () => {
                         );
                       } else if (activeSub) {
                         return (
-                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: '#F0F0F0', borderRadius: '4px', border: '1px solid #E5E5E5' }}>
+                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: 'var(--bg-page)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                             Attached: {activeSub.file_name || 'Document'}
                           </span>
                         );
                       } else {
                         return (
-                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: '#FFF3CD', color: '#856404', borderRadius: '4px', border: '1px solid #FFEEBA' }}>
+                          <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: 'var(--badge-warning-bg)', color: 'var(--badge-warning-text)', borderRadius: '4px', border: '1px solid var(--badge-warning-border)' }}>
                             No submission uploaded yet
                           </span>
                         );
@@ -482,8 +482,8 @@ export const FacultyEvaluation = () => {
                     const maxTotal = criteria.reduce((s, c) => s + (c.max_marks || 0), 0) || 50;
                     const isOver = total > maxTotal;
                     return (
-                      <div style={{ fontSize: '24px', fontWeight: 800, color: isOver ? '#CC0000' : '#DE3B0B' }}>
-                        {total} <span style={{ fontSize: '14px', color: '#8A9198' }}>/ {maxTotal}</span>
+                      <div style={{ fontSize: '24px', fontWeight: 800, color: isOver ? '#CC0000' : 'var(--rit-orange-red)' }}>
+                        {total} <span style={{ fontSize: '14px', color: 'var(--text-disabled)' }}>/ {maxTotal}</span>
                       </div>
                     );
                   })()}
@@ -529,7 +529,7 @@ export const FacultyEvaluation = () => {
             </div>
           )}
           {activeStudentObj && criteria.length === 0 && (
-            <div style={{ padding: '20px', backgroundColor: '#FAFAFA', borderRadius: '4px' }}>
+            <div style={{ padding: '20px', backgroundColor: 'var(--bg-page)', borderRadius: '4px' }}>
                 No evaluation criteria defined for this task.
             </div>
           )}

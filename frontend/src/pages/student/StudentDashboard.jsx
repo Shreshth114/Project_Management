@@ -88,8 +88,8 @@ export const StudentDashboard = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Banner Box */}
       <div style={{
-        backgroundColor: '#3A1F6F',
-        color: '#FFFFFF',
+        backgroundColor: 'var(--bg-sidebar)',
+        color: 'var(--text-inverse)',
         padding: '24px',
         borderRadius: '6px',
         borderLeft: '6px solid #DE3B0B',
@@ -99,18 +99,18 @@ export const StudentDashboard = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <div style={{ fontSize: '12px', color: '#E0D6F5', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
               Academic Year 2025–2026 | Course Code: {subjectCode}
             </div>
-            <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', marginTop: '4px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-inverse)', marginTop: '4px' }}>
               {title}
             </h1>
-            <div style={{ fontSize: '13px', color: '#E0D6F5', marginTop: '4px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
               Group: <strong>{groupCode}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
             </div>
           </div>
           {hasTeam && (
-            <Badge variant="magenta" style={{ backgroundColor: '#FFFFFF', color: '#9D1B55' }}>Enrolled Project</Badge>
+            <Badge variant="magenta" style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--rit-magenta)' }}>Enrolled Project</Badge>
           )}
         </div>
       </div>
@@ -121,8 +121,8 @@ export const StudentDashboard = () => {
           <Card title="Project Overall Progress">
             <ProgressBar progress={progressPercent} height={12} />
             <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '14px', fontSize: '13px' }}>
-              <span>Milestones: <strong style={{ color: '#3A1F6F' }}>{submittedCount} / {totalTasks} Submitted</strong></span>
-              <span>Progress: <strong style={{ color: progressPercent === 100 ? '#728C5E' : '#DA8B3E' }}>{progressPercent}%</strong></span>
+              <span>Milestones: <strong style={{ color: 'var(--text-heading)' }}>{submittedCount} / {totalTasks} Submitted</strong></span>
+              <span>Progress: <strong style={{ color: progressPercent === 100 ? 'var(--badge-success-text)' : '#DA8B3E' }}>{progressPercent}%</strong></span>
             </div>
           </Card>
         </div>
@@ -135,8 +135,8 @@ export const StudentDashboard = () => {
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                backgroundColor: '#F2EEFA',
-                color: '#3A1F6F',
+                backgroundColor: 'var(--badge-purple-bg)',
+                color: 'var(--text-heading)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -145,18 +145,18 @@ export const StudentDashboard = () => {
                 <UserCheck size={18} />
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, textTransform: 'uppercase' }}>Faculty Project Guide</div>
-                <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '14px' }}>{guideName}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Faculty Project Guide</div>
+                <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '14px' }}>{guideName}</div>
               </div>
             </div>
 
-            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '10px', borderTop: '1px solid #F0F0F0' }}>
+            <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)' }}>
               <div style={{
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                backgroundColor: '#FDF2F4',
-                color: '#B8115B',
+                backgroundColor: 'var(--badge-magenta-bg)',
+                color: 'var(--rit-magenta)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -165,8 +165,8 @@ export const StudentDashboard = () => {
                 <UserCheck size={18} />
               </div>
               <div>
-                <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, textTransform: 'uppercase' }}>Assigned Subject Coordinator</div>
-                <div style={{ fontWeight: 700, color: '#B8115B', fontSize: '14px' }}>{coordinatorName}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Assigned Subject Coordinator</div>
+                <div style={{ fontWeight: 700, color: 'var(--rit-magenta)', fontSize: '14px' }}>{coordinatorName}</div>
               </div>
             </div>
           </div>
@@ -195,10 +195,10 @@ export const StudentDashboard = () => {
                 <div 
                   key={task.id || task.task_id} 
                   style={{
-                    border: '1px solid #E5E5E5',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '4px',
                     padding: '14px',
-                    backgroundColor: '#FFFFFF',
+                    backgroundColor: 'var(--bg-surface)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -207,9 +207,9 @@ export const StudentDashboard = () => {
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '14px' }}>{task.title}</div>
-                    <div style={{ fontSize: '12px', color: '#55636B', marginTop: '4px' }}>
-                      Deadline: <strong style={{ color: '#DE3B0B' }}>{deadlineStr}</strong> | Total Marks: {totalMarks} Marks
+                    <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '14px' }}>{task.title}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      Deadline: <strong style={{ color: 'var(--rit-orange-red)' }}>{deadlineStr}</strong> | Total Marks: {totalMarks} Marks
                     </div>
                   </div>
                   <button 
@@ -247,13 +247,13 @@ export const StudentDashboard = () => {
                 {members.length > 0 ? (
                   members.map((m, idx) => (
                     <tr key={m.student_id || m.usn || idx}>
-                      <td style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
-                      <td style={{ fontWeight: 600, color: '#3A1F6F' }}>{m.name}</td>
+                      <td style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{m.usn}</td>
+                      <td style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{m.name}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={2} style={{ textAlign: 'center', color: '#8A9198', padding: '16px' }}>
+                    <td colSpan={2} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '16px' }}>
                       No team members assigned yet.
                     </td>
                   </tr>

@@ -44,7 +44,7 @@ export const AdminLogs = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>System Audit Logs & Security Trail</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>System Audit Logs & Security Trail</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Immutable system log entries capturing submission events, mode changes, and evaluation activities.
         </p>
@@ -78,13 +78,13 @@ export const AdminLogs = () => {
               <tbody>
                 {auditLogs.map((log) => (
                   <tr key={log.log_id || log.id}>
-                    <td data-label="Event ID" style={{ fontWeight: 800, color: '#3A1F6F' }}>
+                    <td data-label="Event ID" style={{ fontWeight: 800, color: 'var(--text-heading)' }}>
                       {log.log_id || log.id}
                     </td>
-                    <td data-label="Timestamp" style={{ fontSize: '12px', color: '#55636B' }}>
+                    <td data-label="Timestamp" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                       {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Recent'}
                     </td>
-                    <td data-label="User / USN" style={{ fontWeight: 700, color: '#DE3B0B' }}>
+                    <td data-label="User / USN" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>
                       {log.user_id || log.user || 'System'}
                     </td>
                     <td data-label="Event Action">
@@ -117,33 +117,33 @@ export const AdminLogs = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '680px' }}>
             <div className="modal-header">
-              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Users size={18} />
                 <span>Audit Inspection: Event #{inspectingLog.log_id || inspectingLog.id}</span>
               </h3>
               <button 
                 onClick={() => { setInspectingLog(null); setInspectingTeam(null); }}
-                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '14px', borderBottom: '1px solid #E5E5E5', paddingBottom: '10px' }}>
-                <div style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '15px' }}>
+              <div style={{ marginBottom: '14px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+                <div style={{ fontWeight: 800, color: 'var(--text-heading)', fontSize: '15px' }}>
                   Action: {inspectingLog.action}
                 </div>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   {inspectingLog.details || 'System event triggered.'}
                 </div>
-                <div style={{ fontSize: '12px', color: '#8A9198', marginTop: '4px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '4px' }}>
                   Recorded at: {inspectingLog.timestamp ? new Date(inspectingLog.timestamp).toLocaleString() : 'N/A'}
                 </div>
               </div>
 
               {inspectingTeam ? (
                 <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '10px' }}>
                     Associated Team: {inspectingTeam.team_code} ({inspectingTeam.subject?.subject_name || 'Project'})
                   </h4>
                   <div className="table-container responsive-table-stack">
@@ -158,7 +158,7 @@ export const AdminLogs = () => {
                       <tbody>
                         {(inspectingTeam.members || []).map(m => (
                           <tr key={m.student_id || m.usn}>
-                            <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                            <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{m.usn}</td>
                             <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
                             <td data-label="Role">{m.is_leader ? 'Leader' : 'Member'}</td>
                           </tr>
@@ -168,7 +168,7 @@ export const AdminLogs = () => {
                   </div>
                 </div>
               ) : (
-                <div style={{ color: '#55636B', fontSize: '13px' }}>
+                <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
                   User ID: <strong>{inspectingLog.user_id || 'System'}</strong>. No additional team association found.
                 </div>
               )}

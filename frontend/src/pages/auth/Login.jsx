@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { RitLogo } from '../../components/common/RitLogo';
 
 export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, onNavigateForgotPassword }) => {
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -49,34 +51,61 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(90deg, #8E00A8 0%, #B8115B 50%, #E63B00 100%)',
-      padding: '20px'
+      background: 'var(--bg-header)',
+      padding: '20px',
+      position: 'relative'
     }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(0,0,0,0.2)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '50%',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '8px',
+          color: '#FFFFFF',
+          transition: 'all 0.2s',
+          zIndex: 10
+        }}
+        title={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
       <div className="login-card-anim" style={{
         margin: 'auto',
         width: '100%',
         maxWidth: '460px',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: 'var(--bg-surface)',
         borderRadius: '8px',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.25)',
-        overflow: 'hidden'
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-lg)'
       }}>
         {/* Header Banner */}
         <div style={{
-          backgroundColor: '#242044',
-          color: '#FFFFFF',
+          backgroundColor: 'var(--bg-sidebar)',
+          color: 'var(--text-inverse)',
           padding: '28px 24px',
           textAlign: 'center',
-          borderBottom: '4px solid #E63B00'
+          borderBottom: '4px solid var(--rit-orange-red)',
+          borderTopLeftRadius: '7px',
+          borderTopRightRadius: '7px'
         }}>
           <div className="mobile-wrap login-item-anim login-delay-0" style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
             <RitLogo size="large" light={true} />
           </div>
 
-          <h2 className="login-item-anim login-delay-0" style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '8px 0 0 0' }}>
+          <h2 className="login-item-anim login-delay-0" style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-inverse)', margin: '8px 0 0 0' }}>
             Academic Project Governance Portal
           </h2>
-          <p className="login-item-anim login-delay-1" style={{ fontSize: '12px', color: '#D1D5DB', marginTop: '4px' }}>
+          <p className="login-item-anim login-delay-1" style={{ fontSize: '12px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             M. S. Ramaiah Institute of Technology — Autonomous College under VTU
           </p>
         </div>
@@ -84,10 +113,10 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
         {/* Form Body */}
         <div style={{ padding: '28px 24px' }}>
           <div className="login-item-anim login-delay-1">
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#8E00A8', marginBottom: '4px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '4px' }}>
               Portal Sign In
             </h3>
-            <p style={{ fontSize: '13px', color: '#55636B', marginBottom: '20px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
               Please authenticate using your official college email.
             </p>
           </div>
@@ -119,7 +148,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
                 <a 
                   href="#forgot" 
                   onClick={handleForgotPassword} 
-                  style={{ fontSize: '12px', color: '#B8115B', fontWeight: 600 }}
+                  style={{ fontSize: '12px', color: 'var(--rit-magenta)', fontWeight: 600 }}
                 >
                   Forgot Password?
                 </a>
@@ -144,8 +173,8 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           </form>
 
           {/* Dual Registration Options */}
-          <div className="login-item-anim login-delay-5" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #E5E5E5', textAlign: 'center' }}>
-            <div style={{ fontSize: '13px', color: '#55636B', marginBottom: '10px', fontWeight: 600 }}>
+          <div className="login-item-anim login-delay-5" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px', fontWeight: 600 }}>
               First Time User? Register Below:
             </div>
 
@@ -154,7 +183,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={onNavigateRegisterStudent}
-                style={{ width: '100%', color: '#8E00A8', fontWeight: 700 }}
+                style={{ width: '100%', color: 'var(--text-heading)', fontWeight: 700 }}
               >
                 🎓 New Student? Register Student Account
               </button>
@@ -163,7 +192,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={onNavigateRegisterFaculty}
-                style={{ width: '100%', color: '#B8115B', fontWeight: 700 }}
+                style={{ width: '100%', color: 'var(--rit-magenta)', fontWeight: 700 }}
               >
                 👨‍🏫 Faculty Member? Register Faculty Account
               </button>

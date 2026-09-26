@@ -118,7 +118,7 @@ export const FacultyStatus = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Student Submission & Rubric Evaluation Matrix</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Student Submission & Rubric Evaluation Matrix</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Search students by USN to track submission status, submitted assignments, submission dates, progress, and rubric scores.
         </p>
@@ -128,7 +128,7 @@ export const FacultyStatus = () => {
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
-            <Search size={18} color="#3A1F6F" />
+            <Search size={18} color="var(--text-heading)" />
             <input
               type="text"
               className="form-input"
@@ -139,7 +139,7 @@ export const FacultyStatus = () => {
           </div>
 
           <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Filter size={16} color="#3A1F6F" />
+            <Filter size={16} color="var(--text-heading)" />
             <select
               className="form-select"
               style={{ width: '100%', maxWidth: '220px' }}
@@ -175,22 +175,22 @@ export const FacultyStatus = () => {
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s) => (
                   <tr key={s.usn || s.name}>
-                    <td data-label="Student USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.usn}</td>
+                    <td data-label="Student USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.usn}</td>
                     <td data-label="Full Name" style={{ fontWeight: 600 }}>{s.name}</td>
-                    <td data-label="Group Name" style={{ fontWeight: 700, color: '#3A1F6F' }}>{s.groupName}</td>
+                    <td data-label="Group Name" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{s.groupName}</td>
 
                     <td data-label="Assignment / Deliverable">
                       {s.submissionStatus === 'SUBMITTED' ? (
                         <div>
-                          <div style={{ fontWeight: 700, color: '#3A1F6F', fontSize: '13px' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--text-heading)', fontSize: '13px' }}>
                             {s.taskTitle}
                           </div>
-                          <span style={{ fontSize: '11px', color: '#55636B' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                             ({s.taskType})
                           </span>
                         </div>
                       ) : (
-                        <span style={{ color: '#8A9198', fontSize: '13px' }}>—</span>
+                        <span style={{ color: 'var(--text-disabled)', fontSize: '13px' }}>—</span>
                       )}
                     </td>
 
@@ -199,7 +199,7 @@ export const FacultyStatus = () => {
                         <Badge variant={s.submissionStatus === 'SUBMITTED' ? 'success' : 'danger'}>
                           {s.submissionStatus === 'SUBMITTED' ? '✓ Submitted' : '✕ Not Submitted'}
                         </Badge>
-                        <div style={{ fontSize: '11px', color: '#55636B', marginTop: '2px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
                           Date: <strong>{s.submissionDate}</strong>
                         </div>
                       </div>
@@ -211,7 +211,7 @@ export const FacultyStatus = () => {
                           {s.evalStatus === 'EVALUATED' ? '✓ Evaluated' : s.evalStatus === 'PENDING_EVALUATION' ? '○ Pending Review' : '✕ Not Evaluated'}
                         </Badge>
                         {s.evalStatus === 'EVALUATED' && s.totalMarks !== null && (
-                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#107C41', marginTop: '1px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--badge-success-text)', marginTop: '1px' }}>
                             Score: {s.totalMarks} Marks
                           </div>
                         )}
@@ -233,7 +233,7 @@ export const FacultyStatus = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
                     No students found under your allocated project teams.
                   </td>
                 </tr>
@@ -248,42 +248,42 @@ export const FacultyStatus = () => {
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '540px' }}>
             <div className="modal-header">
-              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Award size={18} />
                 <span>Student Compliance Details ({inspectingStudent.usn})</span>
               </h3>
               <button 
                 onClick={() => setInspectingStudent(null)}
-                style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--text-inverse)', cursor: 'pointer' }}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px', borderBottom: '1px solid #E5E5E5', paddingBottom: '12px' }}>
-                <h4 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>
+              <div style={{ marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+                <h4 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                   {inspectingStudent.name}
                 </h4>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '6px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
                   USN: <strong>{inspectingStudent.usn}</strong> | Group: <strong>{inspectingStudent.groupName}</strong>
                 </div>
-                <div style={{ fontSize: '13px', color: '#55636B', marginTop: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Email: <strong>{inspectingStudent.email || 'Not Provided'}</strong>
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-                <div><strong>Assignment / Deliverable:</strong> <span style={{ color: '#3A1F6F', fontWeight: 700 }}>{inspectingStudent.taskTitle}</span></div>
+                <div><strong>Assignment / Deliverable:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{inspectingStudent.taskTitle}</span></div>
                 <div><strong>Submission Status:</strong> <Badge variant={inspectingStudent.submissionStatus === 'SUBMITTED' ? 'success' : 'danger'}>{inspectingStudent.submissionStatus}</Badge></div>
                 <div><strong>Submission Date:</strong> {inspectingStudent.submissionDate}</div>
                 <div><strong>Evaluation Status:</strong> <Badge variant={inspectingStudent.evalStatus === 'EVALUATED' ? 'success' : inspectingStudent.evalStatus === 'PENDING_EVALUATION' ? 'warning' : 'info'}>{inspectingStudent.evalStatus === 'EVALUATED' ? '✓ Evaluated' : inspectingStudent.evalStatus === 'PENDING_EVALUATION' ? '○ Pending Review' : '✕ Not Evaluated'}</Badge></div>
                 {inspectingStudent.evalStatus === 'EVALUATED' && inspectingStudent.totalMarks !== null && (
-                  <div><strong>Awarded Marks:</strong> <span style={{ color: '#107C41', fontWeight: 800 }}>{inspectingStudent.totalMarks} Marks</span></div>
+                  <div><strong>Awarded Marks:</strong> <span style={{ color: 'var(--badge-success-text)', fontWeight: 800 }}>{inspectingStudent.totalMarks} Marks</span></div>
                 )}
                 {inspectingStudent.feedback && (
                   <div>
                     <strong>Faculty Feedback:</strong>
-                    <div style={{ marginTop: '4px', padding: '8px 12px', background: '#F8F9FA', borderRadius: '4px', fontStyle: 'italic', color: '#55636B', borderLeft: '3px solid #3A1F6F' }}>
+                    <div style={{ marginTop: '4px', padding: '8px 12px', background: 'var(--bg-page)', borderRadius: '4px', fontStyle: 'italic', color: 'var(--text-muted)', borderLeft: '3px solid #3A1F6F' }}>
                       "{inspectingStudent.feedback}"
                     </div>
                   </div>

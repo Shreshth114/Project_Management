@@ -45,7 +45,7 @@ export const CoordinatorStudents = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Guided Students Roster & Enrolments</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Guided Students Roster & Enrolments</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             Roster of students registered in the department under academic coordination.
           </p>
@@ -78,18 +78,18 @@ export const CoordinatorStudents = () => {
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s) => (
                   <tr key={s.student_id || s.id || s.usn}>
-                    <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{s.usn}</td>
+                    <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.usn}</td>
                     <td data-label="Student Name" style={{ fontWeight: 600 }}>{s.name}</td>
                     <td data-label="College Email">{s.email || `${s.usn.toLowerCase()}@msrit.edu`}</td>
                     <td data-label="Academic Batch"><Badge variant="purple">{s.batch || 'Enrolled'}</Badge></td>
-                    <td data-label="Group Assignment" style={{ fontWeight: 700, color: '#3A1F6F' }}>
+                    <td data-label="Group Assignment" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                       {s.team?.team_code || 'Unassigned'}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: '#8A9198', padding: '24px' }}>
+                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
                     No student registrations found in the database.
                   </td>
                 </tr>

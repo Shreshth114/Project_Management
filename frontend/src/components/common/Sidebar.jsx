@@ -180,7 +180,7 @@ export const Sidebar = () => {
               gap: '8px', fontSize: '13px', padding: '10px',
               backgroundColor: 'rgba(255,255,255,0.1)',
               border: '1px solid rgba(255,255,255,0.2)',
-              color: '#FFFFFF'
+              color: 'var(--text-inverse)'
             }}
             title="Switch Workspace"
           >

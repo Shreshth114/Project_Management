@@ -178,7 +178,7 @@ export const FacultyMessages = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Faculty Communication Hub</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Faculty Communication Hub</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Official Circulars and direct correspondence with assigned student project teams.
         </p>
@@ -206,7 +206,7 @@ export const FacultyMessages = () => {
               <div 
                 key={m.id}
                 style={{
-                  border: '1px solid #E5E5E5',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   padding: '14px',
                   backgroundColor: m.isIncoming ? '#FDF8F5' : '#FFFFFF',
@@ -214,16 +214,16 @@ export const FacultyMessages = () => {
                 }}
               >
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontWeight: 800, color: '#3A1F6F', fontSize: '14px' }}>
+                  <span style={{ fontWeight: 800, color: 'var(--text-heading)', fontSize: '14px' }}>
                     {m.subject}
                   </span>
-                  <span style={{ fontSize: '11px', color: '#55636B' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                     {m.timestamp}
                   </span>
                 </div>
 
                 <div className="mobile-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <div style={{ fontSize: '12px', color: '#B8115B', fontWeight: 700 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--rit-magenta)', fontWeight: 700 }}>
                     From: {m.sender} ➔ To: {m.recipient}
                   </div>
                   <span style={{ 
@@ -231,14 +231,14 @@ export const FacultyMessages = () => {
                     padding: '2px 8px', 
                     borderRadius: '12px', 
                     backgroundColor: m.isIncoming ? '#FDF2F4' : '#F2EEFA',
-                    color: m.isIncoming ? '#B8115B' : '#3A1F6F',
+                    color: m.isIncoming ? 'var(--rit-magenta)' : 'var(--text-heading)',
                     fontWeight: 700
                   }}>
                     {m.isIncoming ? 'Incoming Message' : 'Sent'}
                   </span>
                 </div>
 
-                <div style={{ fontSize: '13px', color: '#243143', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.5' }}>
                   {m.content}
                 </div>
 
@@ -259,7 +259,7 @@ export const FacultyMessages = () => {
             ))}
 
             {messagesList.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '24px', color: '#8A9198' }}>
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-disabled)' }}>
                 No messages dispatched or received yet.
               </div>
             )}

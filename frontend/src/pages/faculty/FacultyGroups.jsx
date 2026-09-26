@@ -49,12 +49,12 @@ export const FacultyGroups = () => {
     }
   };
 
-  if (loading) return <div style={{ padding: '24px', color: '#55636B' }}>Loading Assigned Groups...</div>;
+  if (loading) return <div style={{ padding: '24px', color: 'var(--text-muted)' }}>Loading Assigned Groups...</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="stagger-1">
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#3A1F6F' }}>Evaluated Student Project Groups</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Evaluated Student Project Groups</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Detailed roster of project teams assigned for faculty evaluation.
         </p>
@@ -78,14 +78,14 @@ export const FacultyGroups = () => {
                 <div>
                   <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Badge variant="purple">{group.groupCode}</Badge>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#3A1F6F', margin: 0 }}>{group.title}</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>{group.title}</h3>
                   </div>
-                  <div style={{ fontSize: '13px', color: '#55636B', marginTop: '6px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
                     Subject: <strong>{group.subjectName}</strong>
                     {group.repoUrl && (
                       <>
                         {' | '}Repository:{' '}
-                        <a href={group.repoUrl} target="_blank" rel="noreferrer" style={{ color: '#DE3B0B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <a href={group.repoUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--rit-orange-red)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                           <span>{group.repoUrl}</span>
                           <ExternalLink size={12} />
                         </a>
@@ -95,7 +95,7 @@ export const FacultyGroups = () => {
                 </div>
               </div>
 
-              <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#3A1F6F', marginBottom: '10px' }}>Group Members Roster</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '10px' }}>Group Members Roster</h4>
               <div className="table-container responsive-table-stack">
                 <table className="portal-table">
                   <thead>
@@ -108,7 +108,7 @@ export const FacultyGroups = () => {
                   <tbody>
                     {(group.members || []).map((m, idx) => (
                       <tr key={m.student_id || m.usn || idx}>
-                        <td data-label="USN" style={{ fontWeight: 800, color: '#DE3B0B' }}>{m.usn}</td>
+                        <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{m.usn}</td>
                         <td data-label="Student Name" style={{ fontWeight: 600 }}>{m.name}</td>
                         <td data-label="Email Address">{m.email}</td>
                       </tr>
@@ -123,8 +123,8 @@ export const FacultyGroups = () => {
         ) : (
           <div className="stagger-2">
             <Card>
-              <div style={{ textAlign: 'center', padding: '32px 16px', color: '#8A9198' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#3A1F6F', marginBottom: '8px' }}>
+              <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-disabled)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-heading)', marginBottom: '8px' }}>
                 No Groups Assigned Yet
               </h3>
               <p style={{ fontSize: '13px', margin: 0 }}>

@@ -106,7 +106,7 @@ export const DashboardLayout = () => {
 
       default:
         if (currentRole === null) {
-          return <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Please select your role...</div>;
+          return <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Please select your role...</div>;
         }
         return <StudentDashboard />;
     }
