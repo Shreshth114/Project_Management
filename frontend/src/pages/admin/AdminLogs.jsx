@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Eye, X, Users, ShieldAlert, History } from 'lucide-react';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -114,7 +115,7 @@ export const AdminLogs = () => {
       </Card>
 
       {/* Group Submission / Event Inspection Modal */}
-      {inspectingLog && (
+      {inspectingLog && createPortal((
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '680px' }}>
             <div className="modal-header">
@@ -185,7 +186,7 @@ export const AdminLogs = () => {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 };

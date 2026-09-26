@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Edit, Eye, Key, X, Shield } from 'lucide-react';
 import { academicService } from '../../services/academicService';
 import { Card } from '../../components/common/Card';
@@ -253,7 +254,7 @@ export const AdminUsers = () => {
       </Card>
 
       {/* Account Inspect Modal */}
-      {inspectingUser && (
+      {inspectingUser && createPortal((
         <div className="modal-backdrop">
           <div className="modal-dialog" style={{ maxWidth: '560px' }}>
             <div className="modal-header">
@@ -331,7 +332,7 @@ export const AdminUsers = () => {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 };
