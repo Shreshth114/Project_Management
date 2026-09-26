@@ -12,7 +12,8 @@ import {
   BookOpen,
   ShieldAlert,
   Settings,
-  History
+  History,
+  LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -26,7 +27,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'submissions', label: 'Submissions', icon: FileText },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'FACULTY':
@@ -37,7 +39,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'evaluation', label: 'Evaluation', icon: ClipboardCheck },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'COORDINATOR':
@@ -48,7 +51,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'groups', label: 'Groups / Students', icon: Users },
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     case 'ADMIN':
@@ -59,7 +63,8 @@ export const getNavItemsByRole = (role) => {
         { id: 'status', label: 'Status', icon: BarChart2 },
         { id: 'logs', label: 'Logs', icon: History },
         { id: 'master-edit', label: 'Master Edit', icon: Settings },
-        { id: 'profile', label: 'Profile', icon: User }
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'support', label: 'Help & Support', icon: LifeBuoy }
       ];
 
     default:
@@ -73,11 +78,9 @@ export const ProjectInfo = () => (
     borderTop: '1px solid rgba(255,255,255,0.08)',
     fontSize: '11px',
     color: '#9F9F9F',
-    lineHeight: '1.7'
+    lineHeight: '1.7',
+    marginTop: 'auto'
   }}>
-    <div style={{ marginBottom: '2px' }}>VTU Academic Scheme</div>
-    <div style={{ marginBottom: '12px' }}>Batch: 2023–2027 (7th Sem)</div>
-
     <div style={{ fontSize: '10px', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '4px' }}>
       Project Advisor
     </div>

@@ -5,6 +5,7 @@ import { Sidebar } from '../common/Sidebar';
 import { MobileDrawer } from '../common/MobileDrawer';
 import { RoleSelectionModal } from '../common/RoleSelectionModal';
 import { FacultyModeSelectionPage } from '../../pages/faculty/FacultyModeSelectionPage';
+import Support from '../../pages/common/Support';
 
 // Student Pages
 import { StudentDashboard } from '../../pages/student/StudentDashboard';
@@ -63,6 +64,7 @@ export const DashboardLayout = () => {
           case 'status': return <StudentStatus />;
           case 'messages': return <StudentMessages />;
           case 'profile': return <StudentProfile />;
+          case 'support': return <Support />;
           default: return <StudentDashboard />;
         }
 
@@ -75,6 +77,7 @@ export const DashboardLayout = () => {
           case 'status': return <FacultyStatus />;
           case 'messages': return <FacultyMessages />;
           case 'profile': return <FacultyProfile />;
+          case 'support': return <Support />;
           default: return <FacultyDashboard />;
         }
 
@@ -89,6 +92,7 @@ export const DashboardLayout = () => {
           case 'status': return <CoordinatorStatus />;
           case 'messages': return <CoordinatorMessages />;
           case 'profile': return <CoordinatorProfile />;
+          case 'support': return <Support />;
           default: return <CoordinatorDashboard />;
         }
 
@@ -101,6 +105,7 @@ export const DashboardLayout = () => {
           case 'logs': return <AdminLogs />;
           case 'master-edit': return <AdminMasterEdit />;
           case 'profile': return <AdminProfile />;
+          case 'support': return <Support />;
           default: return <AdminDashboard />;
         }
 

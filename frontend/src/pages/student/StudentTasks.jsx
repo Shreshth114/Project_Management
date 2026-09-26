@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Award, FileText, Upload, Users, User } from 'lucide-react';
+import { Calendar, Award, FileText, Upload, Users, User, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -52,9 +52,9 @@ export const StudentTasks = () => {
         {error && <div style={{ color: 'red' }}>Error: {error}</div>}
         {tasks.length === 0 && !error ? (
           <div className="empty-state">
-            <div className="empty-state">
-            <div className="empty-state-text">No tasks found.</div>
-          </div>
+            <ClipboardList className="empty-state-icon" />
+            <div className="empty-state-title">No Tasks Assigned</div>
+            <div className="empty-state-text">There are no academic tasks or milestones assigned yet.</div>
           </div>
         ) : (
           tasks.map((task, index) => {
