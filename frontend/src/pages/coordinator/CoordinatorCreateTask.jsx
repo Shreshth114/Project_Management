@@ -54,7 +54,21 @@ export const CoordinatorCreateTask = () => {
     setError(null);
 
     try {
-      // 1. Save to AuthContext local state
+      const taskData = {
+        faculty_id: currentUser?.faculty_id,
+        title: taskName,
+        description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; '),
+        task_type: category,
+        deadline
+      };
+
+      const criteriaList = assessmentItems.map(item => ({
+        criteria_name: item.description || 'Assessment Component',
+        max_marks: Number(item.marks) || 10
+      }));
+
+      await taskService.createTaskWithCriteria(taskData, criteriaList);
+
       if (addTask) {
         addTask({
           title: taskName,
@@ -64,28 +78,8 @@ export const CoordinatorCreateTask = () => {
           deadline,
           submissionMode: category === 'GROUP' ? 'LEADER_SUBMITS_ALL' : 'MEMBERS_SUBMIT_ASSIGNED',
           assessmentItems,
-          description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; ')
+          description: taskData.description
         });
-      }
-
-      // 2. Save to Supabase backend if available
-      try {
-        const taskData = {
-          faculty_id: currentUser?.faculty_id,
-          title: taskName,
-          description: assessmentItems.map(i => `${i.description} (${i.marks} Marks)`).join('; '),
-          task_type: category,
-          deadline
-        };
-
-        const criteriaList = assessmentItems.map(item => ({
-          criteria_name: item.description || 'Assessment Component',
-          max_marks: Number(item.marks) || 10
-        }));
-
-        await taskService.createTaskWithCriteria(taskData, criteriaList);
-      } catch (backendErr) {
-        console.warn('Backend task creation warning:', backendErr);
       }
 
       setSuccess(true);
@@ -94,6 +88,7 @@ export const CoordinatorCreateTask = () => {
         if (setActiveTab) setActiveTab('tasks');
       }, 1500);
     } catch (err) {
+      console.error('Task creation failed:', err);
       setError(err.message || 'Failed to create task');
     } finally {
       setLoading(false);

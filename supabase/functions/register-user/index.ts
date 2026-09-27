@@ -94,6 +94,10 @@ Deno.serve(async (request) => {
     });
 
     if (profileError) {
+      console.error("register_app_profile RPC failed", {
+        code: profileError.code,
+        message: profileError.message,
+      });
       await adminClient.auth.admin.deleteUser(authUserId);
       authUserId = null;
       return jsonResponse({ success: false, message: profileError.message }, 400);
