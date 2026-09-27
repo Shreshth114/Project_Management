@@ -52,19 +52,6 @@ export const StudentStatus = () => {
         </p>
       </div>
 
-      {/* Workflow Legend */}
-      <div className="stagger-2">
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px' }}>
-          <strong>Workflow Status Legend:</strong>
-          <span style={{ color: 'var(--badge-info-text)', fontWeight: 700 }}>● Pending (#114C94)</span>
-          <span style={{ color: 'var(--badge-warning-text)', fontWeight: 700 }}>● In Progress (#A68E24)</span>
-          <span style={{ color: 'var(--badge-success-text)', fontWeight: 700 }}>● Completed / Submitted (#038203)</span>
-          <span style={{ color: 'var(--badge-danger-text)', fontWeight: 700 }}>● Overdue / Error (#FD0A0A)</span>
-        </div>
-        </Card>
-      </div>
-
       <div className="grid-3 stagger-3">
         <Card title="Individual Score">
           <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--badge-success-text)' }}>

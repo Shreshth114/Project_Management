@@ -37,15 +37,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
       ]);
 
       setSubjects(fetchedSubjects || []);
-      if (fetchedSubjects && fetchedSubjects.length > 0) {
-        setSelectedSubject(fetchedSubjects[0].subject_code || fetchedSubjects[0].code);
-      }
-
       setFacultyList(fetchedFaculty || []);
-      if (fetchedFaculty && fetchedFaculty.length > 0) {
-        setGuide(fetchedFaculty[0].name);
-        setGuideId(fetchedFaculty[0].faculty_id);
-      }
     } catch (err) {
       console.warn("Failed to load registration options:", err);
     } finally {
@@ -192,7 +184,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Full name per VTU record"
+                  placeholder="Fullname "
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -206,7 +198,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="student@msrit.edu"
+                  placeholder="usn@msrit.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="off"
@@ -306,7 +298,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               disabled={isSubmitting}
             >
               <UserCheck size={16} />
-              <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT STUDENT ENROLMENT'}</span>
+              <span>Submit</span>
             </button>
           </form>
         </div>

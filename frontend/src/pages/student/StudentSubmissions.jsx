@@ -6,6 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { submissionService } from '../../services/submissionService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const StudentSubmissions = () => {
   const { currentUser } = useAuth();
@@ -13,6 +14,7 @@ export const StudentSubmissions = () => {
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [selectedTaskId, setSelectedTaskId] = useState('');
+  const [highlightedTaskId, setHighlightedTaskId] = useState('');
   
   const [file, setFile] = useState(null);
   const [urlInput, setUrlInput] = useState('');
@@ -31,6 +33,22 @@ export const StudentSubmissions = () => {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    const taskId = new URLSearchParams(window.location.search).get('taskId');
+    const matchingTask = tasks.find(task => String(task.task_id || task.id) === String(taskId));
+    if (!matchingTask) return;
+
+    const normalizedTaskId = String(matchingTask.task_id || matchingTask.id);
+    setHighlightedTaskId(normalizedTaskId);
+    document.getElementById(`submission-task-${normalizedTaskId}`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    const timeout = window.setTimeout(() => setHighlightedTaskId(''), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [tasks]);
+
   const fetchData = async (studentId) => {
     try {
       setLoading(true);
@@ -38,22 +56,31 @@ export const StudentSubmissions = () => {
       setTeam(studentTeam);
       
       const allTasks = await taskService.getTasks().catch(() => []);
-      setTasks(allTasks || []);
-      
+      const availableTasks = allTasks || [];
       const urlTaskId = new URLSearchParams(window.location.search).get('taskId');
-      
-      if (allTasks && allTasks.length > 0) {
-        if (urlTaskId && allTasks.some(t => String(t.task_id || t.id) === String(urlTaskId))) {
-          setSelectedTaskId(urlTaskId);
-        } else {
-          setSelectedTaskId(allTasks[0].task_id);
-        }
-      }
-      
+
+      let teamSubmissions = [];
       if (studentTeam?.team_id) {
-        const teamSubmissions = await submissionService.getSubmissionsByTeam(studentTeam.team_id).catch(() => []);
-        setSubmissions(teamSubmissions || []);
+        teamSubmissions = await submissionService.getSubmissionsByTeam(studentTeam.team_id).catch(() => []);
       }
+
+      const isSubmitted = task => teamSubmissions.some(submission =>
+        String(submission.task_id) === String(task.task_id || task.id) &&
+        (task.task_type !== 'INDIVIDUAL' ||
+          String(submission.submitted_by_student_id) === String(studentId))
+      );
+      const requestedTask = availableTasks.find(task =>
+        String(task.task_id || task.id) === String(urlTaskId)
+      );
+      const firstAvailableTask = availableTasks.find(task => !isSubmitted(task));
+
+      setTasks(availableTasks);
+      setSubmissions(teamSubmissions);
+      setSelectedTaskId(String(
+        requestedTask && !isSubmitted(requestedTask)
+          ? requestedTask.task_id || requestedTask.id
+          : firstAvailableTask?.task_id || firstAvailableTask?.id || ''
+      ));
     } catch (err) {
       console.error("Submissions load error:", err);
       setError(err.message);
@@ -82,13 +109,13 @@ export const StudentSubmissions = () => {
       return;
     }
 
-    const currentTask = tasks.find(t => t.task_id === selectedTaskId);
+    const currentTask = tasks.find(t => String(t.task_id || t.id) === String(selectedTaskId));
     const isIndividual = currentTask?.task_type === 'INDIVIDUAL';
 
     // Prevent re-submission:
     const alreadySubmitted = isIndividual
-      ? submissions.some(s => s.task_id === selectedTaskId && s.submitted_by_student_id === currentUser.student_id)
-      : submissions.some(s => s.task_id === selectedTaskId);
+      ? submissions.some(s => String(s.task_id) === String(selectedTaskId) && String(s.submitted_by_student_id) === String(currentUser.student_id))
+      : submissions.some(s => String(s.task_id) === String(selectedTaskId));
     if (alreadySubmitted) {
       setError(isIndividual
         ? 'You have already submitted this individual deliverable. Re-submission is not allowed.'
@@ -121,7 +148,14 @@ export const StudentSubmissions = () => {
 
       await submissionService.submitTask(payload, isIndividual);
       const updatedSubmissions = await submissionService.getSubmissionsByTeam(team.team_id);
-      setSubmissions(updatedSubmissions || []);
+      const refreshedSubmissions = updatedSubmissions || [];
+      setSubmissions(refreshedSubmissions);
+      const nextTask = tasks.find(task => !refreshedSubmissions.some(submission =>
+        String(submission.task_id) === String(task.task_id || task.id) &&
+        (task.task_type !== 'INDIVIDUAL' ||
+          String(submission.submitted_by_student_id) === String(currentUser.student_id))
+      ));
+      setSelectedTaskId(String(nextTask?.task_id || nextTask?.id || ''));
 
       setSuccessMsg(isIndividual
         ? 'Individual deliverable uploaded successfully!'
@@ -219,13 +253,20 @@ export const StudentSubmissions = () => {
                 tasks.map(task => {
                   const isIndividual = task.task_type === 'INDIVIDUAL';
                   const sub = isIndividual
-                    ? submissions.find(s => s.task_id === task.task_id && s.submitted_by_student_id === currentUser?.student_id)
-                    : submissions.find(s => s.task_id === task.task_id);
+                    ? submissions.find(s => String(s.task_id) === String(task.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id))
+                    : submissions.find(s => String(s.task_id) === String(task.task_id));
                   const isSubmitted = Boolean(sub);
-                  const deadlineStr = task.deadline ? (task.deadline.includes('T') ? new Date(task.deadline).toLocaleDateString() : task.deadline) : '—';
+                  const deadlineStr = task.deadline ? formatDate(task.deadline) : '—';
 
                   return (
-                    <tr key={task.task_id}>
+                    <tr
+                      key={task.task_id}
+                      id={`submission-task-${task.task_id}`}
+                      style={highlightedTaskId === String(task.task_id) ? {
+                        backgroundColor: 'rgba(222, 59, 11, 0.12)',
+                        outline: '2px solid var(--rit-orange-red)'
+                      } : undefined}
+                    >
                       <td data-label="Milestone Title" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                         {task.title}
                       </td>
@@ -291,7 +332,7 @@ export const StudentSubmissions = () => {
                             type="button"
                             className="btn btn-primary btn-sm"
                             onClick={() => {
-                              setSelectedTaskId(task.task_id);
+                              setSelectedTaskId(String(task.task_id));
                               const element = document.getElementById('upload-section');
                               if (element) element.scrollIntoView({ behavior: 'smooth' });
                             }}
@@ -332,16 +373,16 @@ export const StudentSubmissions = () => {
                 >
                   {tasks.filter(t => {
                     if (t.task_type === 'INDIVIDUAL') {
-                      return !submissions.some(s => s.task_id === t.task_id && s.submitted_by_student_id === currentUser?.student_id);
+                      return !submissions.some(s => String(s.task_id) === String(t.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id));
                     }
-                    return !submissions.some(s => s.task_id === t.task_id);
+                    return !submissions.some(s => String(s.task_id) === String(t.task_id));
                   }).length > 0 ? (
                     tasks
                       .filter(t => {
                         if (t.task_type === 'INDIVIDUAL') {
-                          return !submissions.some(s => s.task_id === t.task_id && s.submitted_by_student_id === currentUser?.student_id);
+                          return !submissions.some(s => String(s.task_id) === String(t.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id));
                         }
-                        return !submissions.some(s => s.task_id === t.task_id);
+                        return !submissions.some(s => String(s.task_id) === String(t.task_id));
                       })
                       .map(t => (
                         <option key={t.task_id} value={t.task_id}>

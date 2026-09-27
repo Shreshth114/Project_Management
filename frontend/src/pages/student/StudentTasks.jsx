@@ -4,10 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
+import { academicService } from '../../services/academicService';
+import { submissionService } from '../../services/submissionService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const StudentTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
   const [tasks, setTasks] = useState([]);
+  const [submittedTaskIds, setSubmittedTaskIds] = useState(new Set());
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,13 +24,42 @@ export const StudentTasks = () => {
   };
 
   useEffect(() => {
-    // In a full implementation, we'd filter tasks by the student's assigned subject or team.
-    // For this milestone, we fetch all tasks.
-    taskService.getTasks()
-      .then(setTasks)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+    let isCurrent = true;
+
+    const loadTasks = async () => {
+      try {
+        const fetchedTasks = await taskService.getTasks();
+        const team = currentUser?.student_id
+          ? await academicService.getTeamByStudent(currentUser.student_id).catch(() => null)
+          : null;
+        const submissions = team?.team_id
+          ? await submissionService.getSubmissionsByTeam(team.team_id).catch(() => [])
+          : [];
+
+        const submittedIds = new Set(
+          fetchedTasks
+            .filter(task => submissions.some(submission =>
+              String(submission.task_id) === String(task.task_id) &&
+              (task.task_type !== 'INDIVIDUAL' ||
+                String(submission.submitted_by_student_id) === String(currentUser?.student_id))
+            ))
+            .map(task => String(task.task_id))
+        );
+
+        if (isCurrent) {
+          setTasks(fetchedTasks);
+          setSubmittedTaskIds(submittedIds);
+        }
+      } catch (err) {
+        if (isCurrent) setError(err.message);
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    loadTasks();
+    return () => { isCurrent = false; };
+  }, [currentUser?.student_id]);
 
   if (loading) {
     return (
@@ -70,7 +103,9 @@ export const StudentTasks = () => {
                         {task.task_type === 'INDIVIDUAL' ? '👤 INDIVIDUAL TASK' : '👥 GROUP TASK'}
                       </Badge>
                       <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>{task.title}</h3>
-                      <Badge variant="warning">Pending</Badge>
+                      <Badge variant={submittedTaskIds.has(String(task.task_id)) ? 'success' : 'warning'}>
+                        {submittedTaskIds.has(String(task.task_id)) ? 'Submitted' : 'Pending'}
+                      </Badge>
                     </div>
 
                     <p style={{ fontSize: '14px', color: 'var(--text-main)', marginBottom: '12px', lineHeight: 1.5 }}>
@@ -80,7 +115,7 @@ export const StudentTasks = () => {
                     <div className="mobile-col" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--text-muted)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Calendar size={14} color="var(--badge-danger-text)" />
-                        <span>Deadline: <strong style={{ color: 'var(--text-main)' }}>{new Date(task.deadline).toLocaleDateString()}</strong></span>
+                        <span>Deadline: <strong style={{ color: 'var(--text-main)' }}>{formatDate(task.deadline)}</strong></span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Award size={14} color="var(--badge-warning-text)" />

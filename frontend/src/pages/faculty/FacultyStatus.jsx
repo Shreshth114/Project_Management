@@ -7,6 +7,7 @@ import { academicService } from '../../services/academicService';
 import { evaluationService } from '../../services/evaluationService';
 import { submissionService } from '../../services/submissionService';
 import { taskService } from '../../services/taskService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const FacultyStatus = () => {
   const { currentUser } = useAuth();
@@ -55,7 +56,7 @@ export const FacultyStatus = () => {
 
           let submissionStatus = hasSubmissions ? 'SUBMITTED' : 'NOT_SUBMITTED';
           let evalStatus = isEvaluated ? 'EVALUATED' : (hasSubmissions ? 'PENDING_EVALUATION' : 'NOT_EVALUATED');
-          let submissionDate = latestSub?.submitted_at ? new Date(latestSub.submitted_at).toLocaleDateString() : '—';
+          let submissionDate = latestSub?.submitted_at ? formatDate(latestSub.submitted_at) : '—';
           let progress = isEvaluated ? 100 : (hasSubmissions ? 60 : 0);
 
           const totalMarks = isEvaluated

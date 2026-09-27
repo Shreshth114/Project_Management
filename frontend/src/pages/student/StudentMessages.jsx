@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { messageService } from '../../services/messageService';
 import { academicService } from '../../services/academicService';
+import { formatDateTime } from '../../utils/dateFormat';
 
 import { supabase } from '../../lib/supabase';
 
@@ -139,7 +140,7 @@ export const StudentMessages = () => {
       content: m.message_text?.startsWith('[') && m.message_text.includes(']')
         ? m.message_text.slice(m.message_text.indexOf(']') + 1).trim() 
         : m.message_text,
-      timestamp: m.sent_at ? new Date(m.sent_at).toLocaleString() : 'Recently',
+      timestamp: m.sent_at ? formatDateTime(m.sent_at) : 'Recently',
       isUnread: !m.read_status,
       isIncoming: m.receiver_id === currentUser?.user_id,
       isCoordinator

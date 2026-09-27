@@ -86,7 +86,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
       case 'create-task': return 'Create & Publish Milestone Task';
       case 'submissions': return 'Student Submissions Queue';
       case 'evaluation': return 'Faculty Rubric Evaluations';
-      case 'status': return 'Compliance & Status Matrix';
+      case 'status': return 'Status';
       case 'messages': return 'Messages & Communication';
       case 'subjects': return 'Subject & Coordinator Governance';
       case 'users': return 'Registered Accounts Directory';

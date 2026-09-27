@@ -23,10 +23,6 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
     academicService.getSubjects()
       .then(subs => {
         setSubjects(subs || []);
-        if (subs && subs.length > 0) {
-          setSubjectCode(subs[0].subject_code || subs[0].code);
-          setSubjectName(subs[0].subject_name || subs[0].name);
-        }
       })
       .catch(console.error)
       .finally(() => setLoadingSubjects(false));
@@ -228,7 +224,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               disabled={isSubmitting}
             >
               <UserCheck size={16} />
-              <span>{isSubmitting ? 'PROCESSING ENROLMENT...' : 'SUBMIT FACULTY ENROLMENT'}</span>
+              <span>Submit</span>
             </button>
           </form>
         </div>

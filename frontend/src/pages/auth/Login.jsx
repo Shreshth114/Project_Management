@@ -210,7 +210,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
                 onClick={onNavigateRegisterStudent}
                 style={{ width: '100%', color: 'var(--text-heading)', fontWeight: 700 }}
               >
-                🎓 New Student? Register Student Account
+                New Student? Register Student Account
               </button>
 
               <button
@@ -219,7 +219,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
                 onClick={onNavigateRegisterFaculty}
                 style={{ width: '100%', color: 'var(--rit-magenta)', fontWeight: 700 }}
               >
-                👨‍🏫 Faculty Member? Register Faculty Account
+                Faculty Member? Register Faculty Account
               </button>
             </div>
           </div>

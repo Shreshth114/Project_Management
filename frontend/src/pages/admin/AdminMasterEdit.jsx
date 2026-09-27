@@ -9,6 +9,7 @@ import { Badge } from '../../components/common/Badge';
 import { academicService } from '../../services/academicService';
 import { taskService } from '../../services/taskService';
 import { messageService } from '../../services/messageService';
+import { formatDate, formatDateTime } from '../../utils/dateFormat';
 
 export const AdminMasterEdit = () => {
   const { currentUser, assignFacultyAsCoordinator } = useAuth();
@@ -29,6 +30,7 @@ export const AdminMasterEdit = () => {
 
   // Milestone Task Deadline
   const [selectedTask, setSelectedTask] = useState('');
+  const [selectedExtensionTask, setSelectedExtensionTask] = useState('');
   const [newSubmissionDeadline, setNewSubmissionDeadline] = useState('');
   const [deadlineSuccess, setDeadlineSuccess] = useState('');
 
@@ -67,19 +69,6 @@ export const AdminMasterEdit = () => {
       setSubjectsList(fetchedSubjects || []);
       setMessagesList(fetchedMessages || []);
       setDirectoryUsers(dir.users || []);
-
-      if (fetchedTeams?.length > 0) setSelectedGroup(fetchedTeams[0].team_id);
-      if (fetchedTasks?.length > 0) {
-        setSelectedTask(fetchedTasks[0].task_id);
-        setNewSubmissionDeadline(fetchedTasks[0].deadline ? fetchedTasks[0].deadline.slice(0, 10) : '');
-      }
-      if (fetchedFaculties?.length > 0) {
-        setNewGuide(fetchedFaculties[0].faculty_id);
-        setNewCoordinatorName(fetchedFaculties[0].name);
-      }
-      if (fetchedSubjects?.length > 0) {
-        setSubjectToAssign(fetchedSubjects[0].subject_code || fetchedSubjects[0].code);
-      }
     } catch (err) {
       console.error("AdminMasterEdit load failed:", err);
       setError("Failed to load administration dataset.");
@@ -90,11 +79,14 @@ export const AdminMasterEdit = () => {
 
   const handleGuideOverride = async (e) => {
     e.preventDefault();
+    if (!selectedGroup || !newGuide) return;
     try {
       setError('');
       await academicService.updateTeamGuide(selectedGroup, newGuide);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      setSelectedGroup('');
+      setNewGuide('');
       loadData();
     } catch (err) {
       setError('Failed to reassign guide: ' + err.message);
@@ -103,17 +95,19 @@ export const AdminMasterEdit = () => {
 
   const handleDeadlineOverride = async (e) => {
     e.preventDefault();
+    if (!selectedExtensionTask) return;
     try {
       setError('');
-      const task = tasks.find(t => String(t.task_id) === String(selectedTask));
+      const task = tasks.find(t => String(t.task_id) === String(selectedExtensionTask));
       if (!task) return;
       const currentDeadline = new Date(task.deadline || Date.now());
       currentDeadline.setHours(currentDeadline.getHours() + parseInt(extensionHours, 10));
       
-      await taskService.updateTaskDeadline(selectedTask, currentDeadline.toISOString());
+      await taskService.updateTaskDeadline(selectedExtensionTask, currentDeadline.toISOString());
       
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      setSelectedExtensionTask('');
       loadData();
     } catch (err) {
       setError('Failed to extend deadline: ' + err.message);
@@ -128,6 +122,8 @@ export const AdminMasterEdit = () => {
       await taskService.updateTaskDeadline(selectedTask, newSubmissionDeadline);
       setDeadlineSuccess(`Milestone deadline successfully updated to ${newSubmissionDeadline}!`);
       setTimeout(() => setDeadlineSuccess(''), 4000);
+      setSelectedTask('');
+      setNewSubmissionDeadline('');
       loadData();
     } catch (err) {
       setError('Failed to update milestone deadline: ' + err.message);
@@ -170,6 +166,7 @@ export const AdminMasterEdit = () => {
 
   const handleAssignCoordinator = async (e) => {
     e.preventDefault();
+    if (!newCoordinatorName || !subjectToAssign) return;
     try {
       setError('');
       await academicService.assignCoordinator(newCoordinatorName, subjectToAssign);
@@ -178,6 +175,8 @@ export const AdminMasterEdit = () => {
       }
       setAssignSuccess(`✓ ${newCoordinatorName} assigned as Coordinator for ${subjectToAssign}. Changes are active immediately.`);
       setTimeout(() => setAssignSuccess(''), 5000);
+      setSubjectToAssign('');
+      setNewCoordinatorName('');
       loadData();
     } catch (err) {
       setError("Failed to assign coordinator: " + err.message);
@@ -245,14 +244,14 @@ export const AdminMasterEdit = () => {
                 onChange={(e) => {
                   setSelectedTask(e.target.value);
                   const task = tasks.find(t => String(t.task_id) === String(e.target.value));
-                  if (task?.deadline) {
-                    setNewSubmissionDeadline(task.deadline.slice(0, 10));
-                  }
+                  setNewSubmissionDeadline(task?.deadline ? task.deadline.slice(0, 10) : '');
                 }}
+                required
               >
+                <option value="" disabled>Select a milestone task</option>
                 {tasks.map(t => (
                   <option key={t.task_id} value={t.task_id}>
-                    {t.title} (Current: {t.deadline ? new Date(t.deadline).toLocaleDateString() : 'N/A'})
+                    {t.title} (Current: {t.deadline ? formatDate(t.deadline) : 'N/A'})
                   </option>
                 ))}
               </select>
@@ -285,9 +284,11 @@ export const AdminMasterEdit = () => {
               <label className="form-label">Select Milestone Phase</label>
               <select 
                 className="form-select"
-                value={selectedTask}
-                onChange={(e) => setSelectedTask(e.target.value)}
+                value={selectedExtensionTask}
+                onChange={(e) => setSelectedExtensionTask(e.target.value)}
+                required
               >
+                <option value="" disabled>Select a milestone phase</option>
                 {tasks.map(t => (
                   <option key={t.task_id} value={t.task_id}>{t.title}</option>
                 ))}
@@ -321,7 +322,9 @@ export const AdminMasterEdit = () => {
                 className="form-select"
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
+                required
               >
+                <option value="" disabled>Select a project group</option>
                 {teams.map(g => (
                   <option key={g.team_id} value={g.team_id}>
                     {g.team_code} - {g.subject?.subject_name || 'Project'} (Current Guide: {g.guide?.name || 'Unassigned'})
@@ -336,7 +339,9 @@ export const AdminMasterEdit = () => {
                 className="form-select"
                 value={newGuide}
                 onChange={(e) => setNewGuide(e.target.value)}
+                required
               >
+                <option value="" disabled>Select a faculty guide</option>
                 {faculties.map(f => (
                   <option key={f.faculty_id} value={f.faculty_id}>{f.name}</option>
                 ))}
@@ -409,7 +414,9 @@ export const AdminMasterEdit = () => {
                 className="form-select"
                 value={subjectToAssign}
                 onChange={(e) => setSubjectToAssign(e.target.value)}
+                required
               >
+                <option value="" disabled>Select a subject</option>
                 {subjectsList.map((s, idx) => (
                   <option key={s.subject_id || s.id || idx} value={s.subject_code || s.code}>
                     {s.subject_code || s.code} - {s.subject_name || s.name} (Current: {s.coordinator || 'Not Assigned'})
@@ -424,7 +431,9 @@ export const AdminMasterEdit = () => {
                 className="form-select"
                 value={newCoordinatorName}
                 onChange={(e) => setNewCoordinatorName(e.target.value)}
+                required
               >
+                <option value="" disabled>Select a faculty member</option>
                 {faculties.map((g, idx) => (
                   <option key={g.faculty_id || g.id || idx} value={g.name}>{g.name}</option>
                 ))}
@@ -479,7 +488,7 @@ export const AdminMasterEdit = () => {
                         {msg.message_text}
                       </td>
                       <td data-label="Timestamp" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {msg.sent_at ? new Date(msg.sent_at).toLocaleString() : 'N/A'}
+                        {msg.sent_at ? formatDateTime(msg.sent_at) : 'N/A'}
                       </td>
                       <td data-label="Action">
                         <button

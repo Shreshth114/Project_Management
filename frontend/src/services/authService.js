@@ -48,7 +48,9 @@ export const authService = {
       } else if (data?.session) {
         return { success: true, user: data.user, session: data.session };
       }
+      if (error) supabaseAuthError = error;
     } catch (authErr) {
+      supabaseAuthError = authErr;
       console.warn("Supabase auth signIn notice, checking users table:", authErr?.message);
       supabaseAuthError = authErr;
     }
@@ -74,7 +76,8 @@ export const authService = {
         };
         return { success: true, user: appUser, session: { user: appUser } };
       } else {
-        throw new Error("Invalid login credentials.");
+        console.error("DEBUG LOGIN - Hash mismatch!");
+        throw new Error("Invalid login credentials. (Hash mismatch)");
       }
     }
 

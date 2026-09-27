@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const CoordinatorTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -128,7 +129,7 @@ export const CoordinatorTasks = () => {
           const computedMax = task.evaluation_criteria && task.evaluation_criteria.length > 0
             ? task.evaluation_criteria.reduce((sum, c) => sum + Number(c.max_marks || 0), 0)
             : (task.maxMarks || 100);
-          const deadlineStr = task.deadline ? (task.deadline.includes('T') ? task.deadline.split('T')[0] : task.deadline) : '—';
+          const deadlineStr = task.deadline ? formatDate(task.deadline) : '—';
 
           return (
             <Card key={task.task_id || task.id}>

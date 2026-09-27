@@ -7,6 +7,7 @@ import { academicService } from '../../services/academicService';
 import { submissionService } from '../../services/submissionService';
 import { taskService } from '../../services/taskService';
 import { evaluationService } from '../../services/evaluationService';
+import { formatDate } from '../../utils/dateFormat';
 
 export const FacultyDashboard = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -60,7 +61,7 @@ export const FacultyDashboard = () => {
                 taskTitle: allTasks.find(t => t.task_id === sub.task_id)?.title || `Milestone ${sub.task_id}`,
                 fileName: sub.file_name,
                 fileSize: sub.file_type,
-                submittedAt: sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'Recently'
+                submittedAt: sub.submitted_at ? formatDate(sub.submitted_at) : 'Recently'
               });
             });
           }

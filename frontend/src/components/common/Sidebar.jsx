@@ -16,7 +16,7 @@ import {
   LifeBuoy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const getNavItemsByRole = (role) => {
   switch (role) {
@@ -99,19 +99,8 @@ export const ProjectInfo = () => (
 );
 
 export const Sidebar = () => {
-  const { currentUser, currentRole, activeTab, setActiveTab, setShowModeSelectionLanding, data, isSidebarCollapsed, setIsSidebarCollapsed } = useAuth();
+  const { currentRole, activeTab, setActiveTab, isSidebarCollapsed, setIsSidebarCollapsed } = useAuth();
   const navItems = getNavItemsByRole(currentRole);
-
-  const isAssignedCoordinator = currentUser?.is_coordinator ||
-    currentUser?.teacherRoles?.includes('COORDINATOR') ||
-    (data?.subjects || []).some(
-      s => s.coordinator === currentUser?.name || s.coordinator === currentUser?.username
-    ) || currentUser?.role === 'COORDINATOR';
-
-  const isTeacher = currentUser?.role === 'TEACHER' ||
-    currentUser?.role === 'FACULTY' ||
-    currentUser?.role === 'COORDINATOR' ||
-    (currentUser?.teacherRoles && currentUser.teacherRoles.length > 0);
 
   return (
     <aside className={`portal-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -171,27 +160,6 @@ export const Sidebar = () => {
           );
         })}
       </ul>
-
-      {/* Switch workspace (faculty+coordinator only) */}
-      {isTeacher && isAssignedCoordinator && (
-        <div style={{ padding: isSidebarCollapsed ? '16px 8px' : '0 16px 16px 16px' }}>
-          <button
-            onClick={() => setShowModeSelectionLanding(true)}
-            className="btn btn-secondary btn-block"
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: '8px', fontSize: '13px', padding: '10px',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: 'var(--text-inverse)'
-            }}
-            title="Switch Workspace"
-          >
-            <RefreshCw size={16} />
-            {!isSidebarCollapsed && <span>Switch Workspace</span>}
-          </button>
-        </div>
-      )}
 
       {/* Project info — right below nav items */}
       {!isSidebarCollapsed && <ProjectInfo />}
