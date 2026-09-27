@@ -86,15 +86,7 @@ export const academicService = {
       const facultyId = facultyRecord.faculty_id;
       const userId = facultyRecord.user_id;
 
-      // 2. Set is_coordinator = true for this faculty
-      await supabase
-        .from('faculty')
-        .update({ is_coordinator: true })
-        .eq('faculty_id', facultyId);
-
-      console.log('[assignCoordinator] Assigned coordinator for:', facultyRecord.name, 'facultyId:', facultyId);
-
-      // 3. Link faculty to subject if subjectCode given
+      // 2. Link faculty to subject and set coordinator
       if (subjectCode) {
         const { data: matchedSubject } = await supabase
           .from('subject')
@@ -103,12 +95,29 @@ export const academicService = {
           .maybeSingle();
 
         if (matchedSubject?.subject_id) {
+          // Demote previous coordinator for this subject so only one faculty is coordinator
           await supabase
             .from('faculty')
-            .update({ subject_id: matchedSubject.subject_id })
+            .update({ is_coordinator: false })
+            .eq('subject_id', matchedSubject.subject_id)
+            .neq('faculty_id', facultyId);
+
+          await supabase
+            .from('faculty')
+            .update({ subject_id: matchedSubject.subject_id, is_coordinator: true })
             .eq('faculty_id', facultyId);
-          console.log('[assignCoordinator] Linked faculty to subject_id:', matchedSubject.subject_id);
+          console.log('[assignCoordinator] Linked faculty to subject_id and assigned coordinator:', matchedSubject.subject_id);
+        } else {
+          await supabase
+            .from('faculty')
+            .update({ is_coordinator: true })
+            .eq('faculty_id', facultyId);
         }
+      } else {
+        await supabase
+          .from('faculty')
+          .update({ is_coordinator: true })
+          .eq('faculty_id', facultyId);
       }
 
       return { success: true, facultyId, userId, facultyName: facultyRecord.name };
