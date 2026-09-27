@@ -92,7 +92,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
       case 'users': return 'Registered Accounts Directory';
       case 'logs': return 'Security & Event Audit Logs';
       case 'master-edit': return 'Master Edit & Deadlines Control';
-      case 'profile': return 'User Profile & Enrolments';
+      case 'profile': return 'Profile';
       default: return 'Portal Overview';
     }
   };

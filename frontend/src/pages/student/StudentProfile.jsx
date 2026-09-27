@@ -143,9 +143,9 @@ export const StudentProfile = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div className="stagger-1">
-        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Student Profile & Project Enrolments</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Student Overview</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Overview of registered academic projects and additional course enrolments.
+          Your student details and current project information.
         </p>
       </div>
 
@@ -158,7 +158,7 @@ export const StudentProfile = () => {
 
       {currentUser && (
         <>
-          <div className="grid-3 stagger-2">
+          <div className="grid-2 stagger-2">
             <Card title="Student Credentials">
               <div style={{ textAlign: 'center', padding: '10px 0' }}>
                 <div style={{
@@ -180,33 +180,18 @@ export const StudentProfile = () => {
                 <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--badge-danger-text)', margin: '4px 0' }}>
                   USN: {currentUser.usn || currentUser.student_id || 'N/A'}
                 </div>
-                <Badge variant="navy">{currentUser.batch || 'Current Academic Year'}</Badge>
               </div>
             </Card>
 
-            <Card title="System Managed Enrolment">
+            <Card title="Academic & Project Details">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
                 <div><strong>Subject Code:</strong> {activeSubjectCode}</div>
-                <div><strong>Academic Batch:</strong> {currentUser.batch || 'Current Academic Year'}</div>
-                
                 <div>
                   <strong>Allocated Guide:</strong>{' '}
                   <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{activeGuide}</span>
                 </div>
-
-
                 <div><strong>Assigned Coordinator:</strong> <span style={{ color: 'var(--rit-magenta)', fontWeight: 700 }}>{activeCoordinator}</span></div>
-                <div><strong>Group Association:</strong> {activeGroupCode}</div>
-                <div><strong>Leader Status:</strong> {team ? 'Group Member' : 'Not Enrolled'}</div>
-              </div>
-            </Card>
-
-            <Card title="Project Group Overview">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
-                <div><strong>Group Title:</strong> {activeTitle}</div>
-                <div><strong>Domain:</strong> {team?.domain || 'Computer Science & Engineering'}</div>
-                <div><strong>Submission Mode:</strong> <Badge variant="navy">Digital</Badge></div>
-                <div><strong>Overall Status:</strong> <span style={{ color: team ? 'var(--badge-success-text)' : 'var(--text-muted)', fontWeight: 600 }}>{team ? '● Active' : '○ Pending Allocation'}</span></div>
+                <div><strong>Team / Group Name:</strong> {activeGroupCode}</div>
               </div>
             </Card>
           </div>
@@ -284,7 +269,7 @@ export const StudentProfile = () => {
 
       {/* Box 2: Interactive Add Another Project Box */}
       <div className="stagger-5">
-        <Card title="Add Another Project / Course Enrolment">
+        <Card title="Add Another Project / Course">
         <form onSubmit={handleAddProject}>
           <div className="grid-2">
             <div className="form-group">
