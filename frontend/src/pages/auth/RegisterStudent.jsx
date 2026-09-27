@@ -33,7 +33,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
       setLoadingOptions(true);
       const [fetchedSubjects, fetchedFaculty] = await Promise.all([
         academicService.getSubjects().catch(() => []),
-        academicService.getFaculty().catch(() => [])
+        academicService.getFacultyForRegistration().catch(() => [])
       ]);
 
       setSubjects(fetchedSubjects || []);

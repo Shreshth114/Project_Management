@@ -134,7 +134,7 @@ export const StudentSubmissions = () => {
       };
 
       if (submissionType === 'file' && file) {
-        fileInfo = await submissionService.uploadFile(file, currentUser.student_id, selectedTaskId);
+        fileInfo = await submissionService.uploadFile(file, selectedTaskId);
       }
 
       const payload = {

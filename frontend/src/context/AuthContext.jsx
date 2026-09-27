@@ -54,39 +54,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleProfileResolution = async (session, event = null) => {
       if (!session) {
-        const savedProfile = localStorage.getItem('rit_current_user_profile');
-        if (savedProfile) {
-          try {
-            const cached = JSON.parse(savedProfile);
-            // Re-fetch fresh profile from DB using cached email to reflect any admin assignments immediately
-            let freshProfile = null;
-            try {
-              if (cached?.email) {
-                freshProfile = await authService.getUserProfile(cached.email);
-              }
-            } catch (fetchErr) {
-              console.warn("Notice: could not refresh profile from DB, using cached:", fetchErr?.message);
-            }
-            const profile = freshProfile || cached;
-            setCurrentUser(profile);
-            localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
-
-            if (profile.role === 'STUDENT') {
-              setCurrentRole('STUDENT');
-            } else if (profile.role === 'ADMIN') {
-              setCurrentRole('ADMIN');
-            } else if (profile.role === 'TEACHER') {
-              const isAssignedCoord = profile.teacherRoles?.includes('COORDINATOR') ||
-                profile.is_coordinator ||
-                profile.isCoordinator;
-              setCurrentRole(prev => prev || (profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY'));
-            }
-            setIsAuthLoading(false);
-            return;
-          } catch (e) {
-            localStorage.removeItem('rit_current_user_profile');
-          }
-        }
+        localStorage.removeItem('rit_current_user_profile');
         setCurrentUser(null);
         setCurrentRole(null);
         setActiveTab('login');

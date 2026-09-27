@@ -44,6 +44,14 @@ export const academicService = {
     return data;
   },
 
+  async getFacultyForRegistration() {
+    const { data, error } = await supabase
+      .from('faculty')
+      .select('faculty_id, name, is_coordinator, subject_id');
+    if (error) throw error;
+    return data;
+  },
+
   async assignCoordinator(facultyIdentifier, subjectCode) {
     try {
       if (!facultyIdentifier) return { success: false, reason: 'No faculty identifier provided' };
@@ -245,7 +253,7 @@ export const academicService = {
       { data: teamData, error: teamError },
       { data: subjectData, error: subjectError }
     ] = await Promise.all([
-      supabase.from('users').select('*').order('user_id'),
+      supabase.from('users').select('user_id, auth_id, email, role').order('user_id'),
       supabase.from('student').select('*').order('student_id'),
       supabase.from('faculty').select('*').order('faculty_id'),
       supabase.from('admin').select('*').order('admin_id'),

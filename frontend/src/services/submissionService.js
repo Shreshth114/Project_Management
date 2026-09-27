@@ -108,28 +108,24 @@ export const submissionService = {
     return data;
   },
 
-  async uploadFile(file, studentId, taskId) {
+  async uploadFile(file, taskId) {
     const fileExt = (file.name.split('.').pop() || 'dat').toLowerCase();
-    const fileName = `${studentId}-${taskId}-${Date.now()}.${fileExt}`;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error('Sign in before uploading a submission.');
+    const filePath = `${user.id}/${taskId}/${crypto.randomUUID()}.${fileExt}`;
     
     // 1. Attempt upload to Supabase Storage bucket
     try {
       const { data, error } = await supabase.storage
         .from('submissions')
-        .upload(fileName, file, { upsert: true });
+        .upload(filePath, file, { upsert: false });
         
       if (!error && data) {
-        const { data: publicUrlData } = supabase.storage
-          .from('submissions')
-          .getPublicUrl(fileName);
-          
-        if (publicUrlData?.publicUrl) {
-          return {
-            file_name: file.name,
-            file_url: publicUrlData.publicUrl,
-            file_type: fileExt.toUpperCase()
-          };
-        }
+        return {
+          file_name: file.name,
+          file_url: data.path,
+          file_type: fileExt.toUpperCase()
+        };
       }
     } catch (storageErr) {
       console.warn("Supabase storage upload notice, using embedded deliverable fallback:", storageErr);
@@ -150,7 +146,7 @@ export const submissionService = {
     });
   },
 
-  openSubmissionFile(fileUrl, fileName = 'submission_document') {
+  async openSubmissionFile(fileUrl, fileName = 'submission_document') {
     if (!fileUrl || fileUrl === '#' || fileUrl.trim() === '') {
       alert('No active deliverable document attached to this submission record.');
       return;
@@ -195,6 +191,15 @@ export const submissionService = {
       }
     }
 
-    window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    const { data, error } = await supabase.storage
+      .from('submissions')
+      .createSignedUrl(fileUrl, 120, { download: fileName });
+
+    if (error || !data?.signedUrl) {
+      alert('Could not create a temporary link for this submission.');
+      return;
+    }
+
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
   }
 };
