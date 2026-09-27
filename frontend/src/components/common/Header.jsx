@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { RitLogo } from './RitLogo';
 import { Badge } from './Badge';
 
@@ -27,6 +28,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
   } = useAuth();
   
   const { theme, toggleTheme } = useTheme();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -75,8 +77,6 @@ export const Header = ({ onToggleMobileDrawer }) => {
   const handleModeToggle = () => {
     setShowModeSelectionLanding(true);
   };
-
-  const circularsList = (data?.messages || []).filter(m => m.category === 'CIRCULAR' || m.senderRole === 'ADMIN');
 
   const formatTitle = (tab) => {
     switch (tab) {
@@ -179,7 +179,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {circularsList.length || 0}
+              {unreadCount || 0}
             </span>
           </button>
 
@@ -229,8 +229,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
                 </button>
               </div>
 
-              <div style={{ maxHeight: '300px', overflowY: 'auto', padding: circularsList.length === 0 ? '0' : '8px 0' }}>
-                {circularsList.length === 0 ? (
+              <div style={{ maxHeight: '300px', overflowY: 'auto', padding: notifications.length === 0 ? '0' : '8px 0' }}>
+                {notifications.length === 0 ? (
                   <div style={{
                     padding: '40px 20px',
                     textAlign: 'center',
@@ -245,28 +245,65 @@ export const Header = ({ onToggleMobileDrawer }) => {
                     </div>
                   </div>
                 ) : (
-                  circularsList.map(item => (
+                  notifications.map(item => (
                     <div 
                       key={item.id}
+                      onClick={() => !item.is_read && markAsRead(item)}
                       style={{
                         padding: '10px 16px',
                         borderBottom: '1px solid var(--border-subtle)',
-                        backgroundColor: 'var(--bg-surface)'
+                        backgroundColor: item.is_read ? 'var(--bg-surface)' : 'rgba(184, 17, 91, 0.05)',
+                        cursor: item.is_read ? 'default' : 'pointer',
+                        transition: 'background-color 0.15s ease'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--rit-orange-red)' }}>
-                          📢 OFFICIAL CIRCULAR
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--rit-orange-red)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                          📢 {item.category || 'OFFICIAL CIRCULAR'}
+                          {!item.is_read && (
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#DE3B0B', display: 'inline-block' }} />
+                          )}
                         </span>
                         <span style={{ fontSize: '10px', color: 'var(--text-disabled)' }}>{item.timestamp}</span>
                       </div>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-heading)' }}>{item.subject}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.3 }}>{item.content}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-disabled)', marginTop: '4px' }}>From: Admin Office</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', lineHeight: 1.3, wordBreak: 'break-word' }}>{item.content}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-disabled)', marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>From: {item.sender}</span>
+                        {!item.is_read && (
+                          <span style={{ color: 'var(--rit-orange-red)', fontWeight: 600, fontSize: '10px' }}>Mark read</span>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
               </div>
+
+              {notifications.length > 0 && unreadCount > 0 && (
+                <div style={{
+                  padding: '8px 16px',
+                  borderTop: '1px solid var(--border-subtle)',
+                  backgroundColor: 'var(--bg-page)',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center'
+                }}>
+                  <button
+                    onClick={markAllAsRead}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#B8115B',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: '2px 4px'
+                    }}
+                  >
+                    Mark all as read
+                  </button>
+                </div>
+              )}
             </div>
           </>
           )}
