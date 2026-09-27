@@ -43,8 +43,12 @@ export const authService = {
   },
 
   async registerUser(newUser) {
+    const redirectTo = typeof window !== 'undefined'
+      ? window.location.origin + (import.meta.env.BASE_URL || '/')
+      : undefined;
+
     const { data, error } = await supabase.functions.invoke('register-user', {
-      body: newUser
+      body: { ...newUser, redirectTo }
     });
 
     if (error) {
@@ -227,7 +231,24 @@ export const authService = {
       }
     }
     
-    
+    return { success: true };
+  },
+
+  async resendVerificationEmail(email) {
+    // Generate the correct environment-aware redirect URL for the verification link
+    const isVercel = import.meta.env.VITE_VERCEL === '1';
+    const baseUrl = isVercel ? window.location.origin : `${window.location.origin}/pms`;
+    const redirectTo = `${baseUrl}/#type=signup`;
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: redirectTo
+      }
+    });
+
+    if (error) throw error;
     return { success: true };
   }
 };

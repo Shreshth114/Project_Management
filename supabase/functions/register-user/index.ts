@@ -64,7 +64,9 @@ Deno.serve(async (request) => {
     });
 
     const origin = request.headers.get("origin");
-    const emailRedirectTo = origin ? new URL("/pms/", origin).toString() : undefined;
+    const bodyRedirectTo = typeof body.redirectTo === "string" ? body.redirectTo : undefined;
+    const emailRedirectTo = bodyRedirectTo || (origin ? new URL("/pms/", origin).toString() : undefined);
+    
     const { data: authData, error: authError } = await authClient.auth.signUp({
       email,
       password,

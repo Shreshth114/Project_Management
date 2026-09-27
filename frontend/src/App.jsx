@@ -7,6 +7,7 @@ import { RegisterStudent } from './pages/auth/RegisterStudent';
 import { RegisterFaculty } from './pages/auth/RegisterFaculty';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { ResetPassword } from './pages/auth/ResetPassword';
+import { EmailVerified } from './pages/auth/EmailVerified';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 const MainContent = () => {
@@ -18,6 +19,17 @@ const MainContent = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const urlStr = window.location.hash || window.location.search;
+      
+      if (urlStr.includes('type=signup')) {
+        setAuthView('email-verified');
+        return;
+      }
+
+      if (urlStr.includes('error=access_denied') && urlStr.includes('Email+link')) {
+        setAuthView('email-verified-error');
+        return;
+      }
+
       if (urlStr.includes('reset-password') || urlStr.includes('type=recovery') || urlStr.includes('error_code=otp_expired')) {
         setAuthView('reset-password');
         
@@ -69,6 +81,22 @@ const MainContent = () => {
             if (clearRecoveryState) clearRecoveryState();
             setAuthView('login');
           }} 
+        />
+      );
+    }
+    if (authView === 'email-verified') {
+      return (
+        <EmailVerified 
+          isError={false}
+          onBackToLogin={() => setAuthView('login')}
+        />
+      );
+    }
+    if (authView === 'email-verified-error') {
+      return (
+        <EmailVerified 
+          isError={true}
+          onBackToLogin={() => setAuthView('login')}
         />
       );
     }
