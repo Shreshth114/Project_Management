@@ -71,7 +71,7 @@ export const authService = {
 
     const { data: userRecord, error: userError } = await supabase
       .from('users')
-      .select('user_id, auth_id, email, role')
+      .select('user_id, auth_id, email, role, gender, phone, avatar_url')
       .eq('auth_id', authId)
       .maybeSingle();
 
@@ -200,6 +200,34 @@ export const authService = {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw error;
 
+    return { success: true };
+  },
+
+  async updateProfile(userId, updates) {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        ...(updates.gender !== undefined && { gender: updates.gender }),
+        ...(updates.phone !== undefined && { phone: updates.phone }),
+        ...(updates.avatar_url !== undefined && { avatar_url: updates.avatar_url })
+      })
+      .eq('user_id', userId);
+
+    if (error) throw new Error('Failed to update profile: ' + error.message);
+
+    // Update name in respective table if requested
+    if (updates.name) {
+      const { data: user } = await supabase.from('users').select('role').eq('user_id', userId).single();
+      if (user) {
+        if (user.role === 'STUDENT') {
+          await supabase.from('student').update({ name: updates.name }).eq('user_id', userId);
+        } else if (user.role === 'TEACHER' || user.role === 'FACULTY') {
+          await supabase.from('faculty').update({ name: updates.name }).eq('user_id', userId);
+        }
+      }
+    }
+    
+    
     return { success: true };
   }
 };
