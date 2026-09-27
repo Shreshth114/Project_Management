@@ -187,67 +187,6 @@ export const CoordinatorProfile = () => {
         )}
       </Card>
 
-      {/* Add Project Allocation */}
-      <Card title="Add Coordinator Project Allocation">
-        <form onSubmit={handleAddCoordinatorProject}>
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label">Subject Name</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Major Project Phase - II"
-                value={newSubjectName}
-                onChange={(e) => setNewSubjectName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Subject Code</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. 21CSP81"
-                value={newSubjectCode}
-                onChange={(e) => setNewSubjectCode(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label">Group Name</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Group G01 or Team Gamma"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Project Name</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Edge AI Cardiac Vision Detection System"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '10px' }}>
-            <Plus size={16} />
-            <span>ADD COORDINATOR PROJECT ALLOCATION</span>
-          </button>
-        </form>
-      </Card>
     </div>
   );
 };
