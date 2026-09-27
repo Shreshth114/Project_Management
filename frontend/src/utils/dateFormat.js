@@ -31,6 +31,8 @@ export const formatDate = value => {
   return Number.isNaN(date.getTime()) ? String(value) : dateFormatter.format(date);
 };
 
+export const getTodayISO = () => new Date().toISOString().split('T')[0];
+
 export const formatDateTime = value => {
   if (value == null || value === '') return '';
   const date = parseDate(value);

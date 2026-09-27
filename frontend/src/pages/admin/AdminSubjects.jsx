@@ -206,8 +206,8 @@ export const AdminSubjects = () => {
                 <table className="portal-table">
                   <thead>
                     <tr>
-                      <th>Subject Code</th>
-                      <th>Subject Title</th>
+                      <th>Course Code</th>
+                      <th>Course Title</th>
                       <th>Credits</th>
                       <th>Assigned Coordinator</th>
                       <th>Status</th>
@@ -216,8 +216,8 @@ export const AdminSubjects = () => {
                   <tbody>
                     {subjectsList.map((s, idx) => (
                       <tr key={s.subject_id || idx}>
-                        <td data-label="Subject Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.subject_code || s.code}</td>
-                        <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
+                        <td data-label="Course Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.subject_code || s.code}</td>
+                        <td data-label="Course Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
                         <td data-label="Credits">{s.credits || 6} Credits</td>
                         <td data-label="Coordinator" style={{ fontWeight: 700, color: s.coordinator ? 'var(--text-heading)' : 'var(--text-disabled)' }}>
                           {s.coordinator || <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Not Assigned</span>}
@@ -237,7 +237,7 @@ export const AdminSubjects = () => {
           <Card title="Add Subject">
             <form onSubmit={handleAddSubject}>
               <div className="form-group">
-                <label className="form-label">Subject Code</label>
+                <label className="form-label">Course Code</label>
                 <input
                   type="text"
                   className="form-input"
@@ -249,7 +249,7 @@ export const AdminSubjects = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Full Name</label>
+                <label className="form-label">Course Full Name</label>
                 <input
                   type="text"
                   className="form-input"

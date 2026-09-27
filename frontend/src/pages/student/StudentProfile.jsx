@@ -185,7 +185,7 @@ export const StudentProfile = () => {
 
             <Card title="Academic & Project Details">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
-                <div><strong>Subject Code:</strong> {activeSubjectCode}</div>
+                <div><strong>Course Code:</strong> {activeSubjectCode}</div>
                 <div>
                   <strong>Allocated Guide:</strong>{' '}
                   <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{activeGuide}</span>

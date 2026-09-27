@@ -236,7 +236,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Course Subject Code</label>
+                <label className="form-label">Course Code</label>
                 <select 
                   className="form-select"
                   value={selectedSubject}

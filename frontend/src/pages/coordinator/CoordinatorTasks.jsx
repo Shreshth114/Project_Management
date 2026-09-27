@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { taskService } from '../../services/taskService';
-import { formatDate } from '../../utils/dateFormat';
+import { formatDate, getTodayISO } from '../../utils/dateFormat';
 
 export const CoordinatorTasks = () => {
   const { currentUser, setActiveTab } = useAuth();
@@ -44,7 +44,7 @@ export const CoordinatorTasks = () => {
     setEditingTask(task);
     setTitle(task.title || '');
     setDescription(task.description || '');
-    setDeadline(task.deadline ? (task.deadline.includes('T') ? task.deadline.split('T')[0] : task.deadline) : '2025-10-25');
+    setDeadline(task.deadline ? (task.deadline.includes('T') ? task.deadline.split('T')[0] : task.deadline) : getTodayISO());
     const computedMax = task.evaluation_criteria && task.evaluation_criteria.length > 0
       ? task.evaluation_criteria.reduce((sum, c) => sum + Number(c.max_marks || 0), 0)
       : (task.maxMarks || 100);

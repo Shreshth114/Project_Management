@@ -101,7 +101,7 @@ export const StudentDashboard = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Academic Year 2025–2026 | Course Code: {subjectCode}
+              Course Code: {subjectCode}
             </div>
             <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-inverse)', marginTop: '4px' }}>
               {title}

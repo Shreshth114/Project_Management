@@ -126,28 +126,6 @@ export const Header = ({ onToggleMobileDrawer }) => {
       </div>
 
       <div className="header-right">
-        {/* Desktop Segmented Mode Switcher */}
-        {isTeacher && isAssignedCoordinator && (
-          <div className="segmented-control mobile-hide">
-            <button
-              className={`segmented-btn ${activeRole === 'FACULTY' ? 'active' : ''}`}
-              onClick={() => {
-                if (activeRole !== 'FACULTY') handleModeToggle();
-              }}
-            >
-              Faculty
-            </button>
-            <button
-              className={`segmented-btn ${activeRole === 'COORDINATOR' ? 'active' : ''}`}
-              onClick={() => {
-                if (activeRole !== 'COORDINATOR') handleModeToggle();
-              }}
-            >
-              Coordinator
-            </button>
-          </div>
-        )}
-
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
@@ -377,29 +355,6 @@ export const Header = ({ onToggleMobileDrawer }) => {
       </div>
     </header>
 
-    {/* Mobile Segmented Mode Switcher */}
-    {isTeacher && isAssignedCoordinator && (
-      <div className="desktop-hide" style={{ padding: '10px 16px', backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)', zIndex: 100 }}>
-        <div className="segmented-control dark">
-          <button
-            className={`segmented-btn ${activeRole === 'FACULTY' ? 'active' : ''}`}
-            onClick={() => {
-              if (activeRole !== 'FACULTY') handleModeToggle();
-            }}
-          >
-            Faculty
-          </button>
-          <button
-            className={`segmented-btn ${activeRole === 'COORDINATOR' ? 'active' : ''}`}
-            onClick={() => {
-              if (activeRole !== 'COORDINATOR') handleModeToggle();
-            }}
-          >
-            Coordinator
-          </button>
-        </div>
-      </div>
-    )}
     </>
   );
 };
