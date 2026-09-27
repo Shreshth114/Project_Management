@@ -172,32 +172,21 @@ export const FacultyEvaluation = () => {
       setSubmitting(true);
       setError(null);
       
-      // 1. Locate submission for this student or team for this task
-      let submission = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
+      // Evaluate only a real student or team submission for this task.
+      const submission = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
         || submissions.find(s => Number(s.team_id) === Number(selectedGroupId) && Number(s.task_id) === Number(selectedTaskId))
         || submissions[0];
 
-      // 2. If no submission exists in the database for this team & task, create a placeholder
-      // submission so the PostgreSQL foreign key (submission_id NOT NULL) is properly satisfied
       if (!submission) {
-        submission = await submissionService.createPlaceholderSubmission({
-          task_id: Number(selectedTaskId),
-          team_id: Number(selectedGroupId),
-          submitted_by_student_id: Number(activeStudentObj.student_id),
-          file_name: 'Evaluation Entry (Pending Student Deliverable)',
-          file_type: 'FACULTY_EVAL',
-          file_url: ''
-        });
-        setSubmissions(prev => [...prev, submission]);
+        throw new Error('A student or team submission is required before evaluation.');
       }
 
       const submissionId = submission.submission_id;
 
-      // 3. Resolve valid faculty evaluator_id
-      const evaluatorId = currentUser?.faculty_id || 
-                          selectedGroup?.guide_id || 
-                          selectedGroup?.guide?.faculty_id || 
-                          2;
+      const evaluatorId = Number(currentUser?.faculty_id);
+      if (!evaluatorId) {
+        throw new Error('Your account is not linked to a faculty record. Contact the administrator.');
+      }
 
       const payloadArray = criteria.map(c => ({
         submission_id: Number(submissionId),

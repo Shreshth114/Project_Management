@@ -1,95 +1,36 @@
 import { supabase } from '../lib/supabase';
 
 export const authService = {
-  async hashPassword(password) {
-    if (typeof crypto === 'undefined' || !crypto.subtle) {
-      throw new Error("Secure connection (HTTPS) is required to process passwords locally.");
-    }
-    const msgBuffer = new TextEncoder().encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  },
-
   async login(identifier, password) {
     const trimmedId = identifier.trim();
-    let emailToUse = trimmedId;
-
-    // 1. If identifier is a USN (no '@'), resolve email from student table
     if (!trimmedId.includes('@')) {
-      const { data: studentMatch } = await supabase
-        .from('student')
-        .select('user_id')
-        .ilike('usn', trimmedId)
-        .maybeSingle();
-
-      if (studentMatch?.user_id) {
-        const { data: userMatch } = await supabase
-          .from('users')
-          .select('email')
-          .eq('user_id', studentMatch.user_id)
-          .maybeSingle();
-
-        if (userMatch?.email) {
-          emailToUse = userMatch.email;
-        }
-      }
-    }
-
-    // 2. First attempt standard Supabase Auth signInWithPassword
-    let supabaseAuthError = null;
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailToUse,
-        password: password
+      const { data, error } = await supabase.functions.invoke('public-auth', {
+        body: { action: 'login-by-usn', usn: trimmedId, password }
       });
-      if (error) {
-        supabaseAuthError = error;
-      } else if (data?.session) {
-        return { success: true, user: data.user, session: data.session };
+
+      if (error || !data?.session) {
+        throw new Error('Invalid login credentials.');
       }
-      if (error) supabaseAuthError = error;
-    } catch (authErr) {
-      supabaseAuthError = authErr;
-      console.warn("Supabase auth signIn notice, checking users table:", authErr?.message);
-      supabaseAuthError = authErr;
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.setSession(data.session);
+      if (sessionError) throw sessionError;
+      return { success: true, user: sessionData.session.user, session: sessionData.session };
     }
 
-    // 3. Check public.users table for hashed password verification
-    const { data: userRecord, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', emailToUse.toLowerCase())
-      .maybeSingle();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmedId.toLowerCase(),
+      password
+    });
 
-    if (userError || !userRecord) {
-      throw new Error(supabaseAuthError?.message || "Invalid login credentials.");
-    }
-
-    if (userRecord.password_hash && userRecord.password_hash !== 'managed_by_supabase_auth') {
-      const computedHash = await this.hashPassword(password);
-      if (computedHash === userRecord.password_hash) {
-        const appUser = {
-          id: userRecord.auth_id || `local-${userRecord.user_id}`,
-          email: userRecord.email,
-          role: userRecord.role
-        };
-        return { success: true, user: appUser, session: { user: appUser } };
-      } else {
-        console.error("DEBUG LOGIN - Hash mismatch!");
-        throw new Error("Invalid login credentials. (Hash mismatch)");
+    if (error) {
+      if (error.message?.toLowerCase().includes('email not confirmed')) {
+        throw new Error('Please check your inbox and confirm your email address before logging in.');
       }
+      throw new Error(error.message || 'Invalid login credentials.');
     }
+    if (!data?.session) throw new Error('Invalid login credentials.');
 
-    // If managed by Supabase auth and signInWithPassword failed:
-    if (supabaseAuthError) {
-      // Provide a clearer message for unconfirmed emails
-      if (supabaseAuthError.message.toLowerCase().includes('email not confirmed')) {
-        throw new Error("Please check your inbox and confirm your email address before logging in.");
-      }
-      throw new Error(supabaseAuthError.message || "Invalid login credentials.");
-    }
-    throw new Error("Invalid login credentials.");
+    return { success: true, user: data.user, session: data.session };
   },
 
   async logout() {
@@ -102,238 +43,37 @@ export const authService = {
   },
 
   async registerUser(newUser) {
-    const email = newUser.email.trim().toLowerCase();
-    const role = newUser.role || 'STUDENT';
+    const { data, error } = await supabase.functions.invoke('register-user', {
+      body: newUser
+    });
 
-    // 1. Check if user already exists in public.users
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('user_id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existingUser) {
-      return { success: false, message: "An account with this institutional email already exists." };
-    }
-
-    // 2. Check if USN already exists if registering student
-    if (newUser.usn) {
-      const { data: existingStudent } = await supabase
-        .from('student')
-        .select('student_id')
-        .ilike('usn', newUser.usn.trim())
-        .maybeSingle();
-
-      if (existingStudent) {
-        return { success: false, message: "A student with this USN is already registered." };
-      }
-    }
-
-    // 3. Attempt Supabase Auth signUp first
-    let authUserId = null;
-    try {
-      const emailRedirectTo = typeof window !== 'undefined' 
-        ? window.location.origin + (import.meta.env.BASE_URL || '/')
-        : undefined;
-
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: newUser.password,
-        options: {
-          emailRedirectTo,
-          data: {
-            name: newUser.name,
-            usn: newUser.usn,
-            role: role
-          }
-        }
-      });
-      if (!authError && authData?.user?.id) {
-        // Detect Supabase fake user object (returned when email already exists in auth.users)
-        if (authData.user.identities && authData.user.identities.length === 0) {
-          throw new Error("This email is already registered in the system. If your registration was interrupted previously, please contact the administrator to reset your account.");
-        }
-        authUserId = authData.user.id;
-      } else if (authError) {
-        // If Supabase fails to sign up, throw so we don't accidentally create an orphaned local user
-        // and fall back to manual hashing which causes crypto.subtle issues on non-HTTPS.
-        throw new Error(authError.message);
-      }
-    } catch (err) {
-      console.warn("Supabase auth signUp notice:", err.message);
-      return { success: false, message: "Registration failed: " + err.message };
-    }
-
-    // 4. Use Supabase managed flag for password_hash
-    const pwdHash = 'managed_by_supabase_auth';
-
-    // 5. Insert into public.users
-    const { data: userRecord, error: userError } = await supabase
-      .from('users')
-      .insert({
-        auth_id: authUserId,
-        email: email,
-        password_hash: pwdHash,
-        role: role
-      })
-      .select()
-      .single();
-
-    if (userError) {
-      return { success: false, message: userError.message };
-    }
-
-    // 6. Insert role-specific record
-    if (role === 'STUDENT') {
-      let teamId = null;
-
-      // Resolve subject_id
-      let subjectId = null;
-      if (newUser.subject) {
-        const { data: sub } = await supabase
-          .from('subject')
-          .select('subject_id')
-          .ilike('subject_code', newUser.subject.trim())
-          .maybeSingle();
-        subjectId = sub?.subject_id || null;
-      }
-
-      // Resolve guide_id
-      let guideId = newUser.guideId ? Number(newUser.guideId) : null;
-      if (!guideId && newUser.guide) {
-        const { data: fac } = await supabase
-          .from('faculty')
-          .select('faculty_id')
-          .ilike('name', newUser.guide.trim())
-          .maybeSingle();
-        guideId = fac?.faculty_id || null;
-      }
-
-      // Find or create team
-      const groupCode = (newUser.groupName || `Group-${(newUser.usn || '').toUpperCase()}`).trim().toUpperCase();
-      const { data: matchedTeam } = await supabase
-        .from('team')
-        .select('team_id, guide_id')
-        .ilike('team_code', groupCode)
-        .maybeSingle();
-
-      if (matchedTeam) {
-        teamId = matchedTeam.team_id;
-        // If team's guide is not set or was updated, update it
-        if (guideId && (!matchedTeam.guide_id || matchedTeam.guide_id === 1)) {
-          await supabase.from('team').update({ guide_id: guideId }).eq('team_id', teamId);
-        }
-      } else {
-        // Create new project team with the student's chosen guide and subject
-        const { data: createdTeam } = await supabase
-          .from('team')
-          .insert({
-            team_code: groupCode,
-            subject_id: subjectId || 1,
-            guide_id: guideId
-          })
-          .select('team_id')
-          .maybeSingle();
-
-        if (createdTeam) {
-          teamId = createdTeam.team_id;
+    if (error) {
+      let message = error.message || 'Registration failed.';
+      if (error.context && typeof error.context.json === 'function') {
+        try {
+          const response = await error.context.json();
+          message = response.message || response.error || message;
+        } catch {
+          // Keep the function client's safe fallback message.
         }
       }
-
-      if (!teamId) teamId = 1;
-
-      // If teamId is 1 and guideId was specified, update team 1 guide as well
-      if (teamId === 1 && guideId) {
-        await supabase.from('team').update({ guide_id: guideId }).eq('team_id', teamId);
-      }
-
-      const { error: studentError } = await supabase
-        .from('student')
-        .insert({
-          user_id: userRecord.user_id,
-          team_id: teamId,
-          usn: (newUser.usn || '').toUpperCase(),
-          name: newUser.name
-        });
-
-      if (studentError) {
-        return { success: false, message: studentError.message };
-      }
-    } else if (role === 'FACULTY' || role === 'TEACHER') {
-      let subjectId = null;
-      if (newUser.subjectCode) {
-        const { data: matchedSubject } = await supabase
-          .from('subject')
-          .select('subject_id')
-          .ilike('subject_code', newUser.subjectCode.trim())
-          .maybeSingle();
-
-        if (matchedSubject) {
-          subjectId = matchedSubject.subject_id;
-        } else {
-          // Auto-create subject if it does not exist yet
-          const { data: newSub } = await supabase
-            .from('subject')
-            .insert({
-              subject_code: newUser.subjectCode.trim().toUpperCase(),
-              subject_name: newUser.subjectName || newUser.subjectCode
-            })
-            .select('subject_id')
-            .maybeSingle();
-          if (newSub) subjectId = newSub.subject_id;
-        }
-      }
-
-      if (!subjectId) {
-        const { data: anySub } = await supabase
-          .from('subject')
-          .select('subject_id')
-          .limit(1)
-          .maybeSingle();
-        subjectId = anySub?.subject_id || 1;
-      }
-
-      const { error: facultyError } = await supabase
-        .from('faculty')
-        .insert({
-          user_id: userRecord.user_id,
-          subject_id: subjectId,
-          name: newUser.name,
-          is_coordinator: false
-        });
-
-      if (facultyError) {
-        return { success: false, message: facultyError.message };
-      }
+      return { success: false, message };
     }
 
-    let requiresEmailConfirmation = false;
-    if (authUserId) {
-      // Check if Supabase auth session was created. If not, it means email confirmation is required.
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        requiresEmailConfirmation = true;
-      }
-    }
-
-    return { success: true, requiresEmailConfirmation };
+    return data || { success: false, message: 'Registration service returned no response.' };
   },
 
   async getUserProfile(userOrEmail) {
-    let query = supabase.from('users').select('*');
-    if (typeof userOrEmail === 'string') {
-      query = query.eq('email', userOrEmail.trim().toLowerCase());
-    } else if (userOrEmail?.auth_id) {
-      query = query.or(`auth_id.eq.${userOrEmail.auth_id},email.eq.${userOrEmail.email || ''}`);
-    } else if (userOrEmail?.id && !String(userOrEmail.id).startsWith('local-')) {
-      query = query.or(`auth_id.eq.${userOrEmail.id},email.eq.${userOrEmail.email || ''}`);
-    } else if (userOrEmail?.email) {
-      query = query.eq('email', userOrEmail.email.trim().toLowerCase());
-    } else {
+    const authId = userOrEmail?.id || userOrEmail?.auth_id;
+    if (!authId || String(authId).startsWith('local-')) {
       throw new Error("Application profile not found for this user in the database.");
     }
 
-    const { data: userRecord, error: userError } = await query.maybeSingle();
+    const { data: userRecord, error: userError } = await supabase
+      .from('users')
+      .select('user_id, auth_id, email, role')
+      .eq('auth_id', authId)
+      .maybeSingle();
 
     if (userError || !userRecord) {
       throw new Error("Application profile not found for this email in the database.");
@@ -428,51 +168,19 @@ export const authService = {
 
   async resetPasswordForEmail(identifier) {
     const trimmedId = identifier.trim();
-    let emailToUse = trimmedId.toLowerCase();
+    const redirectTo = typeof window !== 'undefined'
+      ? window.location.origin + (import.meta.env.BASE_URL || '/')
+      : undefined;
 
-    // 1. If identifier is a USN (no '@'), resolve email from student table
     if (!trimmedId.includes('@')) {
-      const { data: studentMatch } = await supabase
-        .from('student')
-        .select('user_id')
-        .ilike('usn', trimmedId)
-        .maybeSingle();
-
-      if (studentMatch?.user_id) {
-        const { data: userMatch } = await supabase
-          .from('users')
-          .select('email')
-          .eq('user_id', studentMatch.user_id)
-          .maybeSingle();
-
-        if (userMatch?.email) {
-          emailToUse = userMatch.email;
-        }
-      }
-    }
-
-    // 2. Check if user exists in public.users
-    const { data: userRecord, error: userError } = await supabase
-      .from('users')
-      .select('user_id, email, password_hash')
-      .eq('email', emailToUse)
-      .maybeSingle();
-
-    if (userError || !userRecord) {
-      // For security, do not reveal if the account exists or not.
+      const { error } = await supabase.functions.invoke('public-auth', {
+        body: { action: 'request-password-reset', identifier: trimmedId, redirectTo }
+      });
+      if (error) throw new Error('Could not process the password reset request. Please try again later.');
       return { success: true };
     }
 
-    // 2. Trigger Supabase official password recovery
-    // Do not append `#reset-password` here, as it might conflict with PKCE flow url formats.
-    // We let Supabase handle the redirect, and our app catches `type=recovery` in the URL.
-    const redirectTo = typeof window !== 'undefined' 
-      ? window.location.origin + (import.meta.env.BASE_URL || '/')
-      : undefined;
-    
-    const { data, error } = await supabase.auth.resetPasswordForEmail(emailToUse, {
-      redirectTo
-    });
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmedId.toLowerCase(), { redirectTo });
 
     if (error) {
       if (error.message?.toLowerCase().includes('rate limit')) {
@@ -481,7 +189,7 @@ export const authService = {
       throw error;
     }
 
-    return { success: true, data };
+    return { success: true };
   },
 
   async updateUserPassword(newPassword) {
@@ -489,28 +197,8 @@ export const authService = {
       throw new Error("Password must be at least 6 characters long.");
     }
 
-    // 1. Update password in Supabase Auth if session exists
-    let authError = null;
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      if (error) authError = error;
-    } catch (e) {
-      authError = e;
-    }
-
-    // 2. Compute hash and update public.users
-    const session = await supabase.auth.getSession();
-    const userEmail = session.data?.session?.user?.email;
-
-    if (userEmail) {
-      const pwdHash = await this.hashPassword(newPassword);
-      await supabase
-        .from('users')
-        .update({ password_hash: pwdHash })
-        .eq('email', userEmail.toLowerCase());
-    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
 
     return { success: true };
   }
