@@ -14,6 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { RitLogo } from './RitLogo';
 import { Badge } from './Badge';
+import { Avatar } from './Avatar';
 
 export const Header = ({ onToggleMobileDrawer }) => {
   const { 
@@ -311,8 +312,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
 
         {/* User Profile Dropdown */}
         <div ref={profileDropdownRef} style={{ position: 'relative' }}>
-          <button 
-            onClick={() => setShowDropdown(!showDropdown)}
+          <div 
+            onClick={() => { setActiveTab('profile'); setShowDropdown(false); }}
             style={{
               background: 'none',
               border: 'none',
@@ -325,26 +326,18 @@ export const Header = ({ onToggleMobileDrawer }) => {
               borderRadius: '4px'
             }}
           >
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#B8115B',
-              color: 'var(--text-inverse)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '13px'
-            }}>
-              {currentUser?.name ? currentUser.name.charAt(0) : 'U'}
-            </div>
+            <Avatar user={currentUser} size={32} />
             <div className="mobile-hide" style={{ textAlign: 'left', lineHeight: 1.2 }}>
               <div style={{ fontSize: '13px', fontWeight: 700 }}>{currentUser?.name || 'User'}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-sidebar)' }}>{activeRole}</div>
             </div>
-            <ChevronDown className="mobile-hide" size={14} color="#D1D5DB" />
-          </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}
+              style={{ background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', display: 'flex' }}
+            >
+              <ChevronDown className="mobile-hide" size={14} color="#D1D5DB" />
+            </button>
+          </div>
 
           {showDropdown && (
             <div style={{

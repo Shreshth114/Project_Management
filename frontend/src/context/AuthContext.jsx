@@ -53,6 +53,18 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const handleProfileResolution = async (session, event = null) => {
+      const hash = window.location.hash || window.location.search;
+      
+      // If this is an email confirmation link, prevent auto-login
+      if (hash.includes('type=signup') || (hash.includes('error=access_denied') && hash.includes('Email+link'))) {
+        if (session) await supabase.auth.signOut();
+        localStorage.removeItem('rit_current_user_profile');
+        setCurrentUser(null);
+        setCurrentRole(null);
+        setIsAuthLoading(false);
+        return;
+      }
+
       if (!session) {
         localStorage.removeItem('rit_current_user_profile');
         setCurrentUser(null);
@@ -439,6 +451,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const resendVerificationEmail = async (email) => {
+    try {
+      return await authService.resendVerificationEmail(email);
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -455,6 +475,7 @@ export const AuthProvider = ({ children }) => {
         assignFacultyAsCoordinator,
         resetPassword,
         updatePassword,
+        resendVerificationEmail,
         logout,
         switchTeacherRole,
         showRoleSelectionModal,

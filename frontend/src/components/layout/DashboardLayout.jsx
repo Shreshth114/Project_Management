@@ -13,8 +13,7 @@ import { StudentTasks } from '../../pages/student/StudentTasks';
 import { StudentSubmissions } from '../../pages/student/StudentSubmissions';
 import { StudentStatus } from '../../pages/student/StudentStatus';
 import { StudentMessages } from '../../pages/student/StudentMessages';
-import { StudentProfile } from '../../pages/student/StudentProfile';
-
+import { Profile } from '../../pages/profile/Profile';
 // Faculty Pages
 import { FacultyDashboard } from '../../pages/faculty/FacultyDashboard';
 import { FacultyGroups } from '../../pages/faculty/FacultyGroups';
@@ -22,7 +21,6 @@ import { FacultySubmissions } from '../../pages/faculty/FacultySubmissions';
 import { FacultyEvaluation } from '../../pages/faculty/FacultyEvaluation';
 import { FacultyStatus } from '../../pages/faculty/FacultyStatus';
 import { FacultyMessages } from '../../pages/faculty/FacultyMessages';
-import { FacultyProfile } from '../../pages/faculty/FacultyProfile';
 
 // Coordinator Pages
 import { CoordinatorDashboard } from '../../pages/coordinator/CoordinatorDashboard';
@@ -32,7 +30,6 @@ import { CoordinatorGroups } from '../../pages/coordinator/CoordinatorGroups';
 import { CoordinatorStudents } from '../../pages/coordinator/CoordinatorStudents';
 import { CoordinatorStatus } from '../../pages/coordinator/CoordinatorStatus';
 import { CoordinatorMessages } from '../../pages/coordinator/CoordinatorMessages';
-import { CoordinatorProfile } from '../../pages/coordinator/CoordinatorProfile';
 
 // Admin Pages
 import { AdminDashboard } from '../../pages/admin/AdminDashboard';
@@ -41,7 +38,6 @@ import { AdminUsers } from '../../pages/admin/AdminUsers';
 import { AdminStatus } from '../../pages/admin/AdminStatus';
 import { AdminLogs } from '../../pages/admin/AdminLogs';
 import { AdminMasterEdit } from '../../pages/admin/AdminMasterEdit';
-import { AdminProfile } from '../../pages/admin/AdminProfile';
 
 export const DashboardLayout = () => {
   const { currentRole, activeRole, activeTab, showModeSelectionLanding } = useAuth();
@@ -63,7 +59,7 @@ export const DashboardLayout = () => {
           case 'submissions': return <StudentSubmissions />;
           case 'status': return <StudentStatus />;
           case 'messages': return <StudentMessages />;
-          case 'profile': return <StudentProfile />;
+          case 'profile': return <Profile />;
           case 'support': return <Support />;
           default: return <StudentDashboard />;
         }
@@ -76,7 +72,7 @@ export const DashboardLayout = () => {
           case 'evaluation': return <FacultyEvaluation />;
           case 'status': return <FacultyStatus />;
           case 'messages': return <FacultyMessages />;
-          case 'profile': return <FacultyProfile />;
+          case 'profile': return <Profile />;
           case 'support': return <Support />;
           default: return <FacultyDashboard />;
         }
@@ -91,7 +87,7 @@ export const DashboardLayout = () => {
           case 'submissions': return <FacultySubmissions readOnly={true} />;
           case 'status': return <CoordinatorStatus />;
           case 'messages': return <CoordinatorMessages />;
-          case 'profile': return <CoordinatorProfile />;
+          case 'profile': return <Profile />;
           case 'support': return <Support />;
           default: return <CoordinatorDashboard />;
         }
@@ -104,7 +100,7 @@ export const DashboardLayout = () => {
           case 'status': return <AdminStatus />;
           case 'logs': return <AdminLogs />;
           case 'master-edit': return <AdminMasterEdit />;
-          case 'profile': return <AdminProfile />;
+          case 'profile': return <Profile />;
           case 'support': return <Support />;
           default: return <AdminDashboard />;
         }
