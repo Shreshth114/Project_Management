@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { Login } from './pages/auth/Login';
 import { RegisterStudent } from './pages/auth/RegisterStudent';
 import { RegisterFaculty } from './pages/auth/RegisterFaculty';
@@ -87,7 +88,9 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <MainContent />
+        <NotificationProvider>
+          <MainContent />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );
