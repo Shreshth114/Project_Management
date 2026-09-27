@@ -162,8 +162,8 @@ export const CoordinatorProfile = () => {
             <table className="portal-table">
               <thead>
                 <tr>
-                  <th>Subject Code</th>
-                  <th>Subject Name</th>
+                  <th>Course Code</th>
+                  <th>Course Name</th>
                   <th>Project Name</th>
                   <th>Group Name</th>
                   <th>Total Projects</th>
@@ -173,8 +173,8 @@ export const CoordinatorProfile = () => {
               <tbody>
                 {coordinatorProjects.map((p) => (
                   <tr key={p.id}>
-                    <td data-label="Subject Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{p.subjectCode}</td>
-                    <td data-label="Subject Name" style={{ fontWeight: 600 }}>{p.subjectName}</td>
+                    <td data-label="Course Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{p.subjectCode}</td>
+                    <td data-label="Course Name" style={{ fontWeight: 600 }}>{p.subjectName}</td>
                     <td data-label="Project Name" style={{ fontSize: '13px', color: 'var(--text-heading)' }}>{p.projectName}</td>
                     <td data-label="Group Name" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>{p.groupName}</td>
                     <td data-label="Total Projects">{p.numProjects} Project</td>

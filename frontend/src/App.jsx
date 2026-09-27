@@ -37,7 +37,7 @@ const MainContent = () => {
     return (
       <div className="loading-container" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-page)' }}>
         <div className="loading-spinner"></div>
-        <p className="loading-text">Loading Academic Project Governance Portal...</p>
+        <p className="loading-text">Loading Project Management System...</p>
       </div>
     );
   }

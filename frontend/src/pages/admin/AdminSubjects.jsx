@@ -12,7 +12,6 @@ export const AdminSubjects = () => {
   // State for Block 1: Add Subject
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
-  const [credits, setCredits] = useState(6);
   const [semester, setSemester] = useState(8);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
 
@@ -70,7 +69,6 @@ export const AdminSubjects = () => {
         subject_id: newSub?.subject_id,
         subject_code: code,
         subject_name: name,
-        credits: Number(credits) || 6,
         semester: Number(semester) || 8,
         coordinator: null,
         status: 'Active'
@@ -82,7 +80,6 @@ export const AdminSubjects = () => {
 
       setCode('');
       setName('');
-      setCredits(6);
       setSemester(8);
 
       fetchSubjects();
@@ -171,7 +168,7 @@ export const AdminSubjects = () => {
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Course Subjects & Coordinator Assignments</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Configure project course titles, VTU credit schemes, and assign subject coordinators.
+          Configure project course titles and assign subject coordinators.
         </p>
       </div>
 
@@ -206,9 +203,8 @@ export const AdminSubjects = () => {
                 <table className="portal-table">
                   <thead>
                     <tr>
-                      <th>Subject Code</th>
-                      <th>Subject Title</th>
-                      <th>Credits</th>
+                      <th>Course Code</th>
+                      <th>Course Title</th>
                       <th>Assigned Coordinator</th>
                       <th>Status</th>
                     </tr>
@@ -216,9 +212,8 @@ export const AdminSubjects = () => {
                   <tbody>
                     {subjectsList.map((s, idx) => (
                       <tr key={s.subject_id || idx}>
-                        <td data-label="Subject Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.subject_code || s.code}</td>
-                        <td data-label="Subject Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
-                        <td data-label="Credits">{s.credits || 6} Credits</td>
+                        <td data-label="Course Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.subject_code || s.code}</td>
+                        <td data-label="Course Title" style={{ fontWeight: 600 }}>{s.subject_name || s.name}</td>
                         <td data-label="Coordinator" style={{ fontWeight: 700, color: s.coordinator ? 'var(--text-heading)' : 'var(--text-disabled)' }}>
                           {s.coordinator || <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Not Assigned</span>}
                         </td>
@@ -237,7 +232,7 @@ export const AdminSubjects = () => {
           <Card title="Add Subject">
             <form onSubmit={handleAddSubject}>
               <div className="form-group">
-                <label className="form-label">Subject Code</label>
+                <label className="form-label">Course Code</label>
                 <input
                   type="text"
                   className="form-input"
@@ -249,7 +244,7 @@ export const AdminSubjects = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Full Name</label>
+                <label className="form-label">Course Full Name</label>
                 <input
                   type="text"
                   className="form-input"
@@ -260,27 +255,15 @@ export const AdminSubjects = () => {
                 />
               </div>
 
-              <div className="grid-2">
-                <div className="form-group">
-                  <label className="form-label">Credits</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    value={credits}
-                    onChange={(e) => setCredits(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Semester</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    required
-                  />
-                </div>
+              <div className="form-group">
+                <label className="form-label">Semester</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={semester}
+                  onChange={(e) => setSemester(e.target.value)}
+                  required
+                />
               </div>
 
               <button type="submit" className="btn btn-primary btn-block" disabled={isAddingSubject}>

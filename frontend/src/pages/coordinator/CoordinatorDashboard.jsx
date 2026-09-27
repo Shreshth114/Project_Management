@@ -94,7 +94,7 @@ export const CoordinatorDashboard = () => {
       }}>
         <div>
           <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
-            DEPARTMENT PROJECT COORDINATION GOVERNANCE
+            DEPARTMENT PROJECTS
           </div>
           <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-inverse)', marginTop: '4px' }}>
             Project Coordinator Control Panel

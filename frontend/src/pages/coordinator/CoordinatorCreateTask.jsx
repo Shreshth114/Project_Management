@@ -3,6 +3,7 @@ import { PlusSquare, CheckCircle, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { taskService } from '../../services/taskService';
+import { getTodayISO } from '../../utils/dateFormat';
 
 export const CoordinatorCreateTask = () => {
   const { addTask, setActiveTab, currentUser } = useAuth();
@@ -10,7 +11,7 @@ export const CoordinatorCreateTask = () => {
   // Row 1 States: Task Name | Category (Dropdown) | Deadline Date
   const [taskName, setTaskName] = useState('');
   const [category, setCategory] = useState('GROUP'); // GROUP | INDIVIDUAL
-  const [deadline, setDeadline] = useState('2025-10-25');
+  const [deadline, setDeadline] = useState(getTodayISO());
 
   // Assessment Box Items List State (matching hand-drawn sketch)
   const [assessmentItems, setAssessmentItems] = useState([

@@ -119,7 +119,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               Faculty Enrolment Portal
             </h2>
             <div style={{ fontSize: '12px', color: 'var(--text-sidebar)' }}>
-              Specify Subject Name & Select Course Subject Code
+              Specify Course Name & Select Course Code
             </div>
           </div>
         </div>
@@ -168,7 +168,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Course Subject Code</label>
+                <label className="form-label">Course Code</label>
                 <select 
                   className="form-select"
                   value={subjectCode}
@@ -192,7 +192,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Subject Full Name</label>
+                <label className="form-label">Course Full Name</label>
                 <input
                   type="text"
                   className="form-input"

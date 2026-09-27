@@ -199,7 +199,7 @@ export const StudentSubmissions = () => {
       }}>
         <div>
           <div style={{ fontSize: '12px', color: 'var(--text-sidebar)', fontWeight: 700, textTransform: 'uppercase' }}>
-            COORDINATOR-CONFIGURED SUBMISSION GOVERNANCE
+            SUBMISSION DETAILS
           </div>
           <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-inverse)', marginTop: '4px' }}>
             {groupTitle}

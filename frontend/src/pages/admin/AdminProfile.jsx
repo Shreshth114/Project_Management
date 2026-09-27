@@ -36,7 +36,7 @@ export const AdminProfile = () => {
       <div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>System Admin Profile & Infrastructure</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Master administrator credentials, system statistics, and governance infrastructure.
+          Master administrator credentials, system statistics, and platform access.
         </p>
       </div>
 
