@@ -85,9 +85,9 @@ export const FacultyProfile = () => {
         {isAssignedCoordinator && (
           <button 
             type="button"
-            className="btn btn-secondary"
+            className="btn btn-purple mobile-wrap"
             onClick={() => switchTeacherRole('COORDINATOR')}
-            className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '2px solid #DE3B0B', color: 'var(--rit-orange-red)', fontWeight: 700 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}
           >
             <RefreshCw size={15} />
             <span>SWITCH TO COORDINATOR WORKSPACE</span>

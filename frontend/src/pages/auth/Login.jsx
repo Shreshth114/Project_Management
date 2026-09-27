@@ -131,7 +131,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
             Project Management System
           </h2>
           <p className="login-item-anim login-delay-1" style={{ fontSize: '12px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
-            M. S. Ramaiah Institute of Technology — Autonomous College under VTU
+            M. S. Ramaiah Institute of Technology
           </p>
         </div>
 
