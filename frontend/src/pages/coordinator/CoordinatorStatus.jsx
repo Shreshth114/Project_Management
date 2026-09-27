@@ -100,7 +100,7 @@ export const CoordinatorStatus = () => {
         </Card>
       </div>
 
-      <Card title="All Department Groups Workflow Matrix">
+      <Card title="Department Group Status">
         <div className="table-container responsive-table-stack">
           <table className="portal-table">
             <thead>

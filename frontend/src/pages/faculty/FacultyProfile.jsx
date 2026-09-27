@@ -125,7 +125,7 @@ export const FacultyProfile = () => {
                 {currentUser?.name || 'Faculty Member'}
               </h2>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Department of Computer Science & Engineering
+                Department of Information Science & Engineering
               </div>
               <div className="mobile-wrap" style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                 <Badge variant="purple">Faculty Advisor</Badge>
@@ -138,7 +138,6 @@ export const FacultyProfile = () => {
         <Card title="Institutional Credentials">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px' }}>
             <div><strong>Official Email:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 600 }}>{currentUser?.email || 'N/A'}</span></div>
-            <div><strong>Academic Designation:</strong> Associate Professor</div>
             <div><strong>College Portal Username:</strong> {currentUser?.username || currentUser?.email}</div>
             <div><strong>Coordinator Access:</strong> {isAssignedCoordinator ? <Badge variant="success">Authorized</Badge> : <Badge variant="secondary">Standard Faculty</Badge>}</div>
           </div>
@@ -146,7 +145,7 @@ export const FacultyProfile = () => {
       </div>
 
       {/* Box 1: Current Working Projects / Subjects */}
-      <Card title="Current Working Subjects & Assigned Groups">
+      <Card title="Assigned Subjects & Groups">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {managedSubjects.length > 0 ? (
             managedSubjects.map((sub) => (

@@ -44,7 +44,7 @@ export const AdminDashboard = () => {
           System Administrator Control Dashboard
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
-          Academic Governance & Institutional Database Administration — MSRIT
+          Institutional Database Administration — MSRIT
         </p>
       </div>
 

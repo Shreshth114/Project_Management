@@ -97,7 +97,7 @@ export const FacultyDashboard = () => {
           Faculty Advisor Workspace — {currentUser?.name || 'Faculty Member'}
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
-          Department of Computer Science & Engineering
+          Department of Information Science & Engineering
         </p>
       </div>
 

@@ -88,7 +88,7 @@ export const Header = ({ onToggleMobileDrawer }) => {
       case 'evaluation': return 'Faculty Rubric Evaluations';
       case 'status': return 'Status';
       case 'messages': return 'Messages & Communication';
-      case 'subjects': return 'Subject & Coordinator Governance';
+      case 'subjects': return 'Subjects & Coordinators';
       case 'users': return 'Registered Accounts Directory';
       case 'logs': return 'Security & Event Audit Logs';
       case 'master-edit': return 'Master Edit & Deadlines Control';

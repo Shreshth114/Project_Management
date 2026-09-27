@@ -89,7 +89,7 @@ export const AdminUsers = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Master Account Directory & Governance</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)' }}>Master Account Directory</h1>
           <p className="text-muted" style={{ fontSize: '14px' }}>
             System administration directory for Students, Faculty, Coordinators, and Admins.
           </p>
@@ -260,7 +260,7 @@ export const AdminUsers = () => {
             <div className="modal-header">
               <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Shield size={18} />
-                <span>Account Governance & Credentials</span>
+                <span>Account Details</span>
               </h3>
               <button 
                 onClick={() => setInspectingUser(null)}
@@ -314,7 +314,7 @@ export const AdminUsers = () => {
                   <strong>System Access Privileges:</strong>
                   <div style={{ marginTop: '4px', padding: '8px 12px', background: 'var(--bg-page)', borderRadius: '4px', fontSize: '13px', color: 'var(--text-muted)' }}>
                     {inspectingUser.role === 'ADMIN' 
-                      ? 'Full administrative governance, database synchronization, master edit access, and user lifecycle control.'
+                      ? 'Full administrative access, database synchronization, master edit access, and user lifecycle control.'
                       : inspectingUser.isCoordinator 
                         ? 'Milestone configuration, department evaluation matrix oversight, and team allocation access.'
                         : inspectingUser.role === 'STUDENT'

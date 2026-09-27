@@ -12,10 +12,10 @@ export const AdminStatus = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadGovernanceStatus();
+    loadStatus();
   }, []);
 
-  const loadGovernanceStatus = async () => {
+  const loadStatus = async () => {
     try {
       setLoading(true);
       const [fetchedSubjects, fetchedTeams, fetchedSubmissions] = await Promise.all([
@@ -28,7 +28,7 @@ export const AdminStatus = () => {
       setTeams(fetchedTeams || []);
       setSubmissions(fetchedSubmissions || []);
     } catch (err) {
-      console.warn("Failed to load governance status:", err);
+      console.warn("Failed to load status:", err);
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export const AdminStatus = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)' }}>College-Wide Academic Project Governance Status</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)' }}>Department Status</h1>
         <p className="text-muted" style={{ fontSize: '14px' }}>
           Monitoring real-time compliance metrics across all registered academic project subjects.
         </p>
@@ -98,7 +98,7 @@ export const AdminStatus = () => {
         {loading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
-            <div className="loading-text">Loading governance compliance data...</div>
+            <div className="loading-text">Loading compliance data...</div>
           </div>
         ) : subjectMetrics.length === 0 ? (
           <div className="empty-state">

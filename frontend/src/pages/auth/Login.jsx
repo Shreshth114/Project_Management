@@ -128,7 +128,7 @@ export const Login = ({ onNavigateRegisterStudent, onNavigateRegisterFaculty, on
           </div>
 
           <h2 className="login-item-anim login-delay-0" style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-inverse)', margin: '8px 0 0 0' }}>
-            Academic Project Governance Portal
+            Project Management System
           </h2>
           <p className="login-item-anim login-delay-1" style={{ fontSize: '12px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
             M. S. Ramaiah Institute of Technology — Autonomous College under VTU
