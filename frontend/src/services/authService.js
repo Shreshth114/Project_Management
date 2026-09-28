@@ -42,9 +42,6 @@ export const authService = {
     });
 
     if (error) {
-      if (error.message?.toLowerCase().includes('email not confirmed')) {
-        throw new Error('Please check your inbox and confirm your email address before logging in.');
-      }
       throw new Error(error.message || 'Invalid login credentials.');
     }
     if (!data?.session) throw new Error('Invalid login credentials.');
@@ -281,32 +278,5 @@ export const authService = {
     }
     
     return { success: true };
-  },
-
-  async resendVerificationEmail(email) {
-    const baseUri = typeof window !== 'undefined'
-      ? window.location.origin + (import.meta.env.BASE_URL || '/')
-      : '';
-    const redirectTo = baseUri;
-
-    const res = await supabase.auth.resend({
-      type: 'signup',
-      email: email.trim().toLowerCase(),
-      options: {
-        emailRedirectTo: redirectTo
-      }
-    });
-    
-    console.log("Supabase resend response:", JSON.stringify({
-      data: res.data,
-      error: res.error ? {
-        message: res.error.message,
-        status: res.error.status,
-        code: res.error.code
-      } : null
-    }));
-
-    if (res.error) throw res.error;
-    return { success: true, data: res.data };
   }
 };
