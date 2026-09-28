@@ -26,7 +26,7 @@ export const FacultyGroups = () => {
       if (teams && teams.length > 0) {
         const mapped = teams.map(t => ({
           id: t.team_id,
-          groupCode: t.team_code,
+          batchId: t.team_code,
           title: t.subject?.subject_name || "Academic Project",
           subjectName: t.subject?.subject_name || t.subject?.subject_code || 'Course Project',
           repoUrl: t.repo_url,
@@ -72,12 +72,12 @@ export const FacultyGroups = () => {
           myGroups.map((group, index) => {
             const staggerClass = `stagger-${Math.min(index + 2, 6)}`;
             return (
-              <div key={group.id || group.groupCode} className={staggerClass}>
+              <div key={group.id || group.batchId} className={staggerClass}>
                 <Card>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Badge variant="purple">{group.groupCode}</Badge>
+                    <Badge variant="purple">{group.batchId}</Badge>
                     <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>{group.title}</h3>
                   </div>
                   <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>

@@ -54,7 +54,7 @@ export const CoordinatorGroups = () => {
 
         enrichedGroups.push({
           id: t.team_id,
-          groupCode: t.team_code,
+          batchId: t.team_code,
           title: t.subject?.subject_name || 'Academic Project',
           subjectName: t.subject?.subject_name || 'Course Project',
           subjectCode: t.subject?.subject_code || 'N/A',
@@ -86,7 +86,7 @@ export const CoordinatorGroups = () => {
   };
 
   const filteredGroups = groupsList.filter(g => 
-    g.groupCode.toLowerCase().includes(search.toLowerCase()) ||
+    g.batchId.toLowerCase().includes(search.toLowerCase()) ||
     g.title.toLowerCase().includes(search.toLowerCase()) ||
     (g.guide && g.guide.toLowerCase().includes(search.toLowerCase()))
   );
@@ -126,7 +126,7 @@ export const CoordinatorGroups = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
                   <div className="mobile-wrap" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <Badge variant="purple">{group.groupCode}</Badge>
+                    <Badge variant="purple">{group.batchId}</Badge>
                     <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                       {group.title}
                     </h3>
@@ -182,7 +182,7 @@ export const CoordinatorGroups = () => {
             <div className="modal-header">
               <h3 className="mobile-wrap" style={{ margin: 0, fontSize: '16px', color: 'var(--text-inverse)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <FolderCheck size={18} />
-                <span>Group Progress Inspection ({inspectingGroup.groupCode})</span>
+                <span>Group Progress Inspection ({inspectingGroup.batchId})</span>
               </h3>
               <button 
                 onClick={() => setInspectingGroup(null)}

@@ -46,7 +46,7 @@ Deno.serve(async (request) => {
 
     const subjectCode = String(body.subjectCode || body.subject || "").trim();
     const usn = String(body.usn || "").trim().toUpperCase();
-    const teamCode = String(body.groupName || (usn ? `GROUP-${usn.slice(-3)}` : "")).trim().toUpperCase();
+    const teamCode = String(body.batchId || (usn ? `GROUP-${usn.slice(-3)}` : "")).trim().toUpperCase();
     const guideId = Number(body.guideId);
 
     if (role === "STUDENT" && (!usn || !subjectCode || !teamCode || !Number.isInteger(guideId) || guideId <= 0)) {

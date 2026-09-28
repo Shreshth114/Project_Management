@@ -290,7 +290,7 @@ export const academicService = {
 
       return {
         team_id: team.team_id,
-        teamCode: team.team_code,
+        batchId: team.team_code,
         subjectId: team.subject_id,
         subjectCode: subject?.subject_code || null,
         subjectName: subject?.subject_name || null,
@@ -347,7 +347,7 @@ export const academicService = {
         name: studentRecord?.name || facultyRecord?.name || (adminRecord ? 'System Administrator' : user.email),
         usn: studentRecord?.usn || null,
         teamId: studentRecord?.team_id || null,
-        teamCode: teamRecord?.teamCode || null,
+        batchId: teamRecord?.batchId || null,
         subjectCode,
         subjectName,
         guideName: teamRecord?.guideName || null,

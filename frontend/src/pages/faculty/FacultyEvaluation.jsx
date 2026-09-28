@@ -215,7 +215,7 @@ export const FacultyEvaluation = () => {
   };
 
   const isGroupMode = selectedGroup?.submissionMode === 'LEADER_SUBMITS_ALL' || selectedGroup?.submissionMode === 'GROUP';
-  const groupCode = selectedGroup?.groupCode || selectedGroup?.team_code || 'Group G01';
+  const batchId = selectedGroup?.batchId || selectedGroup?.team_code || 'Group G01';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -247,7 +247,7 @@ export const FacultyEvaluation = () => {
             >
               {groups.map(g => (
                 <option key={g.team_id || g.id} value={g.team_id || g.id}>
-                  {g.groupCode || g.team_code} - {g.title || g.subject?.subject_name || 'Project'}
+                  {g.batchId || g.team_code} - {g.title || g.subject?.subject_name || 'Project'}
                 </option>
               ))}
             </select>
@@ -274,7 +274,7 @@ export const FacultyEvaluation = () => {
       {/* TOP SECTION: COMBINED GROUP PROJECT SUBMISSIONS */}
       {selectedGroup && (
         <div className="stagger-3">
-          <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${groupCode})`}>
+          <Card title={`1. DELIVERABLES & SUBMISSIONS REVIEW (${batchId})`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
@@ -333,8 +333,8 @@ export const FacultyEvaluation = () => {
 
                       <td data-label="Submission Origin" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
                         {isGroupMode 
-                          ? `${groupCode} (Group Submission)`
-                          : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${groupCode}]` : `${selectedGroup.leaderName || 'Leader'} [${groupCode}]`)
+                          ? `${batchId} (Group Submission)`
+                          : (comp.submittedByNames && comp.submittedByNames.length > 0 ? `${comp.submittedByNames.join(' + ')} [${batchId}]` : `${selectedGroup.leaderName || 'Leader'} [${batchId}]`)
                         }
                       </td>
 
@@ -426,7 +426,7 @@ export const FacultyEvaluation = () => {
                     Individual Rubric Sheet: {activeStudentObj.name} ({activeStudentUsn})
                   </h3>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Group: {groupCode} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
+                    Batch ID: {batchId} | Evaluator: {currentUser?.name || 'Faculty Advisor'}
                   </div>
                   
                   <div style={{ marginTop: '12px' }}>

@@ -7,8 +7,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [usn, setUsn] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [batch, setBatch] = useState('');
-  const [groupName, setGroupName] = useState('');
+  const [batchId, setBatchId] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [guide, setGuide] = useState('');
   const [guideId, setGuideId] = useState('');
@@ -76,9 +75,8 @@ export const RegisterStudent = ({ onBackToLogin }) => {
         email,
         role: 'STUDENT',
         department: 'CSE',
-        batch: batch || 'Batch 1 (8th Sem)',
         subject: selectedSubject,
-        groupName: groupName.trim() || `Group ${usn.slice(-3).toUpperCase()}`,
+        batchId: batchId.trim() || `GROUP-${usn.slice(-3).toUpperCase()}`,
         guide,
         guideId: guideId ? Number(guideId) : null,
         password
@@ -148,7 +146,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               Student Registration Portal
             </h2>
             <div style={{ fontSize: '12px', color: 'var(--text-sidebar)' }}>
-              Select Course Subject, Academic Batch & Allocated Faculty Guide
+              Select Course Subject & Allocated Faculty Guide
             </div>
           </div>
         </div>
@@ -196,7 +194,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               </div>
             </div>
 
-            <div className="grid-3">
+            <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">College Email</label>
                 <input
@@ -211,28 +209,13 @@ export const RegisterStudent = ({ onBackToLogin }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Academic Batch</label>
-                <select
-                  className="form-select"
-                  value={batch}
-                  onChange={(e) => setBatch(e.target.value)}
-                  required
-                >
-                  <option value="">Select a batch</option>
-                  <option value="Batch 1 (8th Sem)">Batch 1 (8th Sem)</option>
-                  <option value="Batch 2 (6th Sem)">Batch 2 (6th Sem)</option>
-                  <option value="Batch 3 (4th Sem)">Batch 3 (4th Sem)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Team / Group Name</label>
+                <label className="form-label">Batch ID</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Group G01 or Team Gamma"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="e.g. B1 or B2"
+                  value={batchId}
+                  onChange={(e) => setBatchId(e.target.value)}
                   required
                 />
               </div>

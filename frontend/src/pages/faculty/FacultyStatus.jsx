@@ -69,7 +69,7 @@ export const FacultyStatus = () => {
             name: m.name,
             email: m.email,
             student_id: m.student_id,
-            groupName: team.team_code,
+            batchId: team.team_code,
             groupTitle: team.subject?.subject_name || 'Academic Project',
             groupId: team.team_id,
             submissionStatus,
@@ -98,7 +98,7 @@ export const FacultyStatus = () => {
     const matchesSearch = (s.usn && s.usn.toLowerCase().includes(usnSearch.toLowerCase())) ||
                           (s.name && s.name.toLowerCase().includes(usnSearch.toLowerCase())) ||
                           (s.taskTitle && s.taskTitle.toLowerCase().includes(usnSearch.toLowerCase())) ||
-                          (s.groupName && s.groupName.toLowerCase().includes(usnSearch.toLowerCase()));
+                          (s.batchId && s.batchId.toLowerCase().includes(usnSearch.toLowerCase()));
     
     let matchesStatus = true;
     if (statusFilter === 'SUBMITTED') matchesStatus = s.submissionStatus === 'SUBMITTED';
@@ -165,7 +165,7 @@ export const FacultyStatus = () => {
               <tr>
                 <th>Student USN</th>
                 <th>Full Name</th>
-                <th>Group Name</th>
+                <th>Batch ID</th>
                 <th>Assignment / Deliverable</th>
                 <th>Status (Submission Date & Progress)</th>
                 <th>Faculty Rubric Evaluation</th>
@@ -178,7 +178,7 @@ export const FacultyStatus = () => {
                   <tr key={s.usn || s.name}>
                     <td data-label="Student USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.usn}</td>
                     <td data-label="Full Name" style={{ fontWeight: 600 }}>{s.name}</td>
-                    <td data-label="Group Name" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{s.groupName}</td>
+                    <td data-label="Batch ID" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{s.batchId}</td>
 
                     <td data-label="Assignment / Deliverable">
                       {s.submissionStatus === 'SUBMITTED' ? (
@@ -266,7 +266,7 @@ export const FacultyStatus = () => {
                   {inspectingStudent.name}
                 </h4>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                  USN: <strong>{inspectingStudent.usn}</strong> | Group: <strong>{inspectingStudent.groupName}</strong>
+                  USN: <strong>{inspectingStudent.usn}</strong> | Batch ID: <strong>{inspectingStudent.batchId}</strong>
                 </div>
                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
                   Email: <strong>{inspectingStudent.email || 'Not Provided'}</strong>

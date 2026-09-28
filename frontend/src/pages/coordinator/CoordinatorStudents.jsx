@@ -70,8 +70,7 @@ export const CoordinatorStudents = () => {
                 <th>USN</th>
                 <th>Student Name</th>
                 <th>College Email</th>
-                <th>Academic Batch</th>
-                <th>Group Assignment</th>
+                <th>Batch ID</th>
               </tr>
             </thead>
             <tbody>
@@ -81,15 +80,14 @@ export const CoordinatorStudents = () => {
                     <td data-label="USN" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{s.usn}</td>
                     <td data-label="Student Name" style={{ fontWeight: 600 }}>{s.name}</td>
                     <td data-label="College Email">{s.email || `${s.usn.toLowerCase()}@msrit.edu`}</td>
-                    <td data-label="Academic Batch"><Badge variant="purple">{s.batch || 'Enrolled'}</Badge></td>
-                    <td data-label="Group Assignment" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
+                    <td data-label="Batch ID" style={{ fontWeight: 700, color: 'var(--text-heading)' }}>
                       {s.team?.team_code || 'Unassigned'}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
+                  <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-disabled)', padding: '24px' }}>
                     No student registrations found in the database.
                   </td>
                 </tr>

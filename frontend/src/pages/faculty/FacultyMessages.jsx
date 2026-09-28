@@ -72,7 +72,7 @@ export const FacultyMessages = () => {
           user_id: m.user_id,
           name: m.name || m.usn || `Student (${m.user_id})`,
           usn: m.usn,
-          groupCode: g.team_code
+          batchId: g.team_code
         });
       }
     });
@@ -327,7 +327,7 @@ export const FacultyMessages = () => {
                   {allStudents.length > 0 ? (
                     allStudents.map(s => (
                       <option key={s.user_id} value={s.user_id}>
-                        {s.name} ({s.usn || 'USN'} - {s.groupCode})
+                        {s.name} ({s.usn || 'USN'} - {s.batchId})
                       </option>
                     ))
                   ) : (

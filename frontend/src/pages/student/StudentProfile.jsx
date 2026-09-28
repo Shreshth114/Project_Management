@@ -71,7 +71,7 @@ export const StudentProfile = () => {
       const baseProject = {
         id: team.team_id || 'proj-1',
         title: activeTitle,
-        groupName: activeGroupCode,
+        batchId: activeGroupCode,
         subject: activeTitle,
         subjectCode: activeSubjectCode,
         guide: activeGuide,
@@ -86,7 +86,7 @@ export const StudentProfile = () => {
 
   // Form states for adding another project
   const [newTitle, setNewTitle] = useState('');
-  const [newGroupName, setNewGroupName] = useState('');
+  const [newBatchId, setNewBatchId] = useState('');
   const [newSubject, setNewSubject] = useState('Technical Seminar & Paper');
   const [newSubjectCode, setNewSubjectCode] = useState('21CSS82');
   const [newGuide, setNewGuide] = useState('Faculty Guide');
@@ -99,7 +99,7 @@ export const StudentProfile = () => {
     const proj = {
       id: `proj-${Date.now()}`,
       title: newTitle || `${newSubject} Project`,
-      groupName: newGroupName || 'Group G05',
+      batchId: newBatchId || 'Group G05',
       subject: newSubject,
       subjectCode: newSubjectCode,
       guide: newGuide,
@@ -117,7 +117,7 @@ export const StudentProfile = () => {
 
     setExtraProjects(prev => [...prev, proj]);
     setNewTitle('');
-    setNewGroupName('');
+    setNewBatchId('');
     setSuccess(`New project for ${newSubjectCode} added successfully!`);
     setTimeout(() => setSuccess(''), 3500);
   };
@@ -191,7 +191,7 @@ export const StudentProfile = () => {
                   <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{activeGuide}</span>
                 </div>
                 <div><strong>Assigned Coordinator:</strong> <span style={{ color: 'var(--rit-magenta)', fontWeight: 700 }}>{activeCoordinator}</span></div>
-                <div><strong>Team / Group Name:</strong> {activeGroupCode}</div>
+                <div><strong>Batch ID:</strong> {activeGroupCode}</div>
               </div>
             </Card>
           </div>
@@ -251,7 +251,7 @@ export const StudentProfile = () => {
                 </div>
 
                 <div className="grid-4" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  <div><strong>Group Name:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{p.groupName}</span></div>
+                  <div><strong>Batch ID:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{p.batchId}</span></div>
                   <div><strong>Subject:</strong> {p.subject}</div>
                   <div><strong>Allocated Guide:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{p.guide}</span></div>
                   <div><strong>Assigned Coordinator:</strong> <span style={{ color: 'var(--rit-magenta)', fontWeight: 700 }}>{p.coordinator || activeCoordinator}</span></div>
