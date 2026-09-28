@@ -1,0 +1,43 @@
+
+[functions.run-sql]
+enabled = true
+verify_jwt = false
+import_map = "./functions/run-sql/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/run-sql/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/run-sql/*.html" ]
+
+[auth]
+additional_redirect_urls = [
+  "https://msritise.in/pms/", 
+  "https://msritise.in/pms", 
+  "http://msritise.in/pms/", 
+  "http://msritise.in/pms", 
+  "http://localhost:5173/pms/", 
+  "http://localhost:5173/pms",
+  "http://localhost:5173/",
+  "http://localhost:3000/"
+]
+site_url = "http://msritise.in/pms/"
+
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m0s"
+otp_length = 8
+
+[auth.rate_limit]
+email_sent = 30
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[db.pooler]
+default_pool_size = 15
+max_client_conn = 200
+
+[storage.vector]
+enabled = false
