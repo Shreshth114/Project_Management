@@ -97,6 +97,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
   // 1. Backend Supabase Submissions
   if (submissions && submissions.length > 0) {
     submissions.forEach(sub => {
+      if (!submissionService.isDeliverable(sub)) return;
       const task = tasks.find(t => String(t.task_id || t.id) === String(sub.task_id));
       const taskTitle = task?.title || sub.task_name || 'Project Deliverable';
       const taskType = String(task?.task_type || 'GROUP').toUpperCase();

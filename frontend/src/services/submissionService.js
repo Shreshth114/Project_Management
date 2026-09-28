@@ -38,13 +38,25 @@ export const submissionService = {
     return data;
   },
 
+  isDeliverable(sub) {
+    if (!sub) return false;
+    if (!sub.file_url || sub.file_url === '#' || String(sub.file_url).trim() === '') return false;
+    const fileType = String(sub.file_type || '').toUpperCase();
+    if (fileType === 'SYSTEM' || fileType === 'FACULTY_EVAL') return false;
+    const fileName = String(sub.file_name || '').toLowerCase();
+    if (fileName.includes('pending student deliverable') || fileName.includes('evaluation record') || fileName.includes('evaluation entry')) {
+      return false;
+    }
+    return true;
+  },
+
   async submitTask(payload, isIndividual = false) {
     // Prevent duplicate submissions:
     // For individual tasks: prevent duplicate for this student
     // For group tasks: prevent duplicate for this team
     let query = supabase
       .from('submission')
-      .select('submission_id')
+      .select('submission_id, file_url, file_type, file_name')
       .eq('task_id', payload.task_id);
 
     if (isIndividual) {
@@ -56,9 +68,27 @@ export const submissionService = {
     const { data: existing } = await query.maybeSingle();
 
     if (existing) {
-      throw new Error(isIndividual
-        ? 'You have already submitted this individual deliverable and cannot resubmit.'
-        : 'This milestone deliverable has already been submitted and cannot be resubmitted.');
+      if (this.isDeliverable(existing)) {
+        throw new Error(isIndividual
+          ? 'You have already submitted this individual deliverable and cannot resubmit.'
+          : 'This milestone deliverable has already been submitted and cannot be resubmitted.');
+      } else {
+        // Upgrade placeholder to actual student submission deliverable
+        const { data, error } = await supabase
+          .from('submission')
+          .update({
+            submitted_by_student_id: payload.student_id,
+            file_name: payload.file_name,
+            file_type: payload.file_type || 'link',
+            file_url: payload.file_url || '',
+            submitted_at: new Date().toISOString()
+          })
+          .eq('submission_id', existing.submission_id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      }
     }
 
     const { data, error } = await supabase
