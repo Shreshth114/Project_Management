@@ -464,17 +464,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resendVerificationEmail = async (email) => {
-    try {
-      console.log('Attempting to resend verification to:', email);
-      const res = await authService.resendVerificationEmail(email);
-      console.log('Resend response:', res);
-      return res;
-    } catch (err) {
-      console.error('Resend verification error:', err);
-      return { success: false, message: err.message };
-    }
-  };
 
   return (
     <AuthContext.Provider
@@ -492,7 +481,6 @@ export const AuthProvider = ({ children }) => {
         assignFacultyAsCoordinator,
         resetPassword,
         updatePassword,
-        resendVerificationEmail,
         refreshProfile,
         logout,
         switchTeacherRole,
