@@ -425,12 +425,31 @@ export const StudentSubmissions = () => {
             {submissionType === 'file' ? (
               <div className="form-group">
                 <label className="form-label">Upload Deliverable Document</label>
-                <input 
-                  type="file" 
-                  className="form-input" 
-                  onChange={(e) => setFile(e.target.files[0])}
-                  required={submissionType === 'file'}
-                />
+                <div className="custom-file-upload">
+                  <input 
+                    type="file" 
+                    id="submission-file-upload"
+                    className="visually-hidden" 
+                    onChange={(e) => setFile(e.target.files[0])}
+                    required={submissionType === 'file'}
+                  />
+                  <label 
+                    htmlFor="submission-file-upload" 
+                    className="file-upload-label"
+                    tabIndex="0"
+                    onKeyDown={(e) => { 
+                      if (e.key === 'Enter' || e.key === ' ') { 
+                        e.preventDefault();
+                        document.getElementById('submission-file-upload').click(); 
+                      } 
+                    }}
+                  >
+                    <span className="file-upload-button">Browse...</span>
+                    <span className="file-upload-filename">
+                      {file ? file.name : 'No file selected'}
+                    </span>
+                  </label>
+                </div>
                 <span className="text-muted" style={{ fontSize: '12px' }}>
                   Accepted extensions: .pdf, .docx, .zip, .rar, .tar.gz (Max: 50MB)
                 </span>

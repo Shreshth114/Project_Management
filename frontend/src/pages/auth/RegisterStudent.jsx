@@ -73,6 +73,12 @@ export const RegisterStudent = ({ onBackToLogin }) => {
         setResendMessage('Verification email sent ✓');
         setResendCooldown(60);
       } else {
+        if (res.message && res.message.includes('after')) {
+          const match = res.message.match(/after (\d+) seconds/);
+          if (match) {
+            setResendCooldown(parseInt(match[1], 10));
+          }
+        }
         setResendError(res.message || 'Unable to resend the verification email. Please try again.');
       }
     } catch (err) {
@@ -117,6 +123,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
       if (res.success) {
         if (res.requiresEmailConfirmation) {
           setRegistrationSuccess(true);
+          setResendCooldown(60);
         } else {
           setSuccess('Student Enrolment completed successfully! Redirecting to login...');
           setTimeout(() => {

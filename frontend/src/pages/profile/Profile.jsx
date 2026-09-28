@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Edit, Camera, CheckCircle, Mail, Phone, BookOpen, Clock, Shield, Upload, X } from 'lucide-react';
+import { User, Edit, Camera, CheckCircle, Mail, Phone, BookOpen, Clock, Shield, Upload, X, Link } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
@@ -10,21 +10,26 @@ import { supabase } from '../../lib/supabase';
 import { predefinedAvatars } from '../../components/common/Avatar';
 
 export const Profile = () => {
-  const { currentUser, currentRole, data } = useAuth();
-  
+  const { currentUser, currentRole, data, refreshProfile } = useAuth();
+
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  
+
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
     phone: '',
-    avatar_url: ''
+    bio: '',
+    linkedin_url: '',
+    github_url: ''
   });
+
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [avatarFormData, setAvatarFormData] = useState({ avatar_url: '' });
 
   useEffect(() => {
     if (currentUser) {
@@ -32,6 +37,11 @@ export const Profile = () => {
         name: currentUser.name || '',
         gender: currentUser.gender || '',
         phone: currentUser.phone || '',
+        bio: currentUser.bio || '',
+        linkedin_url: currentUser.linkedin_url || '',
+        github_url: currentUser.github_url || ''
+      });
+      setAvatarFormData({
         avatar_url: currentUser.avatar_url || 'initials'
       });
     }
@@ -54,11 +64,32 @@ export const Profile = () => {
     try {
       setLoading(true);
       await authService.updateProfile(currentUser.user_id, formData);
+      if (typeof refreshProfile === 'function') {
+        await refreshProfile();
+      }
       showSuccess('Profile updated successfully.');
       setIsEditing(false);
     } catch (err) {
       console.error(err);
       showError('Failed to save profile: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAvatar = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await authService.updateProfile(currentUser.user_id, avatarFormData);
+      if (typeof refreshProfile === 'function') {
+        await refreshProfile();
+      }
+      showSuccess('Profile picture updated.');
+      setIsEditingAvatar(false);
+    } catch (err) {
+      console.error(err);
+      showError('Failed to save profile picture: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -81,7 +112,7 @@ export const Profile = () => {
           <span>{success}</span>
         </div>
       )}
-      
+
       {error && (
         <div className="alert alert-danger stagger-1">
           <X size={18} />
@@ -91,26 +122,84 @@ export const Profile = () => {
 
       <div className="grid-2 stagger-2">
         <Card title="Profile">
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
-            <div style={{ position: 'relative' }}>
-              <Avatar user={currentUser} size={100} style={{ border: '4px solid var(--bg-page)' }} />
-            </div>
+          {!isEditingAvatar ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
+              <button
+                type="button"
+                className="avatar-edit-wrapper"
+                onClick={() => setIsEditingAvatar(true)}
+                aria-label="Change profile picture"
+                title="Change Profile Picture"
+              >
+                <Avatar user={currentUser} size={100} style={{ border: '4px solid var(--bg-page)' }} />
+                <div className="avatar-edit-overlay">
+                  <Edit size={16} />
+                </div>
+              </button>
 
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
-                {currentUser.name}
-              </h2>
-              <div style={{ marginTop: '6px' }}>
-                <Badge variant={currentRole === 'STUDENT' ? 'info' : (currentRole === 'ADMIN' ? 'danger' : 'magenta')}>
-                  {currentRole}
-                </Badge>
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <Mail size={14} />
-                {currentUser.email}
+              <div>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
+                  {currentUser.name}
+                </h2>
+                <div style={{ marginTop: '6px' }}>
+                  <Badge variant={currentRole === 'STUDENT' ? 'info' : (currentRole === 'ADMIN' ? 'danger' : 'magenta')}>
+                    {currentRole}
+                  </Badge>
+                </div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Mail size={14} />
+                  {currentUser.email}
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <form onSubmit={handleSaveAvatar} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-heading)', margin: 0 }}>Change Profile Picture</h3>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: '600px' }}>
+                {predefinedAvatars.map(avatar => (
+                  <button
+                    type="button"
+                    key={avatar.id}
+                    onClick={() => setAvatarFormData({ avatar_url: avatar.id })}
+                    className={`avatar-select-btn ${avatarFormData.avatar_url === avatar.id ? 'active' : ''}`}
+                    aria-label={`Select avatar ${avatar.id.replace('avatar_', '')}`}
+                  >
+                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden' }}>
+                      {avatar.svg}
+                    </div>
+                  </button>
+                ))}
+
+                {/* Initials Option */}
+                <button
+                  type="button"
+                  onClick={() => setAvatarFormData({ avatar_url: 'initials' })}
+                  className={`avatar-select-btn ${avatarFormData.avatar_url === 'initials' || !avatarFormData.avatar_url ? 'active' : ''}`}
+                  aria-label="Select initials avatar"
+                  title="Initials"
+                >
+                  <Avatar user={{ name: formData.name || currentUser.name, avatar_url: 'initials' }} size={50} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                  {loading ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setAvatarFormData({ avatar_url: currentUser.avatar_url || 'initials' });
+                    setIsEditingAvatar(false);
+                  }}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </Card>
 
         <Card title="Personal Information" action={
@@ -122,7 +211,7 @@ export const Profile = () => {
           ) : null
         }>
           {!isEditing ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div className="grid-2">
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-disabled)' }}>Full Name</div>
@@ -130,71 +219,70 @@ export const Profile = () => {
                 </div>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-disabled)' }}>Gender</div>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)' }}>{currentUser.gender || 'Not specified'}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)' }}>{currentUser.gender || 'Prefer not to say'}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '12px', color: 'var(--text-disabled)' }}>Phone Number</div>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)' }}>{currentUser.phone || 'Not provided'}</div>
                 </div>
+                {currentUser.bio && (
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-disabled)' }}>About Me</div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{currentUser.bio}</div>
+                  </div>
+                )}
               </div>
+
+              {(currentUser.github_url || currentUser.linkedin_url) && (
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '16px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-heading)', marginBottom: '16px' }}>Professional Links</div>
+                  <div className="grid-2">
+                    {currentUser.github_url && (
+                      <div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-disabled)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                          <Link size={12} /> GitHub
+                        </div>
+                        <a href={currentUser.github_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--rit-orange-red)', textDecoration: 'none', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          {currentUser.github_url.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                      </div>
+                    )}
+                    {currentUser.linkedin_url && (
+                      <div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-disabled)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                          <Link size={12} /> LinkedIn
+                        </div>
+                        <a href={currentUser.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--rit-orange-red)', textDecoration: 'none', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          {currentUser.linkedin_url.replace(/^https?:\/\/(www\.)?/, '')}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label className="form-label">Profile Picture</label>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
-                  {predefinedAvatars.map(avatar => (
-                    <div 
-                      key={avatar.id}
-                      onClick={() => setFormData({...formData, avatar_url: avatar.id})}
-                      style={{
-                        width: '48px', height: '48px',
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                        border: formData.avatar_url === avatar.id ? '3px solid var(--rit-orange-red)' : '3px solid transparent',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {avatar.svg}
-                    </div>
-                  ))}
-                  <div 
-                    onClick={() => setFormData({...formData, avatar_url: 'initials'})}
-                    style={{
-                      width: '48px', height: '48px',
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                      border: formData.avatar_url === 'initials' ? '3px solid var(--rit-orange-red)' : '3px solid transparent',
-                      backgroundColor: 'var(--text-heading)',
-                      color: 'var(--bg-page)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '12px', fontWeight: 'bold'
-                    }}
-                    title="Use initials"
-                  >
-                    Use Initials
-                  </div>
-                </div>
-              </div>
+              {/* Removed Avatar Selector from here */}
 
               <div>
                 <label className="form-label">Full Name</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                 />
               </div>
-              
+
               <div className="grid-2">
                 <div>
                   <label className="form-label">Gender</label>
-                  <select 
-                    className="form-input" 
+                  <select
+                    className="form-input"
                     value={formData.gender}
-                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                   >
                     <option value="">Prefer not to say</option>
                     <option value="Male">Male</option>
@@ -204,12 +292,54 @@ export const Profile = () => {
                 </div>
                 <div>
                   <label className="form-label">Phone Number (Optional)</label>
-                  <input 
-                    type="tel" 
-                    className="form-input" 
+                  <input
+                    type="tel"
+                    className="form-input"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+91..."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="form-label">About Me (Optional)</label>
+                <textarea
+                  className="form-input form-textarea"
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Tell us a little about yourself..."
+                  maxLength={300}
+                  style={{ height: '80px', resize: 'vertical' }}
+                />
+                <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text-disabled)', marginTop: '4px' }}>
+                  {formData.bio.length} / 300
+                </div>
+              </div>
+
+              <div className="grid-2">
+                <div>
+                  <label className="form-label">LinkedIn Profile (Optional)</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    value={formData.linkedin_url}
+                    onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                    placeholder="https://linkedin.com/in/your-profile"
+                    pattern="^https:\/\/(www\.)?linkedin\.com\/.*$"
+                    title="Must be a valid LinkedIn URL"
+                  />
+                </div>
+                <div>
+                  <label className="form-label">GitHub Profile (Optional)</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    value={formData.github_url}
+                    onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
+                    placeholder="https://github.com/username"
+                    pattern="^https:\/\/(www\.)?github\.com\/.*$"
+                    title="Must be a valid GitHub URL"
                   />
                 </div>
               </div>
@@ -279,7 +409,7 @@ export const Profile = () => {
           </div>
         </Card>
       </div>
-      
+
       <div className="stagger-4">
         <Card title="Account Security">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
