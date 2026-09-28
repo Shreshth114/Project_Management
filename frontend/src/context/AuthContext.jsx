@@ -247,6 +247,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshProfile = async () => {
+    try {
+      if (!currentUser) return;
+      const profile = await authService.getUserProfile(currentUser);
+      setCurrentUser(profile);
+      localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
+    } catch (err) {
+      console.warn("Failed to refresh profile:", err);
+    }
+  };
+
   const assignFacultyAsCoordinator = (facultyName, subjectCode) => {
     setData(prev => {
       const updatedSubjects = (prev.subjects || []).map(s => {
@@ -453,8 +464,12 @@ export const AuthProvider = ({ children }) => {
 
   const resendVerificationEmail = async (email) => {
     try {
-      return await authService.resendVerificationEmail(email);
+      console.log('Attempting to resend verification to:', email);
+      const res = await authService.resendVerificationEmail(email);
+      console.log('Resend response:', res);
+      return res;
     } catch (err) {
+      console.error('Resend verification error:', err);
       return { success: false, message: err.message };
     }
   };
@@ -476,6 +491,7 @@ export const AuthProvider = ({ children }) => {
         resetPassword,
         updatePassword,
         resendVerificationEmail,
+        refreshProfile,
         logout,
         switchTeacherRole,
         showRoleSelectionModal,

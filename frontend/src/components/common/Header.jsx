@@ -5,6 +5,7 @@ import {
   RefreshCw, 
   ChevronDown,
   LogOut,
+  User,
   X,
   Sun,
   Moon
@@ -25,7 +26,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
     logout,
     activeTab,
     data,
-    setShowModeSelectionLanding
+    setShowModeSelectionLanding,
+    setActiveTab
   } = useAuth();
   
   const { theme, toggleTheme } = useTheme();
@@ -312,8 +314,8 @@ export const Header = ({ onToggleMobileDrawer }) => {
 
         {/* User Profile Dropdown */}
         <div ref={profileDropdownRef} style={{ position: 'relative' }}>
-          <div 
-            onClick={() => { setActiveTab('profile'); setShowDropdown(false); }}
+          <button 
+            onClick={() => setShowDropdown(!showDropdown)}
             style={{
               background: 'none',
               border: 'none',
@@ -323,21 +325,19 @@ export const Header = ({ onToggleMobileDrawer }) => {
               gap: '8px',
               cursor: 'pointer',
               padding: '4px 8px',
-              borderRadius: '4px'
+              borderRadius: '4px',
+              textAlign: 'left'
             }}
           >
             <Avatar user={currentUser} size={32} />
             <div className="mobile-hide" style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '13px', fontWeight: 700 }}>{currentUser?.name || 'User'}</div>
+              <div style={{ fontSize: '13px', fontWeight: 700 }}>Hello {currentUser?.name || 'User'}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-sidebar)' }}>{activeRole}</div>
             </div>
-            <button 
-              onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}
-              style={{ background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', display: 'flex' }}
-            >
+            <div style={{ padding: '4px', display: 'flex' }}>
               <ChevronDown className="mobile-hide" size={14} color="#D1D5DB" />
-            </button>
-          </div>
+            </div>
+          </button>
 
           {showDropdown && (
             <div style={{
@@ -358,6 +358,27 @@ export const Header = ({ onToggleMobileDrawer }) => {
                 <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-heading)', wordBreak: 'break-word' }}>{currentUser?.name}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{currentUser?.email}</div>
               </div>
+
+                            <button 
+                onClick={() => { setShowDropdown(false); setActiveTab('profile'); }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '10px 16px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-main)',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <User size={14} />
+                <span>My Profile</span>
+              </button>
 
               <button 
                 onClick={() => { setShowDropdown(false); logout(); }}

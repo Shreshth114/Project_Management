@@ -296,58 +296,74 @@ ALTER TABLE public.task ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.team ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS subjects_read_for_registration ON public.subject;
+DROP POLICY IF EXISTS subjects_read_for_registration ON public.subject;
 CREATE POLICY subjects_read_for_registration ON public.subject
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS subjects_admin_manage ON public.subject;
 CREATE POLICY subjects_admin_manage ON public.subject
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS faculty_read_for_registration ON public.faculty;
 CREATE POLICY faculty_read_for_registration ON public.faculty
   FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS faculty_authenticated_read ON public.faculty;
 CREATE POLICY faculty_authenticated_read ON public.faculty
   FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS faculty_admin_manage ON public.faculty;
 CREATE POLICY faculty_admin_manage ON public.faculty
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS users_read_related_profiles ON public.users;
 CREATE POLICY users_read_related_profiles ON public.users
   FOR SELECT TO authenticated
   USING ((SELECT private.can_access_contact(user_id)));
+DROP POLICY IF EXISTS users_admin_manage ON public.users;
 CREATE POLICY users_admin_manage ON public.users
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS admin_admin_manage ON public.admin;
 CREATE POLICY admin_admin_manage ON public.admin
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS audit_log_admin_read ON public.audit_log;
 CREATE POLICY audit_log_admin_read ON public.audit_log
   FOR SELECT TO authenticated
   USING ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS audit_log_admin_manage ON public.audit_log;
 CREATE POLICY audit_log_admin_manage ON public.audit_log
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS student_related_read ON public.student;
 CREATE POLICY student_related_read ON public.student
   FOR SELECT TO authenticated
   USING ((SELECT private.can_access_student(student_id)));
+DROP POLICY IF EXISTS student_admin_manage ON public.student;
 CREATE POLICY student_admin_manage ON public.student
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
 
+DROP POLICY IF EXISTS team_related_read ON public.team;
 CREATE POLICY team_related_read ON public.team
   FOR SELECT TO authenticated
   USING ((SELECT private.can_access_team(team_id)));
+DROP POLICY IF EXISTS team_admin_manage ON public.team;
 CREATE POLICY team_admin_manage ON public.team
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS team_coordinator_manage_subject ON public.team;
 CREATE POLICY team_coordinator_manage_subject ON public.team
   FOR ALL TO authenticated
   USING (
@@ -364,13 +380,16 @@ CREATE POLICY team_coordinator_manage_subject ON public.team
     )
   );
 
+DROP POLICY IF EXISTS task_related_read ON public.task;
 CREATE POLICY task_related_read ON public.task
   FOR SELECT TO authenticated
   USING ((SELECT private.can_access_task(task_id)));
+DROP POLICY IF EXISTS task_admin_manage ON public.task;
 CREATE POLICY task_admin_manage ON public.task
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS task_coordinator_insert_subject ON public.task;
 CREATE POLICY task_coordinator_insert_subject ON public.task
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -381,6 +400,7 @@ CREATE POLICY task_coordinator_insert_subject ON public.task
         AND f.subject_id = (SELECT private.app_faculty_subject_id())
     )
   );
+DROP POLICY IF EXISTS task_coordinator_update_subject ON public.task;
 CREATE POLICY task_coordinator_update_subject ON public.task
   FOR UPDATE TO authenticated
   USING ((SELECT private.can_manage_task(task_id)))
@@ -392,28 +412,35 @@ CREATE POLICY task_coordinator_update_subject ON public.task
         AND f.subject_id = (SELECT private.app_faculty_subject_id())
     )
   );
+DROP POLICY IF EXISTS task_coordinator_delete_subject ON public.task;
 CREATE POLICY task_coordinator_delete_subject ON public.task
   FOR DELETE TO authenticated
   USING ((SELECT private.can_manage_task(task_id)));
 
+DROP POLICY IF EXISTS criteria_related_read ON public.evaluation_criteria;
 CREATE POLICY criteria_related_read ON public.evaluation_criteria
   FOR SELECT TO authenticated
   USING ((SELECT private.can_access_task(task_id)));
+DROP POLICY IF EXISTS criteria_admin_manage ON public.evaluation_criteria;
 CREATE POLICY criteria_admin_manage ON public.evaluation_criteria
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS criteria_coordinator_insert_subject ON public.evaluation_criteria;
 CREATE POLICY criteria_coordinator_insert_subject ON public.evaluation_criteria
   FOR INSERT TO authenticated
   WITH CHECK ((SELECT private.can_manage_task(task_id)));
+DROP POLICY IF EXISTS criteria_coordinator_update_subject ON public.evaluation_criteria;
 CREATE POLICY criteria_coordinator_update_subject ON public.evaluation_criteria
   FOR UPDATE TO authenticated
   USING ((SELECT private.can_manage_task(task_id)))
   WITH CHECK ((SELECT private.can_manage_task(task_id)));
+DROP POLICY IF EXISTS criteria_coordinator_delete_subject ON public.evaluation_criteria;
 CREATE POLICY criteria_coordinator_delete_subject ON public.evaluation_criteria
   FOR DELETE TO authenticated
   USING ((SELECT private.can_manage_task(task_id)));
 
+DROP POLICY IF EXISTS submission_related_read ON public.submission;
 CREATE POLICY submission_related_read ON public.submission
   FOR SELECT TO authenticated
   USING (
@@ -423,10 +450,12 @@ CREATE POLICY submission_related_read ON public.submission
       AND (SELECT private.can_access_task(task_id))
     )
   );
+DROP POLICY IF EXISTS submission_admin_manage ON public.submission;
 CREATE POLICY submission_admin_manage ON public.submission
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS submission_student_insert_own_team ON public.submission;
 CREATE POLICY submission_student_insert_own_team ON public.submission
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -446,6 +475,7 @@ CREATE POLICY submission_student_insert_own_team ON public.submission
     )
   );
 
+DROP POLICY IF EXISTS evaluation_related_read ON public.evaluation;
 CREATE POLICY evaluation_related_read ON public.evaluation
   FOR SELECT TO authenticated
   USING (
@@ -457,21 +487,26 @@ CREATE POLICY evaluation_related_read ON public.evaluation
         AND (SELECT private.can_access_team(sub.team_id))
     )
   );
+DROP POLICY IF EXISTS evaluation_admin_manage ON public.evaluation;
 CREATE POLICY evaluation_admin_manage ON public.evaluation
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS evaluation_faculty_insert_assigned ON public.evaluation;
 CREATE POLICY evaluation_faculty_insert_assigned ON public.evaluation
   FOR INSERT TO authenticated
   WITH CHECK ((SELECT private.can_write_evaluation(submission_id, student_id, criteria_id, evaluator_id)));
+DROP POLICY IF EXISTS evaluation_faculty_update_assigned ON public.evaluation;
 CREATE POLICY evaluation_faculty_update_assigned ON public.evaluation
   FOR UPDATE TO authenticated
   USING ((SELECT private.can_write_evaluation(submission_id, student_id, criteria_id, evaluator_id)))
   WITH CHECK ((SELECT private.can_write_evaluation(submission_id, student_id, criteria_id, evaluator_id)));
+DROP POLICY IF EXISTS evaluation_faculty_delete_assigned ON public.evaluation;
 CREATE POLICY evaluation_faculty_delete_assigned ON public.evaluation
   FOR DELETE TO authenticated
   USING ((SELECT private.can_write_evaluation(submission_id, student_id, criteria_id, evaluator_id)));
 
+DROP POLICY IF EXISTS message_participants_read ON public.message;
 CREATE POLICY message_participants_read ON public.message
   FOR SELECT TO authenticated
   USING (
@@ -479,10 +514,12 @@ CREATE POLICY message_participants_read ON public.message
     OR sender_id = (SELECT private.app_user_id())
     OR receiver_id = (SELECT private.app_user_id())
   );
+DROP POLICY IF EXISTS message_admin_manage ON public.message;
 CREATE POLICY message_admin_manage ON public.message
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
   WITH CHECK ((SELECT private.is_admin()));
+DROP POLICY IF EXISTS message_send_as_self ON public.message;
 CREATE POLICY message_send_as_self ON public.message
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -490,13 +527,16 @@ CREATE POLICY message_send_as_self ON public.message
     AND (SELECT private.can_message_user(receiver_id))
   );
 
+DROP POLICY IF EXISTS notification_owner_read ON public.notification;
 CREATE POLICY notification_owner_read ON public.notification
   FOR SELECT TO authenticated
   USING (user_id = (SELECT private.app_user_id()));
+DROP POLICY IF EXISTS notification_owner_update ON public.notification;
 CREATE POLICY notification_owner_update ON public.notification
   FOR UPDATE TO authenticated
   USING (user_id = (SELECT private.app_user_id()))
   WITH CHECK (user_id = (SELECT private.app_user_id()));
+DROP POLICY IF EXISTS notification_admin_manage ON public.notification;
 CREATE POLICY notification_admin_manage ON public.notification
   FOR ALL TO authenticated
   USING ((SELECT private.is_admin()))
@@ -512,18 +552,21 @@ DROP POLICY IF EXISTS submissions_read_related ON storage.objects;
 DROP POLICY IF EXISTS submissions_upload_own ON storage.objects;
 DROP POLICY IF EXISTS support_attachments_upload_own ON storage.objects;
 
+DROP POLICY IF EXISTS submissions_read_related ON storage.objects;
 CREATE POLICY submissions_read_related ON storage.objects
   FOR SELECT TO authenticated
   USING (
     bucket_id = 'submissions'
     AND (SELECT private.can_access_submission_object(name))
   );
+DROP POLICY IF EXISTS submissions_upload_own ON storage.objects;
 CREATE POLICY submissions_upload_own ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
     bucket_id = 'submissions'
     AND (SELECT private.can_upload_submission_path(name))
   );
+DROP POLICY IF EXISTS support_attachments_upload_own ON storage.objects;
 CREATE POLICY support_attachments_upload_own ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (

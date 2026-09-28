@@ -1,4 +1,23 @@
 import { supabase } from '../lib/supabase';
+export const BRANCH_CODES = {
+  'CS': 'Computer Science & Engineering',
+  'IS': 'Information Science & Engineering',
+  'EC': 'Electronics & Communication Engineering',
+  'EE': 'Electrical & Electronics Engineering',
+  'ME': 'Mechanical Engineering',
+  'CV': 'Civil Engineering',
+  'AE': 'Aerospace Engineering',
+  'AI': 'Artificial Intelligence & Machine Learning',
+  'CD': 'Computer Science & Design',
+  'CY': 'Cyber Security',
+  'DS': 'Data Science'
+};
+
+export const getDepartmentFromUSN = (usn) => {
+  if (!usn || typeof usn !== 'string' || usn.length < 10) return null;
+  const branchCode = usn.substring(5, 7).toUpperCase();
+  return BRANCH_CODES[branchCode] || null;
+};
 
 export const authService = {
   async login(identifier, password) {
@@ -101,6 +120,7 @@ export const authService = {
       const email = userRecord.email || (typeof userOrEmail === 'string' ? userOrEmail : userOrEmail?.email);
       profile.name = profile.name || email;
       profile.username = profile.usn || email;
+      profile.department = getDepartmentFromUSN(profile.usn) || 'Computer Science & Engineering';
       
     } else if (role === 'FACULTY' || role === 'TEACHER') {
       let { data: facultyRecord } = await supabase
@@ -144,6 +164,7 @@ export const authService = {
       
       profile.name = facultyRecord?.name || profile.name || email;
       profile.username = email;
+      profile.department = 'Information Science & Engineering'; // Default for MSRIT ISE PMS
       
       profile.teacherRoles = ['FACULTY'];
       if (profile.is_coordinator || facultyRecord?.is_coordinator || email === 'faculty_test@msrit.edu' || email === 'coord_test@msrit.edu') {
@@ -213,7 +234,10 @@ export const authService = {
       .update({
         ...(updates.gender !== undefined && { gender: updates.gender }),
         ...(updates.phone !== undefined && { phone: updates.phone }),
-        ...(updates.avatar_url !== undefined && { avatar_url: updates.avatar_url })
+        ...(updates.avatar_url !== undefined && { avatar_url: updates.avatar_url }),
+        ...(updates.bio !== undefined && { bio: updates.bio }),
+        ...(updates.linkedin_url !== undefined && { linkedin_url: updates.linkedin_url }),
+        ...(updates.github_url !== undefined && { github_url: updates.github_url })
       })
       .eq('user_id', userId);
 
@@ -235,20 +259,29 @@ export const authService = {
   },
 
   async resendVerificationEmail(email) {
-    // Generate the correct environment-aware redirect URL for the verification link
-    const isVercel = import.meta.env.VITE_VERCEL === '1';
-    const baseUrl = isVercel ? window.location.origin : `${window.location.origin}/pms`;
-    const redirectTo = `${baseUrl}/#type=signup`;
+    const baseUri = typeof window !== 'undefined'
+      ? window.location.origin + (import.meta.env.BASE_URL || '/')
+      : '';
+    const redirectTo = baseUri;
 
-    const { error } = await supabase.auth.resend({
+    const res = await supabase.auth.resend({
       type: 'signup',
-      email: email,
+      email: email.trim().toLowerCase(),
       options: {
         emailRedirectTo: redirectTo
       }
     });
+    
+    console.log("Supabase resend response:", JSON.stringify({
+      data: res.data,
+      error: res.error ? {
+        message: res.error.message,
+        status: res.error.status,
+        code: res.error.code
+      } : null
+    }));
 
-    if (error) throw error;
-    return { success: true };
+    if (res.error) throw res.error;
+    return { success: true, data: res.data };
   }
 };
