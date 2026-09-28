@@ -9,16 +9,12 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [isResending, setIsResending] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');
-  const [resendError, setResendError] = useState('');
 
-  const { registerUser, resendVerificationEmail } = useAuth();
+  const { registerUser } = useAuth();
 
   // Dynamic subjects from database
   const [subjects, setSubjects] = useState([]);
@@ -33,43 +29,7 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
       .finally(() => setLoadingSubjects(false));
   }, []);
 
-  useEffect(() => {
-    let timer;
-    if (resendCooldown > 0) {
-      timer = setInterval(() => {
-        setResendCooldown(c => c - 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
 
-  const handleResendVerification = async () => {
-    if (resendCooldown > 0 || isResending) return;
-    
-    setIsResending(true);
-    setResendError('');
-    setResendMessage('');
-    
-    try {
-      const res = await resendVerificationEmail(email);
-      if (res.success) {
-        setResendMessage('Verification email sent ✓');
-        setResendCooldown(60);
-      } else {
-        if (res.message && res.message.includes('after')) {
-          const match = res.message.match(/after (\d+) seconds/);
-          if (match) {
-            setResendCooldown(parseInt(match[1], 10));
-          }
-        }
-        setResendError(res.message || 'Unable to resend the verification email. Please try again.');
-      }
-    } catch (err) {
-      setResendError('Unable to resend the verification email. Please try again.');
-    } finally {
-      setIsResending(false);
-    }
-  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -77,6 +37,11 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
     if (!email.toLowerCase().includes('@msrit.edu')) {
       setError('Please provide an official institutional faculty email (@msrit.edu).');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
@@ -96,15 +61,10 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
       const res = await registerUser(newUser);
       if (res.success) {
-        if (res.requiresEmailConfirmation) {
-          setRegistrationSuccess(true);
-          setResendCooldown(60);
-        } else {
-          setSuccess('Faculty Enrolment completed successfully! Redirecting to login...');
-          setTimeout(() => {
-            onBackToLogin();
-          }, 1500);
-        }
+        setSuccess('Faculty Enrolment completed successfully! Redirecting to login...');
+        setTimeout(() => {
+          onBackToLogin();
+        }, 1500);
       } else {
         setError(res.message || 'Registration failed.');
       }
@@ -170,21 +130,20 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
 
         {/* Body */}
         <div style={{ padding: '24px' }}>
-          {success && !registrationSuccess && (
+          {success && (
             <div className="alert alert-success">
               <CheckCircle size={18} />
               <span>{success}</span>
             </div>
           )}
 
-          {error && !registrationSuccess && (
+          {error && (
             <div className="alert alert-danger">
               <AlertCircle size={18} />
               <span>{error}</span>
             </div>
           )}
 
-          {!registrationSuccess && (
           <form onSubmit={handleRegister}>
             <div className="form-group">
               <label className="form-label">Full Name with Title</label>
@@ -262,6 +221,19 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               />
             </div>
 
+            <div className="form-group">
+              <label className="form-label">Confirm Password</label>
+              <input
+                type="password"
+                className="form-input"
+                placeholder="••••••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+            </div>
+
             <button 
               type="submit" 
               className="btn btn-primary btn-block" 
@@ -272,58 +244,6 @@ export const RegisterFaculty = ({ onBackToLogin }) => {
               <span>Submit</span>
             </button>
           </form>
-          )}
-
-          {registrationSuccess && (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ 
-                width: '64px', height: '64px', 
-                backgroundColor: 'rgba(34, 197, 94, 0.1)', 
-                color: '#22c55e', 
-                borderRadius: '50%', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                margin: '0 auto 20px auto'
-              }}>
-                <CheckCircle size={32} />
-              </div>
-              <h2 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-heading)', marginBottom: '12px' }}>
-                Registration Successful!
-              </h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
-                We've sent a verification email to <strong>{email}</strong>. 
-                Please check your inbox and verify your email before logging in.
-              </p>
-              
-              <div style={{ padding: '20px', backgroundColor: 'var(--bg-sidebar)', borderRadius: '8px', border: '1px solid var(--border-color)', marginTop: '20px' }}>
-                <p style={{ color: 'var(--text-sidebar)', fontSize: '14px', marginBottom: '16px' }}>
-                  Didn't receive the email?
-                </p>
-                
-                {resendMessage && (
-                  <div style={{ color: '#22c55e', fontSize: '14px', marginBottom: '12px', fontWeight: 600 }}>
-                    {resendMessage}
-                  </div>
-                )}
-                
-                {resendError && (
-                  <div style={{ color: '#ef4444', fontSize: '14px', marginBottom: '12px', fontWeight: 600 }}>
-                    {resendError}
-                  </div>
-                )}
-                
-                <button 
-                  onClick={handleResendVerification}
-                  disabled={resendCooldown > 0 || isResending}
-                  className="btn btn-secondary"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                >
-                  {isResending ? 'Sending...' : 
-                   resendCooldown > 0 ? `Resend available in ${resendCooldown}s` : 
-                   'Resend Verification Email'}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
