@@ -111,16 +111,31 @@ export const authService = {
     if (role === 'STUDENT') {
       const { data: studentRecord } = await supabase
         .from('student')
-        .select('*')
+        .select(`
+          *,
+          team (
+            subject (
+              subject_code,
+              subject_name
+            )
+          )
+        `)
         .eq('user_id', dbUserId)
         .maybeSingle();
         
-      if (studentRecord) profile = { ...profile, ...studentRecord };
+      if (studentRecord) {
+        profile = { ...profile, ...studentRecord };
+        // Flatten the subject info so the UI can easily display it
+        if (studentRecord.team?.subject) {
+          profile.subjectCode = studentRecord.team.subject.subject_code;
+          profile.subjectName = studentRecord.team.subject.subject_name;
+        }
+      }
       
       const email = userRecord.email || (typeof userOrEmail === 'string' ? userOrEmail : userOrEmail?.email);
       profile.name = profile.name || email;
       profile.username = profile.usn || email;
-      profile.department = getDepartmentFromUSN(profile.usn) || 'Computer Science & Engineering';
+      profile.department = 'Information Science & Engineering'; // Requested by user to fix hardcoded CSE
       
     } else if (role === 'FACULTY' || role === 'TEACHER') {
       let { data: facultyRecord } = await supabase

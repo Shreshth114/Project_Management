@@ -12,6 +12,7 @@ export const RegisterStudent = ({ onBackToLogin }) => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [guide, setGuide] = useState('');
   const [guideId, setGuideId] = useState('');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
