@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Award, CheckCircle, Save, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Card } from '../../components/common/Card';
@@ -30,6 +30,42 @@ export const FacultyEvaluation = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [savedSuccess, setSavedSuccess] = useState('');
+  const evaluationRequestId = useRef(0);
+  const evaluationStorageKey = `pms-faculty-evaluation:${currentUser?.user_id || currentUser?.faculty_id || 'session'}`;
+
+  const readEvaluationSelection = () => {
+    let storedSelection = {};
+    try {
+      storedSelection = JSON.parse(sessionStorage.getItem(evaluationStorageKey) || '{}');
+    } catch {
+      storedSelection = {};
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    return {
+      groupId: params.get('groupId') || storedSelection.groupId || '',
+      taskId: params.get('taskId') || storedSelection.taskId || '',
+      studentId: params.get('studentId') || storedSelection.studentId || ''
+    };
+  };
+
+  const updateEvaluationUrl = (selection) => {
+    const url = new URL(window.location.href);
+    Object.entries(selection).forEach(([key, value]) => {
+      if (value) url.searchParams.set(key, String(value));
+      else url.searchParams.delete(key);
+    });
+    window.history.replaceState(window.history.state, '', url);
+    try {
+      sessionStorage.setItem(evaluationStorageKey, JSON.stringify({
+        groupId: url.searchParams.get('groupId') || '',
+        taskId: url.searchParams.get('taskId') || '',
+        studentId: url.searchParams.get('studentId') || ''
+      }));
+    } catch {
+      // The URL remains the fallback if session storage is unavailable.
+    }
+  };
 
   useEffect(() => {
     if (currentUser?.faculty_id) {
@@ -57,25 +93,35 @@ export const FacultyEvaluation = () => {
       setGroups(teamList);
       setTasks(taskList);
       
-      const params = new URLSearchParams(window.location.search);
-      const urlGroupId = params.get('groupId');
-      const urlTaskId = params.get('taskId');
-      
+      const savedSelection = readEvaluationSelection();
+      const urlGroupId = savedSelection.groupId;
+      const urlTaskId = savedSelection.taskId;
+
+      let resolvedGroupId = '';
+      let resolvedTaskId = '';
       if (teamList.length > 0) {
         if (urlGroupId && teamList.some(t => String(t.team_id || t.id) === String(urlGroupId))) {
-          setSelectedGroupId(urlGroupId);
+          resolvedGroupId = String(urlGroupId);
         } else {
-          setSelectedGroupId(teamList[0].team_id || teamList[0].id);
+          resolvedGroupId = String(teamList[0].team_id || teamList[0].id);
         }
+        setSelectedGroupId(resolvedGroupId);
       }
       
       if (taskList.length > 0) {
         if (urlTaskId && taskList.some(t => String(t.task_id || t.id) === String(urlTaskId))) {
-          setSelectedTaskId(urlTaskId);
+          resolvedTaskId = String(urlTaskId);
         } else {
-          setSelectedTaskId(taskList[0].task_id || taskList[0].id);
+          resolvedTaskId = String(taskList[0].task_id || taskList[0].id);
         }
+        setSelectedTaskId(resolvedTaskId);
       }
+
+      updateEvaluationUrl({
+        groupId: resolvedGroupId,
+        taskId: resolvedTaskId,
+        studentId: savedSelection.studentId
+      });
     } catch (err) {
       setError(err.message);
       setGroups(data?.groups || []);
@@ -92,6 +138,7 @@ export const FacultyEvaluation = () => {
   }, [selectedGroupId, selectedTaskId]);
 
   const fetchEvaluationData = async (groupId, taskId) => {
+    const requestId = ++evaluationRequestId.current;
     try {
       setLoading(true);
       const [fetchedCriteria, fetchedSubmissions, fetchedEvaluations] = await Promise.all([
@@ -99,6 +146,8 @@ export const FacultyEvaluation = () => {
         submissionService.getSubmissionsByTeam(groupId),
         evaluationService.getEvaluationsForTeamTask(groupId, taskId)
       ]);
+      if (requestId !== evaluationRequestId.current) return;
+
       const critList = fetchedCriteria && fetchedCriteria.length > 0 ? fetchedCriteria : [
         { criteria_id: 1, criteria_name: 'SRS & Architecture', max_marks: 10 },
         { criteria_id: 2, criteria_name: 'Project Understanding', max_marks: 10 },
@@ -115,12 +164,18 @@ export const FacultyEvaluation = () => {
       
       const group = groups.find(g => String(g.team_id || g.id) === String(groupId));
       if (group && group.members && group.members.length > 0) {
-        openEvaluationForStudent(group.members[0].usn, group.members, fetchedEvaluations, critList);
+        const requestedStudentId = readEvaluationSelection().studentId;
+        const selectedStudent = group.members.find(m => String(m.student_id) === String(requestedStudentId))
+          || group.members.find(m => m.usn === activeStudentUsn)
+          || group.members[0];
+        openEvaluationForStudent(selectedStudent.usn, group.members, fetchedEvaluations, critList);
       }
     } catch (err) {
-      console.warn("Evaluation fetch info:", err);
+      if (requestId === evaluationRequestId.current) {
+        console.warn("Evaluation fetch info:", err);
+      }
     } finally {
-      setLoading(false);
+      if (requestId === evaluationRequestId.current) setLoading(false);
     }
   };
 
@@ -144,6 +199,11 @@ export const FacultyEvaluation = () => {
     setActiveStudentUsn(usn);
     const studentObj = (membersList || []).find(m => m.usn === usn);
     if (!studentObj) return;
+    updateEvaluationUrl({
+      groupId: selectedGroupId,
+      taskId: selectedTaskId,
+      studentId: studentObj.student_id
+    });
 
     const studentEvals = (evals || []).filter(e => Number(e.student_id) === Number(studentObj.student_id));
     
@@ -255,7 +315,11 @@ export const FacultyEvaluation = () => {
             <select
               className="form-select"
               value={selectedGroupId}
-              onChange={(e) => setSelectedGroupId(e.target.value)}
+              onChange={(e) => {
+                const groupId = e.target.value;
+                setSelectedGroupId(groupId);
+                updateEvaluationUrl({ groupId, taskId: selectedTaskId, studentId: null });
+              }}
             >
               {groups.map(g => (
                 <option key={g.team_id || g.id} value={g.team_id || g.id}>
@@ -270,7 +334,11 @@ export const FacultyEvaluation = () => {
             <select
               className="form-select"
               value={selectedTaskId}
-              onChange={(e) => setSelectedTaskId(e.target.value)}
+              onChange={(e) => {
+                const taskId = e.target.value;
+                setSelectedTaskId(taskId);
+                updateEvaluationUrl({ groupId: selectedGroupId, taskId, studentId: activeStudentObj?.student_id });
+              }}
             >
               {tasks.map(t => (
                 <option key={t.task_id || t.id} value={t.task_id || t.id}>
