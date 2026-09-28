@@ -380,6 +380,29 @@ export const Header = ({ onToggleMobileDrawer }) => {
                 <span>My Profile</span>
               </button>
 
+              {isTeacher && isAssignedCoordinator && (
+                <button 
+                  onClick={() => { setShowDropdown(false); handleModeToggle(); }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 16px',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <RefreshCw size={14} />
+                  <span>Switch Workspace</span>
+                </button>
+              )}
+
               <button 
                 onClick={() => { setShowDropdown(false); logout(); }}
                 style={{
