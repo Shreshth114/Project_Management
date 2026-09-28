@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   
   const [showRoleSelectionModal, setShowRoleSelectionModal] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [pendingRole, setPendingRole] = useState(null);
+  const pendingRoleRef = React.useRef(null);
   const [showModeSelectionLanding, setShowModeSelectionLanding] = useState(false);
   
   const [isRecoveryFlow, setIsRecoveryFlow] = useState(() => {
@@ -89,6 +89,7 @@ export const AuthProvider = ({ children }) => {
         const profile = await authService.getUserProfile(session.user);
         
         // If there's a pending role from a fresh login, validate it
+        const pendingRole = pendingRoleRef.current;
         if (pendingRole) {
           let isValid = false;
           if (pendingRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }) => {
             setCurrentRole(null);
             setActiveTab('login');
             setIsAuthLoading(false);
-            setPendingRole(null);
+            pendingRoleRef.current = null;
             return;
           }
         }
@@ -147,7 +148,11 @@ export const AuthProvider = ({ children }) => {
             }
           }
         }
-        setPendingRole(null);
+        if (event !== 'PASSWORD_RECOVERY') {
+          localStorage.removeItem('rit_recovery_in_progress');
+          setIsRecoveryFlow(false);
+        }
+        pendingRoleRef.current = null;
       } catch (err) {
         console.error("Profile resolution error:", err);
         setCurrentUser(null);
@@ -164,17 +169,18 @@ export const AuthProvider = ({ children }) => {
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'INITIAL_SESSION') return;
       handleProfileResolution(session, _event);
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [pendingRole, isRecoveryFlow]);
+  }, [isRecoveryFlow]);
 
   const login = async (email, password, expectedRole) => {
     try {
-      setPendingRole(expectedRole);
+      pendingRoleRef.current = expectedRole;
       const loginRes = await authService.login(email, password);
       
       let user = loginRes?.user;
@@ -184,52 +190,9 @@ export const AuthProvider = ({ children }) => {
       }
       if (!user) throw new Error("No user session returned after login.");
       
-      const profile = await authService.getUserProfile(user);
-      if (expectedRole) {
-        let isValid = false;
-        if (expectedRole === 'STUDENT' && profile.role === 'STUDENT') isValid = true;
-        if (expectedRole === 'ADMIN' && profile.role === 'ADMIN') isValid = true;
-        if (expectedRole === 'FACULTY' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('FACULTY')) isValid = true;
-        if (expectedRole === 'COORDINATOR' && profile.role === 'TEACHER' && profile.teacherRoles?.includes('COORDINATOR')) isValid = true;
-
-        if (!isValid) {
-          await authService.logout();
-          localStorage.removeItem('rit_current_user_profile');
-          setPendingRole(null);
-          return { success: false, message: `Account is not authorized for the ${expectedRole} persona.` };
-        }
-      }
-
-      setCurrentUser(profile);
-      localStorage.setItem('rit_current_user_profile', JSON.stringify(profile));
-
-      if (profile.role === 'STUDENT') {
-        setCurrentRole('STUDENT');
-        setActiveTab('dashboard');
-      } else if (profile.role === 'ADMIN') {
-        setCurrentRole('ADMIN');
-        setActiveTab('dashboard');
-      } else if (profile.role === 'TEACHER') {
-        const isAssignedCoord = profile.teacherRoles?.includes('COORDINATOR') ||
-          profile.is_coordinator ||
-          profile.isCoordinator;
-
-        if (expectedRole === 'COORDINATOR' || expectedRole === 'FACULTY') {
-          setCurrentRole(expectedRole);
-          setActiveTab('dashboard');
-        } else if (isAssignedCoord) {
-          setCurrentRole('FACULTY');
-          setShowModeSelectionLanding(true);
-          setActiveTab('dashboard');
-        } else {
-          setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
-          setActiveTab('dashboard');
-        }
-      }
-
       return { success: true };
     } catch (err) {
-      setPendingRole(null);
+      pendingRoleRef.current = null;
       return { success: false, message: err.message };
     }
   };
