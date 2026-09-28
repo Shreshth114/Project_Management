@@ -38,11 +38,14 @@ export const StudentTasks = () => {
 
         const submittedIds = new Set(
           fetchedTasks
-            .filter(task => submissions.some(submission =>
-              String(submission.task_id) === String(task.task_id) &&
-              (task.task_type !== 'INDIVIDUAL' ||
-                String(submission.submitted_by_student_id) === String(currentUser?.student_id))
-            ))
+            .filter(task => {
+              const isIndividual = String(task.task_type || '').toUpperCase() === 'INDIVIDUAL';
+              return submissions.some(submission =>
+                String(submission.task_id) === String(task.task_id) &&
+                submissionService.isDeliverable(submission) &&
+                (!isIndividual || String(submission.submitted_by_student_id) === String(currentUser?.student_id))
+              );
+            })
             .map(task => String(task.task_id))
         );
 

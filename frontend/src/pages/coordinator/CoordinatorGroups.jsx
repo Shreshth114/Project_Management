@@ -50,7 +50,12 @@ export const CoordinatorGroups = () => {
       for (const t of fetchedTeams || []) {
         const subs = await submissionService.getSubmissionsByTeam(t.team_id).catch(() => []);
         const totalT = (fetchedTasks || []).length;
-        const progress = totalT > 0 ? Math.min(100, Math.round(((subs?.length || 0) / totalT) * 100)) : 0;
+        const distinctDeliveredTaskIds = new Set(
+          (subs || [])
+            .filter(s => submissionService.isDeliverable(s))
+            .map(s => String(s.task_id))
+        );
+        const progress = totalT > 0 ? Math.min(100, Math.round((distinctDeliveredTaskIds.size / totalT) * 100)) : 0;
 
         enrichedGroups.push({
           id: t.team_id,

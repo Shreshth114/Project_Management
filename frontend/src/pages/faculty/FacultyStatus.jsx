@@ -50,6 +50,7 @@ export const FacultyStatus = () => {
             .filter(sub => {
               const task = taskMap[sub.task_id];
               if (!task) return false;
+              if (!submissionService.isDeliverable(sub)) return false;
               return String(task.task_type).toUpperCase() !== 'INDIVIDUAL'
                 || Number(sub.submitted_by_student_id) === Number(m.student_id);
             })

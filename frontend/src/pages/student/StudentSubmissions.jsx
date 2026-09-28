@@ -64,11 +64,14 @@ export const StudentSubmissions = () => {
         teamSubmissions = await submissionService.getSubmissionsByTeam(studentTeam.team_id).catch(() => []);
       }
 
-      const isSubmitted = task => teamSubmissions.some(submission =>
-        String(submission.task_id) === String(task.task_id || task.id) &&
-        (task.task_type !== 'INDIVIDUAL' ||
-          String(submission.submitted_by_student_id) === String(studentId))
-      );
+      const isSubmitted = task => {
+        const isIndividual = String(task.task_type || '').toUpperCase() === 'INDIVIDUAL';
+        return teamSubmissions.some(submission =>
+          String(submission.task_id) === String(task.task_id || task.id) &&
+          submissionService.isDeliverable(submission) &&
+          (!isIndividual || String(submission.submitted_by_student_id) === String(studentId))
+        );
+      };
       const requestedTask = availableTasks.find(task =>
         String(task.task_id || task.id) === String(urlTaskId)
       );
@@ -251,10 +254,10 @@ export const StudentSubmissions = () => {
             <tbody>
               {tasks.length > 0 ? (
                 tasks.map(task => {
-                  const isIndividual = task.task_type === 'INDIVIDUAL';
+                  const isIndividual = String(task.task_type || '').toUpperCase() === 'INDIVIDUAL';
                   const sub = isIndividual
-                    ? submissions.find(s => String(s.task_id) === String(task.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id))
-                    : submissions.find(s => String(s.task_id) === String(task.task_id));
+                    ? submissions.find(s => String(s.task_id) === String(task.task_id) && String(s.submitted_by_student_id) === String(currentUser?.student_id) && submissionService.isDeliverable(s))
+                    : submissions.find(s => String(s.task_id) === String(task.task_id) && submissionService.isDeliverable(s));
                   const isSubmitted = Boolean(sub);
                   const deadlineStr = task.deadline ? formatDate(task.deadline) : '—';
 

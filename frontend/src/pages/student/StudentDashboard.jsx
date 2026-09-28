@@ -81,8 +81,20 @@ export const StudentDashboard = () => {
   const coordinatorName = currentGroup?.coordinator || 'Not Assigned';
   const members = currentGroup?.members || [];
 
+  const validSubmittedTasks = pendingTasks.filter(task => {
+    const isIndividual = String(task.task_type || '').toUpperCase() === 'INDIVIDUAL';
+    return submissions.some(sub => {
+      if (String(sub.task_id) !== String(task.task_id || task.id)) return false;
+      if (!submissionService.isDeliverable(sub)) return false;
+      if (isIndividual) {
+        return String(sub.submitted_by_student_id) === String(currentUser?.student_id);
+      }
+      return true;
+    });
+  });
+
   const totalTasks = pendingTasks.length;
-  const submittedCount = submissions.length;
+  const submittedCount = validSubmittedTasks.length;
   const progressPercent = totalTasks > 0 ? Math.min(100, Math.round((submittedCount / totalTasks) * 100)) : 0;
 
   return (
