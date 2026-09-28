@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }) => {
     const hash = window.location.hash || window.location.search;
     const isRec = hash.includes('type=recovery') || hash.includes('reset-password') || hash.includes('error_code=otp_expired');
     if (isRec) {
+      console.log("[Auth] Recovery callback detected via URL:", hash);
       localStorage.setItem('rit_recovery_in_progress', 'true');
     }
     return isRec || localStorage.getItem('rit_recovery_in_progress') === 'true';
@@ -101,6 +102,7 @@ export const AuthProvider = ({ children }) => {
         
         const isRecFlow = isRecoveryFlow || localStorage.getItem('rit_recovery_in_progress') === 'true';
         if (event === 'PASSWORD_RECOVERY' || isRecFlow) {
+          console.log("[Auth] Recovery event detected, locking to reset password view");
           setActiveTab('login');
           if (!isRecoveryFlow) setIsRecoveryFlow(true);
         } else {

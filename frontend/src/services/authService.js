@@ -193,9 +193,13 @@ export const authService = {
 
   async resetPasswordForEmail(identifier) {
     const trimmedId = identifier.trim();
+    // Use the explicit Vite base URL to dynamically resolve the redirect URL
     const redirectTo = typeof window !== 'undefined'
       ? window.location.origin + (import.meta.env.BASE_URL || '/')
       : undefined;
+
+    console.log("[Auth] Password reset requested for:", trimmedId.includes('@') ? "Email" : "USN/ID");
+    console.log("[Auth] Using redirectTo:", redirectTo);
 
     if (!trimmedId.includes('@')) {
       const { error } = await supabase.functions.invoke('public-auth', {
@@ -222,9 +226,15 @@ export const authService = {
       throw new Error("Password must be at least 6 characters long.");
     }
 
+    console.log("[Auth] Starting updateUser to set new password...");
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) throw error;
+    
+    if (error) {
+      console.error("[Auth] updateUser error:", error);
+      throw error;
+    }
 
+    console.log("[Auth] updateUser completed successfully.");
     return { success: true };
   },
 

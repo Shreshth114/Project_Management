@@ -67,19 +67,17 @@ Deno.serve(async (request) => {
     const bodyRedirectTo = typeof body.redirectTo === "string" ? body.redirectTo : undefined;
     const emailRedirectTo = bodyRedirectTo || (origin ? new URL("/pms/", origin).toString() : undefined);
     
-    const { data: authData, error: authError } = await authClient.auth.signUp({
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email,
       password,
-      options: {
-        ...(emailRedirectTo ? { emailRedirectTo } : {}),
-        data: { name, role, ...(role === "STUDENT" ? { usn } : {}) },
-      },
+      email_confirm: true,
+      user_metadata: { name, role, ...(role === "STUDENT" ? { usn } : {}) },
     });
 
     if (authError) {
       return jsonResponse({ success: false, message: "Registration could not be completed. Check the details or contact the administrator." }, 400);
     }
-    if (!authData.user || authData.user.identities?.length === 0) {
+    if (!authData.user) {
       return jsonResponse({ success: false, message: "Registration could not be completed. Check the details or contact the administrator." }, 400);
     }
     authUserId = authData.user.id;
@@ -103,7 +101,7 @@ Deno.serve(async (request) => {
 
     return jsonResponse({
       success: true,
-      requiresEmailConfirmation: !authData.session,
+      requiresEmailConfirmation: false,
     }, 201);
   } catch {
     if (authUserId && adminClient) {
