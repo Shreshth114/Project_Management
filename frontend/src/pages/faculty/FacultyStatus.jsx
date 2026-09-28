@@ -44,20 +44,32 @@ export const FacultyStatus = () => {
 
       for (const team of teams || []) {
         const teamSubs = await submissionService.getSubmissionsByTeam(team.team_id).catch(() => []);
-        const hasSubmissions = teamSubs && teamSubs.length > 0;
-        const latestSub = hasSubmissions ? teamSubs[teamSubs.length - 1] : null;
-        const taskObj = latestSub ? taskMap[latestSub.task_id] : null;
-        const taskTitle = taskObj ? taskObj.title : (latestSub ? `Task #${latestSub.task_id}` : '—');
 
         for (const m of team.members || []) {
-          // Strictly evaluate per student_id (NOT by entire team_id)
-          const studentEvals = (evaluations || []).filter(e => Number(e.student_id) === Number(m.student_id));
+          const studentSubs = (teamSubs || [])
+            .filter(sub => {
+              const task = taskMap[sub.task_id];
+              if (!task) return false;
+              return String(task.task_type).toUpperCase() !== 'INDIVIDUAL'
+                || Number(sub.submitted_by_student_id) === Number(m.student_id);
+            })
+            .sort((left, right) => new Date(right.submitted_at) - new Date(left.submitted_at));
+          const latestSub = studentSubs[0] || null;
+          const taskObj = latestSub ? taskMap[latestSub.task_id] : null;
+          const taskTitle = taskObj?.title || (latestSub ? `Task #${latestSub.task_id}` : '—');
+          const hasSubmission = Boolean(latestSub);
+
+          const studentEvals = (evaluations || []).filter(e =>
+            Number(e.student_id) === Number(m.student_id)
+            && latestSub
+            && Number(e.submission?.task_id) === Number(latestSub.task_id)
+          );
           const isEvaluated = studentEvals.length > 0;
 
-          let submissionStatus = hasSubmissions ? 'SUBMITTED' : 'NOT_SUBMITTED';
-          let evalStatus = isEvaluated ? 'EVALUATED' : (hasSubmissions ? 'PENDING_EVALUATION' : 'NOT_EVALUATED');
+          let submissionStatus = hasSubmission ? 'SUBMITTED' : 'NOT_SUBMITTED';
+          let evalStatus = isEvaluated ? 'EVALUATED' : (hasSubmission ? 'PENDING_EVALUATION' : 'NOT_EVALUATED');
           let submissionDate = latestSub?.submitted_at ? formatDate(latestSub.submitted_at) : '—';
-          let progress = isEvaluated ? 100 : (hasSubmissions ? 60 : 0);
+          let progress = isEvaluated ? 100 : (hasSubmission ? 60 : 0);
 
           const totalMarks = isEvaluated
             ? studentEvals.reduce((sum, e) => sum + Number(e.awarded_marks || 0), 0)
@@ -76,7 +88,7 @@ export const FacultyStatus = () => {
             evalStatus,
             submissionDate,
             taskTitle,
-            taskType: taskObj?.task_type || 'Milestone',
+            taskType: taskObj?.task_type || '—',
             totalMarks,
             feedback,
             progress,
