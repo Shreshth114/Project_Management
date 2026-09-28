@@ -125,7 +125,20 @@ export const FacultyEvaluation = () => {
   };
 
   const selectedGroup = groups.find(g => String(g.team_id || g.id) === String(selectedGroupId)) || groups[0];
+  const selectedTask = tasks.find(t => String(t.task_id || t.id) === String(selectedTaskId));
   const activeStudentObj = selectedGroup?.members?.find(m => m.usn === activeStudentUsn);
+  const isIndividualTask = String(selectedTask?.task_type || '').toUpperCase() === 'INDIVIDUAL';
+  const getSubmissionForStudent = (student) => {
+    if (!student || !selectedTask) return null;
+
+    const taskSubmissions = submissions.filter(s => String(s.task_id) === String(selectedTaskId));
+    if (isIndividualTask) {
+      return taskSubmissions.find(s => Number(s.submitted_by_student_id) === Number(student.student_id)) || null;
+    }
+
+    return taskSubmissions.find(s => String(s.team_id) === String(selectedGroupId)) || null;
+  };
+  const activeSubmission = getSubmissionForStudent(activeStudentObj);
 
   const openEvaluationForStudent = (usn, membersList = selectedGroup?.members, evals = evaluations, critList = criteria) => {
     setActiveStudentUsn(usn);
@@ -172,13 +185,12 @@ export const FacultyEvaluation = () => {
       setSubmitting(true);
       setError(null);
       
-      // Evaluate only a real student or team submission for this task.
-      const submission = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
-        || submissions.find(s => Number(s.team_id) === Number(selectedGroupId) && Number(s.task_id) === Number(selectedTaskId))
-        || submissions[0];
+      const submission = activeSubmission;
 
       if (!submission) {
-        throw new Error('A student or team submission is required before evaluation.');
+        throw new Error(isIndividualTask
+          ? 'This student has not submitted this individual task yet.'
+          : 'This team has not submitted this group task yet.');
       }
 
       const submissionId = submission.submission_id;
@@ -214,7 +226,7 @@ export const FacultyEvaluation = () => {
     }
   };
 
-  const isGroupMode = selectedGroup?.submissionMode === 'LEADER_SUBMITS_ALL' || selectedGroup?.submissionMode === 'GROUP';
+  const isGroupMode = Boolean(selectedTask) && !isIndividualTask;
   const batchId = selectedGroup?.batchId || selectedGroup?.team_code || 'Group G01';
 
   return (
@@ -262,7 +274,7 @@ export const FacultyEvaluation = () => {
             >
               {tasks.map(t => (
                 <option key={t.task_id || t.id} value={t.task_id || t.id}>
-                  {t.title}
+                  {t.title} ({String(t.task_type || 'GROUP').toUpperCase() === 'INDIVIDUAL' ? 'Individual' : 'Group'})
                 </option>
               ))}
             </select>
@@ -431,27 +443,23 @@ export const FacultyEvaluation = () => {
                   
                   <div style={{ marginTop: '12px' }}>
                     {(() => {
-                      const activeSub = submissions.find(s => Number(s.submitted_by_student_id) === Number(activeStudentObj.student_id))
-                        || submissions.find(s => Number(s.team_id) === Number(selectedGroupId) && Number(s.task_id) === Number(selectedTaskId))
-                        || submissions[0];
-                        
-                      if (activeSub && activeSub.file_url && activeSub.file_url !== '#') {
+                      if (activeSubmission?.file_url && activeSubmission.file_url !== '#') {
                         return (
                           <button 
                             type="button"
                             className="btn btn-secondary btn-sm"
-                            onClick={() => submissionService.openSubmissionFile(activeSub.file_url, activeSub.file_name)}
+                            onClick={() => submissionService.openSubmissionFile(activeSubmission.file_url, activeSubmission.file_name)}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                             title="Click to view/download deliverable"
                           >
                             <ExternalLink size={14} />
-                            <span>View Submission ({activeSub.file_name || 'File'})</span>
+                            <span>View Submission ({activeSubmission.file_name || 'File'})</span>
                           </button>
                         );
-                      } else if (activeSub) {
+                      } else if (activeSubmission) {
                         return (
                           <span style={{ fontSize: '12px', display: 'inline-block', padding: '4px 8px', backgroundColor: 'var(--bg-page)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-                            Attached: {activeSub.file_name || 'Document'}
+                            Attached: {activeSubmission.file_name || 'Document'}
                           </span>
                         );
                       } else {
@@ -510,7 +518,7 @@ export const FacultyEvaluation = () => {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary btn-block" style={{ padding: '11px' }} disabled={submitting}>
+                <button type="submit" className="btn btn-primary btn-block" style={{ padding: '11px' }} disabled={submitting || !activeSubmission}>
                   <Save size={16} />
                   <span>{submitting ? 'SAVING...' : `SAVE INDIVIDUAL EVALUATION (${calculateTotal()} FOR ${activeStudentObj.name.toUpperCase()})`}</span>
                 </button>

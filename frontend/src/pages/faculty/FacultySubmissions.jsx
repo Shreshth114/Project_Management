@@ -99,7 +99,8 @@ export const FacultySubmissions = ({ readOnly = false }) => {
     submissions.forEach(sub => {
       const task = tasks.find(t => String(t.task_id || t.id) === String(sub.task_id));
       const taskTitle = task?.title || sub.task_name || 'Project Deliverable';
-      const isModeA = sub.team?.submission_mode === 'LEADER_SUBMITS_ALL' || sub.team?.submission_mode === 'GROUP';
+      const taskType = String(task?.task_type || 'GROUP').toUpperCase();
+      const isModeA = taskType !== 'INDIVIDUAL';
       const modeLabel = isModeA ? 'Mode A (Group Mode)' : 'Mode B (Individual Mode)';
       const batchId = sub.team?.team_code || 'Individual';
       const submittedByLabel = sub.student?.name 
