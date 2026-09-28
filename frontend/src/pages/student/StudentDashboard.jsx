@@ -74,7 +74,7 @@ export const StudentDashboard = () => {
   const currentGroup = studentGroup;
   const hasTeam = Boolean(currentGroup);
 
-  const groupCode = currentGroup?.team_code || 'Not Enrolled';
+  const batchId = currentGroup?.team_code || 'Not Enrolled';
   const title = currentGroup?.subject?.subject_name || (hasTeam ? 'Academic Project' : 'No Enrolled Project');
   const subjectCode = currentGroup?.subject?.subject_code || 'N/A';
   const guideName = currentGroup?.guide?.name || 'Not Assigned';
@@ -107,7 +107,7 @@ export const StudentDashboard = () => {
               {title}
             </h1>
             <div style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
-              Group: <strong>{groupCode}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
+              Batch ID: <strong>{batchId}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
             </div>
           </div>
           {hasTeam && (
@@ -235,7 +235,7 @@ export const StudentDashboard = () => {
 
         {/* Team Members List */}
         <div className="stagger-4">
-          <Card title={`Project Team Members (${groupCode})`}>
+          <Card title={`Project Team Members (${batchId})`}>
             <div className="table-container">
             <table className="portal-table">
               <thead>

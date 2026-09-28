@@ -57,7 +57,7 @@ export const FacultyDashboard = () => {
                 id: sub.submission_id,
                 groupId: team.team_id || team.id,
                 taskId: sub.task_id || sub.id,
-                groupCode: team.team_code,
+                batchId: team.team_code,
                 taskTitle: allTasks.find(t => t.task_id === sub.task_id)?.title || `Milestone ${sub.task_id}`,
                 fileName: sub.file_name,
                 fileSize: sub.file_type,
@@ -160,7 +160,7 @@ export const FacultyDashboard = () => {
                 >
                   <div>
                     <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '14px' }}>
-                      {sub.groupCode} - {sub.taskTitle}
+                      {sub.batchId} - {sub.taskTitle}
                     </div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                       File: {sub.fileName} ({sub.fileSize}) | Submitted: {sub.submittedAt}
@@ -189,7 +189,7 @@ export const FacultyDashboard = () => {
             <table className="portal-table">
               <thead>
                 <tr>
-                  <th>Group Code</th>
+                  <th>Batch ID</th>
                   <th>Subject</th>
                   <th>Members Count</th>
                 </tr>

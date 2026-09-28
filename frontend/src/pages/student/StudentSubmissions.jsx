@@ -177,7 +177,7 @@ export const StudentSubmissions = () => {
       </div>
     );
 
-  const groupCode = team?.team_code || 'Not Enrolled';
+  const batchId = team?.team_code || 'Not Enrolled';
   const groupTitle = team?.subject?.subject_name || (team ? 'Academic Project' : 'No Enrolled Project');
   const guideName = team?.guide?.name || 'Not Assigned';
   const coordinatorName = team?.coordinator || 'Not Assigned';
@@ -205,7 +205,7 @@ export const StudentSubmissions = () => {
             {groupTitle}
           </h1>
           <div style={{ fontSize: '13px', color: 'var(--text-sidebar)', marginTop: '4px' }}>
-            Group Code: <strong>{groupCode}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
+            Batch ID: <strong>{batchId}</strong> | Guide: <strong>{guideName}</strong> | Coordinator: <strong>{coordinatorName}</strong>
           </div>
         </div>
 
@@ -230,7 +230,7 @@ export const StudentSubmissions = () => {
 
       {/* DYNAMIC DELIVERABLES TABLE FROM REAL TASKS */}
       <div className="stagger-2">
-        <Card title={`Project Deliverables & Milestones (${groupCode})`}>
+        <Card title={`Project Deliverables & Milestones (${batchId})`}>
           <p className="text-muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
           Milestones published by the department coordinator. Submissions made by any member reflect for all team members.
         </p>

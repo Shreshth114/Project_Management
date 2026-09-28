@@ -16,7 +16,7 @@ const matchesSearch = (item, searchTerm) => {
     item.username,
     item.usn,
     item.email,
-    item.teamCode,
+    item.batchId,
     item.subjectCode,
     item.subjectName,
     item.guideName,
@@ -139,7 +139,7 @@ export const AdminUsers = () => {
             <table className="portal-table">
               <thead>
                 <tr>
-                  <th>Team Code</th>
+                  <th>Batch ID</th>
                   <th>Course Title</th>
                   <th>Assigned Guide</th>
                   <th>Student Members</th>
@@ -148,7 +148,7 @@ export const AdminUsers = () => {
               <tbody>
                 {teams.map((t) => (
                   <tr key={t.team_id}>
-                    <td style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{t.teamCode}</td>
+                    <td style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{t.batchId}</td>
                     <td style={{ fontWeight: 600 }}>{t.subjectName || t.subjectCode || 'Major Project'}</td>
                     <td style={{ fontWeight: 600, color: 'var(--text-heading)' }}>{t.guideName || 'Unassigned'}</td>
                     <td><Badge variant="purple">{t.studentCount} Students</Badge></td>
@@ -207,7 +207,7 @@ export const AdminUsers = () => {
 
                   let subjectGroupLabel = '-';
                   if (u.role === 'STUDENT') {
-                    subjectGroupLabel = `${u.teamCode || 'No Team'} (${u.subjectCode || u.subjectName || 'Course'})`;
+                    subjectGroupLabel = `${u.batchId || 'No Team'} (${u.subjectCode || u.subjectName || 'Course'})`;
                   } else if (u.role === 'ADMIN') {
                     subjectGroupLabel = 'System Administration';
                   } else {
@@ -291,7 +291,7 @@ export const AdminUsers = () => {
                 
                 {inspectingUser.role === 'STUDENT' && (
                   <>
-                    <div><strong>Project Team Code:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{inspectingUser.teamCode || 'No Team Assigned'}</span></div>
+                    <div><strong>Project Batch ID:</strong> <span style={{ color: 'var(--text-heading)', fontWeight: 700 }}>{inspectingUser.batchId || 'No Team Assigned'}</span></div>
                     <div><strong>Allocated Guide:</strong> <span>{inspectingUser.guideName || 'Not Assigned'}</span></div>
                   </>
                 )}
@@ -303,7 +303,7 @@ export const AdminUsers = () => {
                       <strong>Mentored Project Batches:</strong>
                       <div style={{ marginTop: '4px', fontSize: '13px', color: 'var(--text-heading)', fontWeight: 600 }}>
                         {teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).length > 0
-                          ? teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).map(t => `${t.teamCode} (${t.studentCount} students)`).join(', ')
+                          ? teams.filter(t => t.guideName === inspectingUser.name || t.guideId === inspectingUser.faculty_id).map(t => `${t.batchId} (${t.studentCount} students)`).join(', ')
                           : 'No project batches currently assigned'}
                       </div>
                     </div>

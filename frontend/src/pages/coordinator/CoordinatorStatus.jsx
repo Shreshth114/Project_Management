@@ -105,7 +105,7 @@ export const CoordinatorStatus = () => {
           <table className="portal-table">
             <thead>
               <tr>
-                <th>Batch Code</th>
+                <th>Batch ID</th>
                 <th>Project Title</th>
                 <th>Guide</th>
                 <th>Deliverables Status</th>
@@ -125,7 +125,7 @@ export const CoordinatorStatus = () => {
 
                   return (
                     <tr key={g.team_id}>
-                      <td data-label="Batch Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{g.team_code}</td>
+                      <td data-label="Batch ID" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{g.team_code}</td>
                       <td data-label="Project Title" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-heading)' }}>
                         {g.subject?.subject_name || 'Academic Project'}
                       </td>

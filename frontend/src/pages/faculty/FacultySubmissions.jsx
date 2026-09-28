@@ -101,7 +101,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
       const taskTitle = task?.title || sub.task_name || 'Project Deliverable';
       const isModeA = sub.team?.submission_mode === 'LEADER_SUBMITS_ALL' || sub.team?.submission_mode === 'GROUP';
       const modeLabel = isModeA ? 'Mode A (Group Mode)' : 'Mode B (Individual Mode)';
-      const groupCode = sub.team?.team_code || 'Individual';
+      const batchId = sub.team?.team_code || 'Individual';
       const submittedByLabel = sub.student?.name 
         ? `${sub.student.name} (${sub.student.usn || ''})` 
         : (sub.submitted_by_name || 'Student');
@@ -110,7 +110,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
         id: `supabase-${sub.submission_id || sub.id}`,
         groupId: sub.team?.team_id || sub.team_id,
         taskId: sub.task_id || sub.id,
-        groupCode,
+        batchId,
         taskTitle,
         modeOfSubmission: modeLabel,
         fileName: sub.file_name || (sub.file_type === 'link' ? sub.file_url : 'Deliverable Document'),
@@ -152,7 +152,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
           <table className="portal-table">
             <thead>
               <tr>
-                <th>Group Name</th>
+                <th>Batch ID</th>
                 <th>Task Component</th>
                 <th>Mode of Submission</th>
                 <th>Deliverable File</th>
@@ -166,7 +166,7 @@ export const FacultySubmissions = ({ readOnly = false }) => {
               {allSubmissions.length > 0 ? (
                 allSubmissions.map((sub) => (
                   <tr key={sub.id}>
-                    <td data-label="Group Name" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{sub.groupCode}</td>
+                    <td data-label="Batch ID" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{sub.batchId}</td>
                     <td data-label="Task Component" style={{ fontWeight: 600 }}>{sub.taskTitle}</td>
                     {/* Added Mode of Submission column */}
                     <td data-label="Mode of Submission">

@@ -14,7 +14,7 @@ export const CoordinatorProfile = () => {
   // Form for new subject/project allocation
   const [newSubjectName, setNewSubjectName] = useState('');
   const [newSubjectCode, setNewSubjectCode] = useState('');
-  const [newGroupName, setNewGroupName] = useState('');
+  const [newBatchId, setNewBatchId] = useState('');
   const [newProjectName, setNewProjectName] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -50,7 +50,7 @@ export const CoordinatorProfile = () => {
             subjectName: team.subject?.subject_name || 'Academic Project Course',
             subjectCode: team.subject?.subject_code || 'PROJ',
             projectName: team.subject?.subject_name ? `${team.subject.subject_name} (${team.team_code})` : team.team_code,
-            groupName: team.team_code,
+            batchId: team.team_code,
             numProjects: 1,
             numGroupsGuiding: team.members?.length || 0
           });
@@ -72,13 +72,13 @@ export const CoordinatorProfile = () => {
       subjectName: newSubjectName,
       subjectCode: newSubjectCode,
       projectName: newProjectName,
-      groupName: newGroupName,
+      batchId: newBatchId,
       numProjects: 1,
       numGroupsGuiding: 1
     };
 
     setCoordinatorProjects(prev => [...prev, newProj]);
-    setNewGroupName('');
+    setNewBatchId('');
     setNewProjectName('');
     setNewSubjectName('');
     setNewSubjectCode('');
@@ -165,7 +165,7 @@ export const CoordinatorProfile = () => {
                   <th>Course Code</th>
                   <th>Course Name</th>
                   <th>Project Name</th>
-                  <th>Group Name</th>
+                  <th>Batch ID</th>
                   <th>Total Projects</th>
                   <th>Students Enrolled</th>
                 </tr>
@@ -176,7 +176,7 @@ export const CoordinatorProfile = () => {
                     <td data-label="Course Code" style={{ fontWeight: 800, color: 'var(--rit-orange-red)' }}>{p.subjectCode}</td>
                     <td data-label="Course Name" style={{ fontWeight: 600 }}>{p.subjectName}</td>
                     <td data-label="Project Name" style={{ fontSize: '13px', color: 'var(--text-heading)' }}>{p.projectName}</td>
-                    <td data-label="Group Name" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>{p.groupName}</td>
+                    <td data-label="Batch ID" style={{ fontWeight: 700, color: 'var(--rit-orange-red)' }}>{p.batchId}</td>
                     <td data-label="Total Projects">{p.numProjects} Project</td>
                     <td data-label="Students Enrolled">{p.numGroupsGuiding} Students</td>
                   </tr>

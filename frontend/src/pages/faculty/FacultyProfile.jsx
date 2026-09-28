@@ -22,7 +22,7 @@ export const FacultyProfile = () => {
   const [subjectName, setSubjectName] = useState('');
   const [subjectCode, setSubjectCode] = useState('');
   const [mode, setMode] = useState('Group'); // 'Group' | 'Individual'
-  const [groupName, setGroupName] = useState('');
+  const [batchId, setBatchId] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export const FacultyProfile = () => {
               subjectName: t.subject?.subject_name || 'Academic Project',
               subjectCode: t.subject?.subject_code || 'Course Code',
               mode: 'Group',
-              groupName: t.team_code
+              batchId: t.team_code
             })));
           } else {
             setManagedSubjects([]);
@@ -61,12 +61,12 @@ export const FacultyProfile = () => {
       subjectName,
       subjectCode,
       mode,
-      groupName: mode === 'Group' ? groupName : 'N/A (Individual)'
+      batchId: mode === 'Group' ? batchId : 'N/A (Individual)'
     };
 
     setManagedSubjects(prev => [...prev, newSub]);
     setSubjectName('');
-    setGroupName('');
+    setBatchId('');
     setSuccess(`Subject "${subjectCode} - ${subjectName}" added successfully!`);
     setTimeout(() => setSuccess(''), 3500);
   };
@@ -167,7 +167,7 @@ export const FacultyProfile = () => {
                 </div>
                 <div className="grid-3" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   <div><strong>Course Code:</strong> {sub.subjectCode}</div>
-                  <div><strong>Group / Team Name:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{sub.groupName}</span></div>
+                  <div><strong>Batch ID:</strong> <span style={{ color: 'var(--rit-orange-red)', fontWeight: 700 }}>{sub.batchId}</span></div>
                   <div><strong>Status:</strong> Active Evaluation</div>
                 </div>
               </div>
