@@ -15,7 +15,18 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentRole, setCurrentRole] = useState(null);
+  const [currentRole, setCurrentRoleState] = useState(() => {
+    return localStorage.getItem('rit_current_role') || null;
+  });
+
+  const setCurrentRole = (role) => {
+    setCurrentRoleState(role);
+    if (role) {
+      localStorage.setItem('rit_current_role', role);
+    } else {
+      localStorage.removeItem('rit_current_role');
+    }
+  };
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'login';
   });
@@ -121,9 +132,15 @@ export const AuthProvider = ({ children }) => {
               setCurrentRole(pendingRole);
               setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
             } else if (isAssignedCoord) {
-              setCurrentRole('FACULTY');
-              setShowModeSelectionLanding(true);
-              setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+              const savedRole = localStorage.getItem('rit_current_role');
+              if (savedRole === 'COORDINATOR' || savedRole === 'FACULTY') {
+                setCurrentRole(savedRole);
+                setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+              } else {
+                setCurrentRole('FACULTY');
+                setShowModeSelectionLanding(true);
+                setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
+              }
             } else {
               setCurrentRole(profile.teacherRoles ? profile.teacherRoles[0] : 'FACULTY');
               setActiveTab(prev => prev === 'login' ? 'dashboard' : prev);
@@ -314,6 +331,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
       localStorage.removeItem('rit_current_user_profile');
+      localStorage.removeItem('rit_current_role');
       localStorage.removeItem('activeTab');
       clearRecoveryState();
       setCurrentUser(null);
